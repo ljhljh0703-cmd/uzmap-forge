@@ -26,7 +26,7 @@ jobs:
           gh release download playtest-inputs-v1 --pattern GemTower_Max_7C.w3x --dir fixtures/maps
           gh release download playtest-inputs-v1 --pattern unit-abilities.json --dir fixtures/stock
       - name: Check source input and public package boundaries
-        run: node --experimental-strip-types --test test/web/source-input.test.ts test/web/field-culling.test.ts test/scripts/pages-package.test.ts test/scripts/web-build-version.test.ts
+        run: node --experimental-strip-types --test test/web/source-input.test.ts test/web/browser-compat.test.ts test/web/frame-start.test.ts test/web/first-entry.test.ts test/web/field-culling.test.ts test/scripts/pages-package.test.ts test/scripts/web-build-version.test.ts
       - name: Build browser runtime
         run: node scripts/build-web.mjs
       - name: Package public files

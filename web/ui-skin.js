@@ -1,3 +1,4 @@
+import {createFrameTask} from './browser-runtime.js';
 /** Gem-selection screen skin. View-only: no Sim/VM imports, no source commands.
  * Root supplies original I[1..5] presentation and existing selection/drawing callbacks.
  * Walnut/brass raster material comes from recorded ChatGPT assets, never CSS art.
@@ -78,6 +79,7 @@ function materialsReady(){
  return materialMetaPromise;
 }
 function rasterNineSlice(ctx,spec,width,height){
+ if(!Number.isFinite(width)||!Number.isFinite(height)||width<1||height<1)return false;
  const prepared=preparedRaster(spec);if(!prepared)return false;
  const im=prepared.image,[left,top,right,bottom]=prepared.insets,w=im.width,h=im.height;
  const d=Math.max(1,Math.min(left,top,right,bottom,Math.floor(width/3),Math.floor(height/3)));
@@ -208,8 +210,9 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   if(primary&&!primary.disabled)primary.dataset.primary='true';paintFrames();paintButtons();paintIcons();
  }
  function repaint(){signature='';for(const p of panels.values())p.paintedKey='';if(latest)render(latest);else paintFrames();}
- const resizeObserver=new ResizeObserver(repaint);resizeObserver.observe(bottom);resizeObserver.observe(app);
+ const queueRepaint=createFrameTask(repaint);
+ const resizeObserver=new ResizeObserver(queueRepaint);resizeObserver.observe(bottom);resizeObserver.observe(app);
  void materialsReady().then(()=>{for(const spec of Object.values(MATERIALS)){const im=imageAt(spec.file);if(!im.complete)im.addEventListener('load',repaint,{once:true});}repaint();}).catch(error=>{app.dataset.skinError='materials';console.warn('[UI material]',error.message);});
  app.dataset.uiSkin='walnut-brass';app.dataset.uiAssets='claude-approved-23';
- return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){resizeObserver.disconnect();}};
+ return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){resizeObserver.disconnect();queueRepaint.destroy();}};
 }

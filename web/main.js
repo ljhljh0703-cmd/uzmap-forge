@@ -1,3 +1,4 @@
+import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
@@ -51,7 +52,9 @@ let selectedSource=null;
 // Real elapsed time drives the existing fixed-step simulation; one displayed 1x is one second per second.
 const frameClock = createFrameClock();
 let restoring=false,restoreCancelled=false;
+let runtimeFailed=false;
 let world = null, playing = false, tps = 1, rectEntered = 0, deaths = 0, gatePassed = 0;
+window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;frameClock.reset();$("play").disabled=true;$("runState").textContent='오류로 정지';});
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6, GEM_IDENTITY_MINE_DESIGN §6) — TextTag(피격/획득 부유 숫자).
 // Attacked 이벤트엔 대미지 수치 필드가 없어(world_api.ts SimEvent — attackerUnitId/targetUnitId만) 값
 // 재구현 없이 "매 스텝 전/후 hp 스냅샷 차이"로 대미지량을 관측한다(엔진 hp mutation을 그대로 읽을 뿐 —
@@ -942,6 +945,7 @@ function render(w,preservePendingDialog=false) {
     return skinGem(handle.t==='handle'&&handle.v!==null?w.sim.getUnit(handle.v):null,slot);
    })});
   renderFieldView(w);
+  document.documentElement.dataset.gameReady='true';
 }
 
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6) — 멀티보드 6열×행(행=플레이어, §5.1 GEM_IDENTITY_MINE_DESIGN §5.1
@@ -1203,17 +1207,18 @@ function requestGemTarget(w,targetUnitId){
 function flash(t) { flashMsg = ""; flashUntil = performance.now() + 1800;gemSkin.notify(t); }
 
 function loop(now = performance.now()) {
-  const ticks = frameClock.advance(now, Boolean(world && playing && !restoring), tps);
-  if (world && !restoring) {
-    if (ticks > 0) stepN(world, ticks);
-    render(world);
-  }
   requestAnimationFrame(loop);
+  if(runtimeFailed)return;
+  try{
+    const ticks=frameClock.advance(now,Boolean(world&&playing&&!restoring),tps);
+    if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);}
+  }catch(error){runtimeFailed=true;playing=false;frameClock.reset();window.showErr('게임 화면 오류',error);}
 }
 
-function resize() { const m = cv.parentElement.getBoundingClientRect(); cv.width = Math.floor(m.width); cv.height = Math.floor(m.height); }
-window.addEventListener("resize", resize);
-new ResizeObserver(resize).observe(cv.parentElement);
+function resize() { resizeCanvasToHost(cv,cv.parentElement.getBoundingClientRect()); }
+const queueResize=createFrameTask(resize);
+window.addEventListener("resize",queueResize);
+new ResizeObserver(queueResize).observe(cv.parentElement);
 
 // P8 original 1.28 UnitData + 4x4SimpleSolid pathing image: h006/h00G occupy
 // 4 WPM cells per side (128 units). Keep legacy fallback only when local identity is absent.
@@ -1454,6 +1459,7 @@ if ($("chatShowAdmin")) $("chatShowAdmin").onchange = () => renderChatHelp(world
 
 function setMsg(t) { const m = $("msg"); if (m) { m.style.display = "flex"; m.textContent = t; } }
 async function loadFromUrl() {
+  runtimeFailed=false;document.documentElement.dataset.gameReady='false';
   try {
     setMsg("맵 로딩 중…");
     // U-6c(DISPATCH_SONNET_U6_INFOARCH §2 U-6c) — 맵과 이름 원장(gems_special+towers_full)을 병렬 fetch.
