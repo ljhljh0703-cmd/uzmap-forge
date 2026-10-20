@@ -30,9 +30,13 @@ export function createUnitIdentityProvider(
       if(typeof maximum==='number')Object.assign(identity,{sourceMaxMoveSpeedU:maximum});
       if(collision!==undefined){if(typeof collision!=='number'||!Number.isFinite(collision)||collision<0||!Number.isSafeInteger(Math.round(collision)))throw Error('invalid source collision');Object.assign(identity,{sourceCollisionU:Math.round(collision)});}
       const enabled=value('uaen');
-      if(typeof enabled==='number'&&(enabled&2)){
-        const second=sourceUnitWeapon(fields,2);if(second.attack)Object.assign(identity,{secondaryAttack:second.attack});
+      // Weapon targets are source identity, not a damage/range balance override.
+      // Reuse the source decoder after stock/custom inheritance (e.g. Amethyst air-only).
+      const primary=sourceUnitWeapon(fields,1);
+      if(primary.attack)Object.assign(identity,{primaryAttackTargetsMask:primary.attack.targetsMask});
+      if(typeof enabled==='number'){
         if(!(enabled&1))Object.assign(identity,{primaryAttackDisabled:true});
+        if(enabled&2){const second=sourceUnitWeapon(fields,2);if(second.attack)Object.assign(identity,{secondaryAttack:second.attack});}
       }
       const trains=value('utra'),lumber=value('ulum'),food=value('ufoo');
       if(typeof trains==='string')Object.assign(identity,{trainingOptions:Object.freeze(abilityCodes(trains))});

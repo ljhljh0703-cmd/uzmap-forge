@@ -21,6 +21,8 @@ export interface SourceBounty {readonly base:number;readonly dice:number;readonl
 export interface UnitUpgradeIdentity {
  readonly sourceMinMoveSpeedU?:number;readonly sourceMaxMoveSpeedU?:number;readonly sourceCollisionU?:number;
  readonly secondaryAttack?:Readonly<import('./balance/config.ts').AttackSpec>;
+ /** Source weapon eligibility; the DefaultsProvider still owns damage/range/timing. */
+ readonly primaryAttackTargetsMask?:number;
  readonly primaryAttackDisabled?:boolean;
  readonly trainingOptions?:ReadonlyArray<string>;
  readonly sourceLumberCost?:number;readonly sourceFoodCost?:number;
@@ -72,7 +74,9 @@ export class DefStore {
     if (hit) return hit;
     const defaults = this.provider.resolve(typeId);
     const identity = this.identity?.resolve(typeId);
-    const def: UnitDef = Object.freeze({ ...defaults, typeId,
+    const attack=defaults.attack&&identity?.primaryAttackTargetsMask!==undefined
+      ?Object.freeze({...defaults.attack,targetsMask:identity.primaryAttackTargetsMask}):defaults.attack;
+    const def: UnitDef = Object.freeze({ ...defaults, typeId, attack,
       ...(identity?.secondaryAttack?{secondaryAttack:identity.secondaryAttack}:{}),
       ...(identity?.primaryAttackDisabled?{attack:null,primaryAttackDisabled:true}:{}),
       ...(identity?.trainingOptions!==undefined?{trainingOptions:identity.trainingOptions}:{}),
