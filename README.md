@@ -1,33 +1,32 @@
 # 보석타워 플레이 테스트
 
-기존 uzmap-forge의 1인 플레이 화면을 GitHub Pages에서 엽니다.
+[테스트 실행](https://ljhljh0703-cmd.github.io/uzmap-forge/)
 
-## 테스트
+링크를 열면 게임 자료를 자동으로 불러옵니다. 파일 선택 없이
+레이스 → 이지 → 빈 칸 건설로 시작할 수 있습니다. 1인 플레이 기준이며,
+멀티 네트워크와 실물 휴대폰 검증은 별도입니다.
 
-공개 화면에서 본인이 보유한 GemTower_Max_7C.w3x와 기존 1.28.5.7680
-unit-abilities.json을 선택하세요. 파일은 방문 기기의 메모리에서 읽으며
-서버에 전송하지 않습니다. 링크에 원본 맵·설치 자료가 포함되지 않습니다.
-파일의 정확한 판본을 확인한 뒤 레이스 → 이지 → 빈 칸 건설로 진행합니다.
-현재 멀티 네트워크와 실물 휴대폰 검증은 별도입니다.
+## 구성
 
-페이지를 다시 열면 원본 자료를 다시 선택합니다. 같은 브라우저·주소에
-저장한 조작 기록은 동일 빌드·시드·자료 판본에서만 이어할 수 있습니다.
+기존 uzmap-forge 런타임과 대체 그래픽을 재사용합니다.
+이번 공개 테스트에는 지정된 맵과 능력 자료 두 파일만 포함합니다.
+원본 자료는 Git 이력에 넣지 않고
+[테스트 자료 Release](https://github.com/ljhljh0703-cmd/uzmap-forge/releases/tag/playtest-inputs-v1)에서
+가져와 Pages 빌드에 포함합니다. 전체 설치 ZIP과 개인 저장 기록,
+원본 문자열 원장은 포함하지 않습니다.
 
-## 빌드·배포
+원본 맵·능력 자료를 추가로 제공하려면 별도의 배포 범위 확인이 필요합니다.
+현재 파일 두 개는 합계3,056,059바이트이며 빌드와 브라우저가 고정한
+SHA-256을 각각 검사합니다. 폰트 라이선스는 web/assets/fonts/OFL.txt에 있습니다.
 
-Node 22.22.3에서 아래 명령을 실행합니다. 런타임 의존성 설치는 필요 없습니다.
+## 저장과 배포
 
-```sh
-node --experimental-strip-types --test test/web/source-input.test.ts test/scripts/pages-package.test.ts test/scripts/web-build-version.test.ts
-node scripts/build-web.mjs
-node scripts/package-pages.mjs
-```
+진행은 같은 브라우저·주소에 저장합니다. 원래 버전·시드·자료 판본이
+일치하는 조작 기록만 이어할 수 있으며 다른 주소의 저장은 자동으로
+옮겨지지 않습니다.
 
-공개 저장소에는 엔진 소스·뷰어·기존 대체 그래픽만 있습니다. 원본 맵,
-Blizzard 설치 자료 및 추출 프로필, 원본 문자열 원장, 개인 저장 기록은
-저장소와 배포 묶음 모두에서 제외합니다. 폰트 라이선스는
-web/assets/fonts/OFL.txt를 보존합니다.
-
-Pages source는 GitHub Actions입니다. main push 또는 Publish test viewer
-수동 실행 시 검증·빌드 후 .site만 게시합니다. 세부 사항은
-[배포 안내](docs/PAGES_DEPLOY.md)를 참고하세요.
+Node22.22.3과 기존 GitHub Actions 설정을 사용합니다.
+UZMAP_HOSTED_INPUTS=enabled이면 지정된 두 Release 자료만 내려받아
+검증하고 .site를 배포합니다. 설정이 꺼져 있으면 기기에서 파일을
+선택하는 기존 경로를 유지합니다. main push나 수동 실행으로 배포합니다.
+세부 절차는 [배포 안내](docs/PAGES_DEPLOY.md)를 참고하세요.

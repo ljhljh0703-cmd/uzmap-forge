@@ -1,48 +1,49 @@
-# GitHub Pages test viewer
+# GitHub Pages test deployment
 
-The published viewer contains the existing runtime and replacement graphics only.
-Original maps, normalized installation profiles, private saves and dissection data
-must never be committed or uploaded.
+The public test URL is https://ljhljh0703-cmd.github.io/uzmap-forge/.
 
-Build with Node 22.22.3: `node scripts/build-web.mjs`, then
-`node scripts/package-pages.mjs`. The dedicated `.site` output must not already
-exist. It contains the site artifact and a build identifier in deployment.json.
+## Active scope
 
-In the authenticated owner's `uzmap-forge` repository, select GitHub Actions as
-the Pages source. Push to main or run Publish test viewer manually.
-The workflow checks file intake and artifact boundaries before building and
-uploads only .site, with Pages deployment permissions limited to the deploy job.
+The user explicitly authorized inclusion of the two previously reviewed source
+files for this public test by replying “포함해” to that exact scope question.
+This is a narrow test-distribution exception; it does not alter canonical policy,
+authorize other original files, or establish any third-party rights claim.
 
-Public and non-loopback visitors first see a file picker. Choose your own
-GemTower_Max_7C.w3x and 1.28.5.7680 unit-abilities.json; their exact SHA-256 values
-must match web/source-input.js. Files are read in device memory and are never
-uploaded. Reset reuses them until the page closes. Reopening the page requires
-selecting them again. A link alone does not include original game content.
+- GemTower_Max_7C.w3x: 2,043,936 bytes.
+- Normalized1.28.5.7680 unit-abilities.json: 1,012,123 bytes.
+- Combined: 3,056,059 bytes.
 
-The existing loopback /web/ development flow remains automatic. To exercise the
-public file-input flow locally, add ?seed=6&input=files. Private local sources
-must not be added to the public artifact to avoid this step.
+The two files are supplied as assets of release playtest-inputs-v1 and are not
+committed to Git history. The full installation ZIP, other maps, source census,
+private saves and Vault documents stay excluded.
 
-Saves remain in the same browser and origin. Localhost saves are not automatically
-migrated to the published origin. Exported input logs still require exact build,
-seed and source-version checks. Multiplayer and real-device validation are
-separate work.
+## Hosted startup
 
-## Optional hosted-input mode (disabled until an explicit distribution decision)
+UZMAP_HOSTED_INPUTS=enabled makes the workflow download the two named Release
+assets into ignored fixtures paths, verify the exact SHA-256 pins and include them
+in .site. The browser reads the same-origin source-inputs manifest and validates
+the same pins before using the existing parser/session. A visitor can open the
+shared URL directly without selecting files. Incorrect or missing inputs stop
+the opted-in build before artifact upload.
 
-The viewer can read a same-origin source-inputs manifest and reuse the exact same
-byte validation and parser, without showing the device file picker. This path was
-verified locally. Packaging remains device-local by default.
+If the variable is unset/disabled, no source download runs and the existing local
+file picker remains. Loopback development still automatically uses its original
+local fixture paths. ?input=files can exercise hosted startup locally.
 
-Before publishing original source inputs, resolve the project AGENTS.md distribution
-restriction with the user. Do not turn on the switch merely because the code exists.
-After that decision, the exact two source files can be supplied as release assets
-under playtest-inputs-v1; do not commit original data to Git history. Setting the
-UZMAP_HOSTED_INPUTS repository variable to enabled makes the workflow download only
-those two assets into fixtures, validate their pinned hashes, and include them in
-the Pages artifact. Run the workflow manually after changing the variable.
+## Build and release
 
-Unset or disabled means no input download and the existing file picker remains.
-An incorrect/missing source set fails the opted-in build before artifact upload.
-The full Warcraft installation ZIP is never needed. The two tested files total
-3,056,059 bytes. Existing private saves and source census are excluded in both modes.
+Use Node22.22.3. Run focused boundary tests, node scripts/build-web.mjs, then
+node scripts/package-pages.mjs --with-source-inputs for the explicitly enabled
+source set. Without the flag, packaging remains original-free. The .site output
+must not already exist; preserve an old output before rebuilding.
+
+GitHub Pages source is GitHub Actions. main push or manual dispatch tests/builds
+before uploading only .site. Pages/id-token write permissions are limited to the
+deploy job. HTTPS is enabled.
+
+## State boundaries
+
+Existing input replay, source rules, fitted field and off-field centre culling are
+unchanged by enabling hosted inputs. Saves stay browser/origin/build/seed/source
+version specific. No automatic transfer from localhost, physical-device success,
+multiplayer support or50-wave completion is implied by a successful deployment.

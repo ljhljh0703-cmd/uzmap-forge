@@ -1,5 +1,5 @@
 /** Publish only the viewer, compiled own runtime and existing replacement art.
- * Original .w3x, normalized stock profiles and source census files stay device-local.
+ * Default packaging excludes originals. Explicit hosted mode includes only the two pinned test inputs; census and saves remain excluded.
  */
 import {existsSync,lstatSync,readdirSync,readFileSync,mkdirSync,writeFileSync,copyFileSync} from 'node:fs';
 import {resolve,join,relative,dirname} from 'node:path';
