@@ -7,7 +7,7 @@ import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTarget
 import {installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
 import {pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels} from "./play-ui.js";
-import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
+import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, freshSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
 import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
 import { createSession, readScriptMap } from "./dist/runtime/session.js";
@@ -43,7 +43,7 @@ void sprites.load(artManifestURL.href).then(()=>{
 });
 const NEUTRAL_GC = { armorFactorPm: 60, strHitPointBonus: 0, agiDefenseBonusPm: 0, intManaBonusPm: 0 };
 const sessionQuery = new URLSearchParams(location.search);
-const sessionSeed = parseSessionSeed(sessionQuery.get("seed"));
+let sessionSeed = parseSessionSeed(sessionQuery.get("seed"),null) ?? freshSessionSeed(undefined,crypto);
 const MAP_URL = "../fixtures/maps/GemTower_Max_7C.w3x";
 const localSourceMode=isLocalGameHost(location.hostname)&&sessionQuery.get("input")!=="files";
 let selectedSource=null;
@@ -213,7 +213,7 @@ function W2SY(y) { return -(y - cam.cy) * cam.zoom + cv.height / 2; }
 function S2WX(px) { return (px - cv.width / 2) / cam.zoom + cam.cx; }
 function S2WY(py) { return -(py - cv.height / 2) / cam.zoom + cam.cy; }
 
-function boot(bytes, presentation, stockProfile) {
+function boot(bytes, presentation, stockProfile, seed) {
   const stockUnits=stockProfile?.units;
   const loaded = readScriptMap(new Uint8Array(bytes), "GemTower_Max_7C.w3x");
   const {archive, pathing: pm} = loaded;
@@ -223,7 +223,7 @@ function boot(bytes, presentation, stockProfile) {
   const sourceDefs=stockUnits?createGemTowerSourceDefs(stockUnits,loaded.ir.objectMods):{defStore:new DefStore(),weaponGaps:[]};
   if(sourceDefs.weaponGaps.length)console.warn('[source unit gaps]',sourceDefs.weaponGaps.join(', '));
   const {vm, sim, registry, defStore} = createSession(loaded.ir, {
-    seed: sessionSeed, defStore: sourceDefs.defStore, stockUnits,stockAbilities:stockProfile?.abilities, pathing:pm,pathingTextures:stockProfile?.pathingTextures, playerSlots: GEMTOWER_SOLO_SLOTS, gc, bountyMode: GEMTOWER_BALANCE.bountyMode,
+    seed, defStore: sourceDefs.defStore, stockUnits,stockAbilities:stockProfile?.abilities, pathing:pm,pathingTextures:stockProfile?.pathingTextures, playerSlots: GEMTOWER_SOLO_SLOTS, gc, bountyMode: GEMTOWER_BALANCE.bountyMode,
     life: GEMTOWER_BALANCE.life, researchConfig: GEMTOWER_BALANCE.researches,
   });
   presentation=sourceGemPresentation(presentation,loaded.ir.objectMods,id=>defStore.getDef(id));
@@ -247,7 +247,7 @@ function boot(bytes, presentation, stockProfile) {
   const modeDialog = modeButtons && modeButtons.length === 2
     ? { dialogId: modeDialogObj.id, classicButtonId: modeButtons[0], raceButtonId: modeButtons[1], clicked: false }
     : null;
-  const w = { runId:createRunId(),runMode:null,vm, sim, registry, defStore, pm, roundTimer, modeDialog, defCache: new Map(), terrain: null, hover: null,
+  const w = { seed, runId:createRunId(),runMode:null,vm, sim, registry, defStore, pm, roundTimer, modeDialog, defCache: new Map(), terrain: null, hover: null,
     // U-6c: 병합 이름 원장(fullName()이 조회). loadFromUrl()이 fetch해 넘긴다 — 실패 시 {} 폴백.
     strings:loaded.strings,sourceVersion:stockProfile?.sourceVersion,inputLog:[],runtimeCrashes:initialVmEvents.filter(event=>event.kind==='ThreadCrashed'),
     nameMap: presentation.names || {}, knownGemIds:presentation.gemIds || new Set(),
@@ -301,7 +301,7 @@ async function loadNameMap() {
 // 함수로 승격해도 표시 형식이 절대 나빠지지 않는다(name이 없을 때만 옛 표기 그대로 유지).
 function sourceText(w,text){return resolveWtsText(String(text??''),w.strings??new Map()).replace(/\|c[0-9a-fA-F]{8}|\|r/g,'').replace(/\|n/g,'\n');}
 function recordInput(w,input){(w.inputLog??=[]).push({tick:w.sim.tickCount,...input});}
-function runSnapshot(w){return {format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,seed:sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
+function runSnapshot(w){return {format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,seed:w.seed??sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
 // Replay text is a paused, visible inspection view; explicit save reuses its validated trace.
 function refreshReplayOutput(w,trace) {
  const explicit=trace!==undefined;
@@ -332,12 +332,12 @@ function renderControls(w) {
 function refreshSavedRuns(selectedKey){
  const list=$("savedRuns"),selected=selectedKey??list.value;list.replaceChildren();
  try{
-  const records=listRunRecords(localStorage,contentBuild,sessionSeed);
+  const records=listRunRecords(localStorage,contentBuild);
   for(const record of records){
    const option=document.createElement('option');option.value=record.key;option.record=record;
    const date=record.trace?.savedAt?new Date(record.trace.savedAt).toLocaleString('ko-KR'):'이전 기록';
    const round=record.trace?.sourceState?.round;
-   option.textContent=`${record.legacy?'보호된 예전 저장 · ':''}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전·시드'}`;
+   option.textContent=`${record.legacy?'보호된 예전 저장 · ':''}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전'}`;
    list.append(option);
   }
   if(records.some(r=>r.key===selected))list.value=selected;
@@ -350,7 +350,7 @@ function showSavedRun(){
  $("savedRunRaw").value=record?.raw??'';
  $("resumeRun").disabled=restoring||!record?.compatible;
  $("exportRun").disabled=!record;
- $("savedRunHelp").textContent=!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?'원본을 내보낼 수 있습니다. 이어하기에는 같은 게임 버전과 시드가 필요합니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.';
+ $("savedRunHelp").textContent=!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?'원본을 내보낼 수 있습니다. 이어하기에는 같은 게임 버전이 필요합니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.';
 }
 $("savedRuns").onchange=showSavedRun;
 $("exportRun").onclick=()=>{
@@ -372,10 +372,10 @@ function cancelRestore(){
 }
 async function restoreRun(raw){
  if(restoring)return;
- let trace;try{trace=validateInputReplay(raw);if(trace.seed!==sessionSeed)throw Error('저장 기록과 현재 게임의 시드가 다릅니다');if(typeof contentBuild!=='string'||!contentBuild||trace.build!==contentBuild)throw Error('저장 기록의 게임 버전이 다릅니다. 기록을 보관하고 같은 버전에서 이어하세요');}catch(error){flash(error.message);return;}
+ let trace;try{trace=validateInputReplay(raw);if(typeof contentBuild!=='string'||!contentBuild||trace.build!==contentBuild)throw Error('저장 기록의 게임 버전이 다릅니다. 기록을 보관하고 같은 버전에서 이어하세요');}catch(error){flash(error.message);return;}
  const before=captureRunView();restoring=true;restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent='저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
-  await loadFromUrl();playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
+  await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   if((world.sourceVersion??null)!==(trace.sourceVersion??null))throw Error('원작 자료 버전이 달라 이어할 수 없습니다');
   let cursor=0;while(world.sim.tickCount<trace.tick||cursor<trace.actions.length){
    if(restoreCancelled)throw Error('복원을 취소했습니다');
@@ -388,7 +388,7 @@ async function restoreRun(raw){
   if(restoreCancelled)throw Error('복원을 취소했습니다');
   if(world.sim.stateHash()!==trace.stateHash||trace.sourceState&&JSON.stringify(gemTowerPlayerState(world.vm))!==JSON.stringify(trace.sourceState)||world.runtimeCrashes.length)throw Error('저장 당시와 결과가 일치하지 않아 이어하기를 중단했습니다');
   world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
-  frameClock.reset();$("msg").style.display='none';render(world);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);
+  frameClock.reset();$("msg").style.display='none';render(world);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);commitSessionSeed(trace.seed);
  }catch(error){restoreRunView(before);$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
  finally{restoring=false;playing=false;frameClock.reset();renderControls(world);$("researchToggle").focus();}
 }
@@ -1374,7 +1374,7 @@ function startWaves(w) {
 $("play").onclick = () => { if (!world||restoring) return;if(world.replayMismatch){flash("기록이 일치하지 않습니다 · 새 게임을 시작하세요");return;} playing = !playing; $("play").textContent = playing ? "일시정지" : "재개"; };
 $("skip").onclick = () => { if (world && world.prepActive) startWaves(world); };
 $("stepBtn").onclick = () => { if (world) { stepN(world, 1); render(world); } };
-$("reset").onclick = () => loadFromUrl();
+$("reset").onclick = () => loadFromUrl(freshSessionSeed(sessionSeed,crypto));
 $("speed").oninput = (e) => { tps = +e.target.value; $("spd").textContent = tps + "×"; };
 for (const id of ["A009", "A007", "A00R", "A03M", "A02G", "A008", "A02J"]) {
   $("cast" + id).onclick = () => { if (world) castGem(world, id); };
@@ -1422,7 +1422,7 @@ for (const techId of RESEARCH_IDS) {
   if (btn) btn.onclick = () => { if (world) { const accepted=world.sim.research(0,techId);recordInput(world,{kind:"research",playerId:0,techId,accepted});if(!accepted)flash("연구 요청 거부됨");else flash("연구 대기 중… ("+techId+")"); } };
 }
 const goRestart = $("goRestart");
-if (goRestart) goRestart.onclick = () => loadFromUrl();
+if (goRestart) goRestart.onclick = () => loadFromUrl(freshSessionSeed(sessionSeed,crypto));
 
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6) — 채팅 콘솔: injectChat(P0,text) 왕복만(효과는 스크립트 소유, 재구현
 // 0). 도움말은 실맵 registry.chatSubs 미러(chat_commands.json 부재 — 런타임 등록부가 원장 대체, A-G9).
@@ -1458,7 +1458,11 @@ if ($("chatInput")) $("chatInput").addEventListener("keydown", (e) => { if (e.ke
 if ($("chatShowAdmin")) $("chatShowAdmin").onchange = () => renderChatHelp(world);
 
 function setMsg(t) { const m = $("msg"); if (m) { m.style.display = "flex"; m.textContent = t; } }
-async function loadFromUrl() {
+function commitSessionSeed(seed) {
+  const url=new URL(location.href);url.searchParams.set('seed',String(seed));
+  history.replaceState(history.state,'',url);sessionSeed=seed;
+}
+async function loadFromUrl(seed=sessionSeed,{publishSeed=true}={}) {
   runtimeFailed=false;document.documentElement.dataset.gameReady='false';
   try {
     setMsg("맵 로딩 중…");
@@ -1471,7 +1475,7 @@ async function loadFromUrl() {
     setMsg("파싱·부팅 중…");
     frameClock.reset();
     drag.on=false; delete $("gameApp").dataset.mode;
-    resize(); world = boot(buf, nameMap, stockProfile); $("msg").style.display = "none"; $("sourceFiles").hidden=true;
+    resize(); world = boot(buf, nameMap, stockProfile, seed); $("msg").style.display = "none"; $("sourceFiles").hidden=true;
     // G-6: 리셋/재부팅 시 hp/gold 차분 앵커·부유 태그·채팅 도움말 갱신(구 world 잔재로 인한 오탐 방지).
     prevHp = new Map(); prevGold = [0, 0, 0, 0, 0, 0, 0, 0];
     prevGold[0] = world.sim.ledger.gold(0); // source startup gold is the observation baseline
@@ -1482,6 +1486,7 @@ async function loadFromUrl() {
     $("engineTag").textContent = "보석 5개 건설 → 보석 선택 또는 같은 보석 조합";
     playing = false; $("play").textContent = "방식 선택";
     render(world);
+    if(publishSeed)commitSessionSeed(seed);
     return true;
   } catch (e) {
     console.error(e);

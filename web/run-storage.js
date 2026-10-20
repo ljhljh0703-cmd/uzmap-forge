@@ -13,13 +13,14 @@ export function saveRunRecord(storage,input,savedAt=Date.now()){
  storage.setItem(key,raw); // One atomic write; legacy is never a write target.
  return {key,raw,trace:saved};
 }
-export function listRunRecords(storage,build,seed){
+export function listRunRecords(storage,build){
  const keys=[];for(let i=0;i<storage.length;i++){const key=storage.key(i);if(key===LEGACY_RUN_KEY||key?.startsWith(PREFIX))keys.push(key);}
  return keys.map(key=>{
   const raw=storage.getItem(key),legacy=key===LEGACY_RUN_KEY;let trace,error;
   try{trace=validateInputReplay(raw);if(!legacy&&key!==PREFIX+trace.build+'.'+trace.runId)throw Error('저장 식별 정보가 다릅니다');}catch(e){error=e.message;}
   const reason=trace?.mode==='classic'?'classic':null;
-  const compatible=!error&&!reason&&trace.build===build&&trace.seed===seed;
+  // Restoration boots trace.seed; a new-game URL must not hide older runs.
+  const compatible=!error&&!reason&&trace.build===build;
   return {key,raw:raw??'',legacy,trace,error,reason,compatible};
  }).sort((a,b)=>(Number(b.trace?.savedAt)||0)-(Number(a.trace?.savedAt)||0)||a.key.localeCompare(b.key));
 }
