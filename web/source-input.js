@@ -21,3 +21,16 @@ export function sourceGemPresentation(presentation,mods,getDef){
  }
  return {names,gemIds};
 }
+
+/** Optional same-origin release inputs. Missing manifest keeps manual local intake. */
+export async function loadHostedPlayFiles(fetcher,parseProfile){
+ const base='./source-inputs/',response=await fetcher(base+'manifest.json',{cache:'no-store'});
+ if(response.status===404)return null;
+ if(!response.ok)throw Error('게임 자료 목록을 불러오지 못했습니다.');
+ const manifest=await response.json();
+ if(manifest.format!=='uzmap-hosted-inputs-v1'||manifest.map!=='map.w3x'||manifest.profile!=='unit-abilities.json')throw Error('게임 자료 목록이 올바르지 않습니다.');
+ const responses=await Promise.all([fetcher(base+manifest.map+'?sha='+MAP_SHA256),fetcher(base+manifest.profile+'?sha='+PROFILE_SHA256)]);
+ if(responses.some(r=>!r.ok))throw Error('게임 자료를 불러오지 못했습니다. 잠시 후 다시 열어주세요.');
+ const buffers=await Promise.all(responses.map(r=>r.arrayBuffer())),files=buffers.map(bytes=>({size:bytes.byteLength,arrayBuffer:async()=>bytes}));
+ return readPlayFiles(files[0],files[1],parseProfile);
+}

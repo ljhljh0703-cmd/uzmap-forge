@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22.22.3'
       - name: Check source input and public package boundaries
-        run: node --experimental-strip-types --test test/web/source-input.test.ts test/scripts/pages-package.test.ts test/scripts/web-build-version.test.ts
+        run: node --experimental-strip-types --test test/web/source-input.test.ts test/web/field-culling.test.ts test/scripts/pages-package.test.ts test/scripts/web-build-version.test.ts
       - name: Build browser runtime
         run: node scripts/build-web.mjs
       - name: Package public files

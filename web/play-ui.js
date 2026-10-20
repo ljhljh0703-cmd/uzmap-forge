@@ -116,3 +116,9 @@ export function ingressMarker(from,to,box,outgoing=false){
 export function lifeLossFeedback(previous,current){
  return Number.isFinite(previous)&&Number.isFinite(current)&&current<previous?`광산 도달 · 생명 ${previous-current} 감소`:null;
 }
+
+/** World-space centre visibility. A large off-field picture must not peek into a local field. */
+export function pointInBattlefield(point,bounds){
+ if(!point||!bounds||![point.x,point.y,bounds.minX,bounds.minY,bounds.maxX,bounds.maxY].every(Number.isFinite))return false;
+ return point.x>=bounds.minX&&point.x<=bounds.maxX&&point.y>=bounds.minY&&point.y<=bounds.maxY;
+}

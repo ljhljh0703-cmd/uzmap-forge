@@ -5,10 +5,10 @@ import {mountGemSkin} from "./ui-skin.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
-import {playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels} from "./play-ui.js";
+import {pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels} from "./play-ui.js";
 import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
-import {isLocalGameHost,readPlayFiles,sourceGemPresentation} from "./source-input.js";
+import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
 import { createSession, readScriptMap } from "./dist/runtime/session.js";
 // Mobile play: source terrain, direct construction and the approved automatically fitted field.
 import { parseMiscConstants } from "./dist/formats/misc.js";
@@ -447,6 +447,49 @@ function renderRouteCues(w){
  if(!exit.hidden){place(exit,ingressMarker(project(last),project(next),box,true),false);exit.dataset.gate=gateSpec.id;}
 }
 
+function renderCreeps(w,footprintPx,z) {
+  let creeps=0;
+  const creepR = clamp((w.pm ? w.pm.cellSize : 32) * z * 0.3, 2.5, 12);
+  for (const e of w.sim.entities.values()) {
+    // U-4b: attack def 보유 여부로 걸러내지 않는다 — owner=11이면 무조건 크립(위 타워 루프가 owner=11을
+    // 이미 배제했으므로 attack 유무와 무관하게 여기서 전원 잡힌다, 실측: 표본 전량 attack def 보유라
+    // 옛 필터는 크립을 전부 스킵시켜 위 타워 루프의 회색 폴백으로 새게 했었다).
+    if (!e.alive || e.owner !== 11) continue;
+    creeps++; // Source population stays unchanged, including approach/return corridors.
+    if(!pointInBattlefield(e,w.viewBounds))continue;
+    const px = W2SX(e.x), py = W2SY(e.y);
+    // U-2d(DISPATCH_SONNET_U2_GAMESHELL §2 U-2d, vault slime-commotion-hud-juice-teardown "색 위협즉독") —
+    // 기존 구현은 typeId.charCodeAt(2)%5 아케이드 무지개 배색이라 실제 위협 등급과 무관했다(발명 —
+    // roleTable 밖 데이터). GEMTOWER_BALANCE.roleTable[typeId].band(ground/flying/boss/hell, 엔진 데이터)로
+    // 교체 — 색만으로 등급 즉독. 전제 반증: 원작 teardown은 "낮은위협=초록"이지만 여기선 지형 U-2a가 이미
+    // 밝은 잔디 그린이라 초록 크립은 배경에 묻힌다 — 저위협(ground)에 배경과 대비되는 amber를 쓰고,
+    // boss/hell을 teardown의 "검정=최고위협" 취지를 확장해 배정한다(문자 그대로 복사가 아니라 지형 색과의
+    // 대비를 우선한 적응, §3 규율 8 전제 반증).
+    const role = GEMTOWER_BALANCE.roleTable[e.typeId];
+    const band = role?.kind === "creep" ? role.band : role?.archetype==="eventBoss" || role?.archetype==="tester" ? "boss" : "ground";
+    const col = band === "flying" ? "#4fc3f7" : band === "boss" ? "#1a1a1a" : band === "hell" ? "#c026d3" : band === "ground" ? "#ff9f43" : "#a89980";
+    ctx.fillStyle = col; ctx.strokeStyle = band === "boss" ? "#ff3b3b" : "#170f0b"; ctx.lineWidth = band === "boss" ? 2 : 1;
+    const spriteSize=clamp(footprintPx*(band==="boss"?1.7:1.15),band==="boss"?44:30,band==="boss"?84:56);
+    const hover=band==="flying"&&!reducedMotion.matches?Math.sin(w.sim.tickCount*.2)*3:0;
+    if(!sprites.draw(ctx,"creep:"+band,px,py-hover,spriteSize,{tick:reducedMotion.matches?0:w.sim.tickCount,anchor:.8,flip:e.orderX<e.x})){
+      ctx.beginPath(); ctx.arc(px, py, creepR, 0, 7); ctx.fill(); ctx.stroke();
+    }
+    // U-2d: 세그먼트 HP바(teardown "개체별 플로팅 HP바" — 연속 채움바가 아니라 이산 세그먼트로 교체,
+    // 호드 가독성). 임계값 색상(>.5/>.25 초록·주황·빨강)은 기존 로직 그대로 재사용(재발명 0). 만피 시
+    // 미표시는 기존 조건 유지(P-3/기존 "화면 소음 감소" 관례 — 항상 표시로 바꾸지 않음, 전제 반증 참조).
+    if (e.hpMax > 0 && e.hp < e.hpMax) {
+      const SEGS = 5, gap = 1, bw = Math.max(20,spriteSize*.7), frac = Math.max(0, e.hp / e.hpMax);
+      const segW = (bw - gap * (SEGS - 1)) / SEGS, barColor = frac > .5 ? "#53a64f" : frac > .25 ? "#c18b30" : "#d74e3c";
+      for (let s = 0; s < SEGS; s++) {
+        const sx = px - bw / 2 + s * (segW + gap), segFill = clamp(frac * SEGS - s, 0, 1);
+        ctx.fillStyle = "#332218"; ctx.fillRect(sx, py - spriteSize*.8 - 4, segW, 2);
+        if (segFill > 0) { ctx.fillStyle = barColor; ctx.fillRect(sx, py - spriteSize*.8 - 4, segW * segFill, 2); }
+      }
+    }
+  }
+  return creeps;
+}
+
 function render(w,preservePendingDialog=false) {
   w.cameraMode='fit';fitPlayerField(w);
   currentGemTarget(w);
@@ -596,43 +639,7 @@ function render(w,preservePendingDialog=false) {
     ctx.fillStyle="#778078";ctx.strokeStyle="#354539";ctx.lineWidth=1;
     ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;const x=px+Math.cos(a)*r,y=py+Math.sin(a)*r*.8;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.closePath();ctx.fill();ctx.stroke();
   }
-  const creepR = clamp((w.pm ? w.pm.cellSize : 32) * z * 0.3, 2.5, 12);
-  for (const e of w.sim.entities.values()) {
-    // U-4b: attack def 보유 여부로 걸러내지 않는다 — owner=11이면 무조건 크립(위 타워 루프가 owner=11을
-    // 이미 배제했으므로 attack 유무와 무관하게 여기서 전원 잡힌다, 실측: 표본 전량 attack def 보유라
-    // 옛 필터는 크립을 전부 스킵시켜 위 타워 루프의 회색 폴백으로 새게 했었다).
-    if (!e.alive || e.owner !== 11) continue;
-    creeps++;
-    const px = W2SX(e.x), py = W2SY(e.y);
-    // U-2d(DISPATCH_SONNET_U2_GAMESHELL §2 U-2d, vault slime-commotion-hud-juice-teardown "색 위협즉독") —
-    // 기존 구현은 typeId.charCodeAt(2)%5 아케이드 무지개 배색이라 실제 위협 등급과 무관했다(발명 —
-    // roleTable 밖 데이터). GEMTOWER_BALANCE.roleTable[typeId].band(ground/flying/boss/hell, 엔진 데이터)로
-    // 교체 — 색만으로 등급 즉독. 전제 반증: 원작 teardown은 "낮은위협=초록"이지만 여기선 지형 U-2a가 이미
-    // 밝은 잔디 그린이라 초록 크립은 배경에 묻힌다 — 저위협(ground)에 배경과 대비되는 amber를 쓰고,
-    // boss/hell을 teardown의 "검정=최고위협" 취지를 확장해 배정한다(문자 그대로 복사가 아니라 지형 색과의
-    // 대비를 우선한 적응, §3 규율 8 전제 반증).
-    const role = GEMTOWER_BALANCE.roleTable[e.typeId];
-    const band = role?.kind === "creep" ? role.band : role?.archetype==="eventBoss" || role?.archetype==="tester" ? "boss" : "ground";
-    const col = band === "flying" ? "#4fc3f7" : band === "boss" ? "#1a1a1a" : band === "hell" ? "#c026d3" : band === "ground" ? "#ff9f43" : "#a89980";
-    ctx.fillStyle = col; ctx.strokeStyle = band === "boss" ? "#ff3b3b" : "#170f0b"; ctx.lineWidth = band === "boss" ? 2 : 1;
-    const spriteSize=clamp(footprintPx*(band==="boss"?1.7:1.15),band==="boss"?44:30,band==="boss"?84:56);
-    const hover=band==="flying"&&!reducedMotion.matches?Math.sin(w.sim.tickCount*.2)*3:0;
-    if(!sprites.draw(ctx,"creep:"+band,px,py-hover,spriteSize,{tick:reducedMotion.matches?0:w.sim.tickCount,anchor:.8,flip:e.orderX<e.x})){
-      ctx.beginPath(); ctx.arc(px, py, creepR, 0, 7); ctx.fill(); ctx.stroke();
-    }
-    // U-2d: 세그먼트 HP바(teardown "개체별 플로팅 HP바" — 연속 채움바가 아니라 이산 세그먼트로 교체,
-    // 호드 가독성). 임계값 색상(>.5/>.25 초록·주황·빨강)은 기존 로직 그대로 재사용(재발명 0). 만피 시
-    // 미표시는 기존 조건 유지(P-3/기존 "화면 소음 감소" 관례 — 항상 표시로 바꾸지 않음, 전제 반증 참조).
-    if (e.hpMax > 0 && e.hp < e.hpMax) {
-      const SEGS = 5, gap = 1, bw = Math.max(20,spriteSize*.7), frac = Math.max(0, e.hp / e.hpMax);
-      const segW = (bw - gap * (SEGS - 1)) / SEGS, barColor = frac > .5 ? "#53a64f" : frac > .25 ? "#c18b30" : "#d74e3c";
-      for (let s = 0; s < SEGS; s++) {
-        const sx = px - bw / 2 + s * (segW + gap), segFill = clamp(frac * SEGS - s, 0, 1);
-        ctx.fillStyle = "#332218"; ctx.fillRect(sx, py - spriteSize*.8 - 4, segW, 2);
-        if (segFill > 0) { ctx.fillStyle = barColor; ctx.fillRect(sx, py - spriteSize*.8 - 4, segW * segFill, 2); }
-      }
-    }
-  }
+  creeps=renderCreeps(w,footprintPx,z);
   // G-2d(DISPATCH_SONNET_G2_CORE §2 G-2d, docs/GEM_IDENTITY_MINE_DESIGN.md §3.1) — 광산(h01V, mine
   // archetype) HP 바. 크립 hp 바(위)와 동일한 그리기 관례 — mineAttackStep(G-2a)이 실시간으로 깎는
   // e.hp를 그대로 읽는다(재발명 0). 8개 게이트 전부(모든 플레이어) 표시 — 선택 개념 없음(항상 관측 가능).
@@ -1451,7 +1458,7 @@ async function loadFromUrl() {
     setMsg("맵 로딩 중…");
     // U-6c(DISPATCH_SONNET_U6_INFOARCH §2 U-6c) — 맵과 이름 원장(gems_special+towers_full)을 병렬 fetch.
     // 이름 원장 실패는 loadNameMap() 내부에서 흡수(빈 맵 폴백) — 맵 로딩 자체를 막지 않는다.
-    if(!selectedSource&&!localSourceMode){showSourceFiles();return false;}
+    if(!selectedSource&&!localSourceMode){selectedSource=await loadHostedPlayFiles(globalThis.fetch.bind(globalThis),parseStockProfile);if(!selectedSource){showSourceFiles();return false;}}
     let buf,nameMap,stockProfile;
     if(selectedSource){buf=selectedSource.mapBytes;stockProfile=selectedSource.stockProfile;nameMap=extractGemPresentation();}
     else {const [res,names,profile]=await Promise.all([fetch(MAP_URL),loadNameMap(),loadLocalStockProfile()]);if(!res.ok)throw Error("맵 fetch 실패 HTTP "+res.status);buf=await res.arrayBuffer();nameMap=names;stockProfile=profile;}
