@@ -27,3 +27,22 @@ Saves remain in the same browser and origin. Localhost saves are not automatical
 migrated to the published origin. Exported input logs still require exact build,
 seed and source-version checks. Multiplayer and real-device validation are
 separate work.
+
+## Optional hosted-input mode (disabled until an explicit distribution decision)
+
+The viewer can read a same-origin source-inputs manifest and reuse the exact same
+byte validation and parser, without showing the device file picker. This path was
+verified locally. Packaging remains device-local by default.
+
+Before publishing original source inputs, resolve the project AGENTS.md distribution
+restriction with the user. Do not turn on the switch merely because the code exists.
+After that decision, the exact two source files can be supplied as release assets
+under playtest-inputs-v1; do not commit original data to Git history. Setting the
+UZMAP_HOSTED_INPUTS repository variable to enabled makes the workflow download only
+those two assets into fixtures, validate their pinned hashes, and include them in
+the Pages artifact. Run the workflow manually after changing the variable.
+
+Unset or disabled means no input download and the existing file picker remains.
+An incorrect/missing source set fails the opted-in build before artifact upload.
+The full Warcraft installation ZIP is never needed. The two tested files total
+3,056,059 bytes. Existing private saves and source census are excluded in both modes.

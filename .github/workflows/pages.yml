@@ -16,12 +16,28 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22.22.3'
+      - name: Download explicitly enabled test inputs
+        if: ${{ vars.UZMAP_HOSTED_INPUTS == 'enabled' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p fixtures/maps fixtures/stock
+          gh release download playtest-inputs-v1 --pattern GemTower_Max_7C.w3x --dir fixtures/maps
+          gh release download playtest-inputs-v1 --pattern unit-abilities.json --dir fixtures/stock
       - name: Check source input and public package boundaries
         run: node --experimental-strip-types --test test/web/source-input.test.ts test/web/field-culling.test.ts test/scripts/pages-package.test.ts test/scripts/web-build-version.test.ts
       - name: Build browser runtime
         run: node scripts/build-web.mjs
       - name: Package public files
-        run: node scripts/package-pages.mjs
+        env:
+          UZMAP_HOSTED_INPUTS: ${{ vars.UZMAP_HOSTED_INPUTS }}
+        run: |
+          if [ "$UZMAP_HOSTED_INPUTS" = "enabled" ]; then
+            node scripts/package-pages.mjs --with-source-inputs
+          else
+            node scripts/package-pages.mjs
+          fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload public viewer
