@@ -1,0 +1,22 @@
+{
+  "name": "uzmap-forge",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Warcraft III classic usemap (.w3x) analyzer + editor + deterministic web runtime. Clean-room engine; no Blizzard assets.",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\"",
+    "analyze": "node --experimental-strip-types --no-warnings scripts/analyze.ts",
+    "smoke": "node --experimental-strip-types --no-warnings scripts/smoke.ts",
+    "playgate": "node --experimental-strip-types --no-warnings scripts/playgate.mjs",
+    "typecheck": "tsc --noEmit",
+    "verify": "python3 scripts/verify_harness.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "dependencies": {}
+}

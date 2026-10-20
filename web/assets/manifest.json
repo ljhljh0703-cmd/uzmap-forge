@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "state": "provisional",
+  "sourcePack": "existing user asset-forge + ClaudeCraft generated sprites",
+  "entries": {
+    "gem:*": {
+      "src": "sprites/props.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    "special:*": {
+      "src": "sprites/pearl.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "builder": {
+      "src": "sprites/builder.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "frames": 4,
+      "fps": 4
+    },
+    "creep:ground": {
+      "src": "sprites/slime.png",
+      "frame": {
+        "x": 0,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      },
+      "frames": 4,
+      "fps": 8
+    },
+    "creep:flying": {
+      "src": "sprites/acolyte.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "frames": 6,
+      "fps": 8
+    },
+    "creep:hell": {
+      "src": "sprites/shambler.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "frames": 6,
+      "fps": 8
+    },
+    "creep:boss": {
+      "src": "sprites/widow.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "frames": 6,
+      "fps": 6
+    },
+    "stone": {
+      "src": "sprites/props.png",
+      "frame": {
+        "x": 0,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      }
+    }
+  },
+  "aliases": {
+    "h01P": "special:h01P",
+    "h01S": "special:h01S",
+    "h024": "special:h024",
+    "h026": "special:h026",
+    "h028": "special:h028",
+    "h02A": "special:h02A",
+    "h02D": "special:h02D",
+    "h02J": "special:h02J",
+    "h02K": "special:h02K",
+    "h02L": "special:h02L",
+    "h02N": "special:h02N",
+    "h02O": "special:h02O",
+    "h02P": "special:h02P",
+    "h02Q": "special:h02Q",
+    "h02R": "special:h02R",
+    "h02V": "special:h02V",
+    "h02W": "special:h02W",
+    "h033": "special:h033",
+    "h03Y": "special:h03Y",
+    "h03Z": "special:h03Z",
+    "h04S": "special:h04S",
+    "h04T": "special:h04T",
+    "h04W": "special:h04W",
+    "h04Y": "special:h04Y",
+    "h050": "special:h050",
+    "h051": "special:h051",
+    "h052": "special:h052",
+    "n00H": "special:n00H",
+    "h007": "gem:amethyst:*",
+    "h03S": "gem:aquamarine:*",
+    "h008": "gem:diamond:*",
+    "h009": "gem:emerald:*",
+    "h00A": "gem:opal:*",
+    "h00B": "gem:sapphire:*",
+    "h00C": "gem:ruby:*",
+    "e001": "gem:topaz:*",
+    "h00H": "gem:amethyst:*",
+    "h03R": "gem:aquamarine:*",
+    "h00I": "gem:diamond:*",
+    "h00J": "gem:emerald:*",
+    "h00K": "gem:opal:*",
+    "h00L": "gem:sapphire:*",
+    "h00M": "gem:ruby:*",
+    "e002": "gem:topaz:*",
+    "h00N": "gem:amethyst:*",
+    "h03U": "gem:aquamarine:*",
+    "h00O": "gem:diamond:*",
+    "h00S": "gem:emerald:*",
+    "h00P": "gem:opal:*",
+    "h00Q": "gem:sapphire:*",
+    "h00R": "gem:ruby:*",
+    "e003": "gem:topaz:*",
+    "h00V": "gem:amethyst:*",
+    "h03V": "gem:aquamarine:*",
+    "h00Y": "gem:diamond:*",
+    "h00U": "gem:emerald:*",
+    "h00X": "gem:opal:*",
+    "h00W": "gem:sapphire:*",
+    "h00T": "gem:ruby:*",
+    "e004": "gem:topaz:*",
+    "h000": "gem:diamond:0",
+    "h001": "gem:sapphire:0",
+    "h002": "gem:emerald:0",
+    "h003": "gem:opal:0",
+    "h004": "gem:amethyst:0",
+    "h005": "gem:ruby:0",
+    "e000": "gem:topaz:0",
+    "h03T": "gem:aquamarine:0",
+    "h016": "gem:ruby:1"
+  },
+  "credits": [
+    {
+      "file": "sprites/props.png",
+      "source": "codex-asset-forge/examples/agentforge-starter/atlas/props.png",
+      "sha256": "dfc81b01e9b01021f3700955a1b452f560a8c3031057cedf5527a4dcaeab2f83",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "sprites/slime.png",
+      "source": "codex-asset-forge/examples/agentforge-starter/atlas/enemy_slime.png",
+      "sha256": "73ac878b15816cc0e6cd87c79b363a675104b061adaf6571d1f396a1d74b4006",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "sprites/builder.png",
+      "source": "codex-asset-forge/examples/agentforge-starter/atlas/player.png",
+      "sha256": "38b3b0b92c890350b17502c7f3c061b91065378ef510a2516b60695755d9b7a2",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "sprites/tiles.png",
+      "source": "codex-asset-forge/examples/agentforge-starter/atlas/tileset.png",
+      "sha256": "ebdaa9f75547ab62128b076e784c4d17984f6e5ef7e0a74619906b79037b715c",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "sprites/shambler.png",
+      "source": "ClaudeCraft/derived-source/world-of-claudecraft-renewed/public/sprites/enemy/crypt_shambler/walk.png",
+      "sha256": "63d679e023b18abcfb3f13dcc71220ea5f12e59bd3fd1c7ee9ab6f45c604e09d",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "sprites/acolyte.png",
+      "source": "ClaudeCraft/derived-source/world-of-claudecraft-renewed/public/sprites/enemy/tidebound_acolyte/walk.png",
+      "sha256": "b809a57ac21e9eb1251dbbfabcc9bca36423d1beb89e005c6c88adcfeeefc6ff",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "sprites/widow.png",
+      "source": "ClaudeCraft/derived-source/world-of-claudecraft-renewed/public/sprites/enemy/bonechill_widow/walk.png",
+      "sha256": "79fead9947a035953f4b8a17e10de9a91e265a080cdd85b64f90eba355eb0bda",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "sprites/pearl.png",
+      "source": "ClaudeCraft/derived-source/world-of-claudecraft-renewed/public/sprites/item/mire_lock_pearl/idle.png",
+      "sha256": "eef5c2f44f506729962cc35b01e5738c2a7623623872607759322e8312480d28",
+      "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    }
+  ],
+  "palette": {
+    "amethyst": "#b57edc",
+    "aquamarine": "#5fd4d4",
+    "diamond": "#e8ecf1",
+    "emerald": "#53a64f",
+    "opal": "#f2b3c9",
+    "sapphire": "#3e93ba",
+    "ruby": "#d74e3c",
+    "topaz": "#d4ac43"
+  }
+}

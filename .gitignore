@@ -1,0 +1,13 @@
+node_modules/
+web/dist/
+.site/
+.DS_Store
+fixtures/
+*.w3x
+*.w3m
+*.mpq
+*.blp
+*.mdx
+*.slk
+*.zip
+*.exe

@@ -1,0 +1,44 @@
+name: Publish test viewer
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.22.3'
+      - name: Check source input and public package boundaries
+        run: node --experimental-strip-types --test test/web/source-input.test.ts test/scripts/pages-package.test.ts test/scripts/web-build-version.test.ts
+      - name: Build browser runtime
+        run: node scripts/build-web.mjs
+      - name: Package public files
+        run: node scripts/package-pages.mjs
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload public viewer
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

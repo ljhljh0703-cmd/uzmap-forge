@@ -1,0 +1,232 @@
+{
+  "button-gold-disabled": {
+    "file": "./assets/ui/approved/btn-gold-disabled.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-gold-normal": {
+    "file": "./assets/ui/approved/btn-gold-normal.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-gold-pressed": {
+    "file": "./assets/ui/approved/btn-gold-pressed.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-green-disabled": {
+    "file": "./assets/ui/approved/btn-green-disabled.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-green-normal": {
+    "file": "./assets/ui/approved/btn-green-normal.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-green-pressed": {
+    "file": "./assets/ui/approved/btn-green-pressed.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-red-disabled": {
+    "file": "./assets/ui/approved/btn-red-disabled.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-red-normal": {
+    "file": "./assets/ui/approved/btn-red-normal.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "button-red-pressed": {
+    "file": "./assets/ui/approved/btn-red-pressed.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "panel": {
+    "file": "./assets/ui/approved/frame-panel.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      72,
+      72,
+      72,
+      72
+    ]
+  },
+  "hud": {
+    "file": "./assets/ui/approved/frame-topbar.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      64,
+      64,
+      64,
+      64
+    ]
+  },
+  "tray": {
+    "file": "./assets/ui/approved/frame-tray.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      66,
+      66,
+      66,
+      66
+    ]
+  },
+  "icon-attack-sword": {
+    "file": "./assets/ui/approved/icon-attack-sword.png",
+    "sourceStep": 8,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "icon-gold-coin": {
+    "file": "./assets/ui/approved/icon-gold-coin.png",
+    "sourceStep": 8,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "icon-life-heart": {
+    "file": "./assets/ui/approved/icon-life-heart.png",
+    "sourceStep": 8,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "icon-range-crosshair": {
+    "file": "./assets/ui/approved/icon-range-crosshair.png",
+    "sourceStep": 8,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "icon-speed-boot": {
+    "file": "./assets/ui/approved/icon-speed-boot.png",
+    "sourceStep": 8,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "icon-wave-flag": {
+    "file": "./assets/ui/approved/icon-wave-flag.png",
+    "sourceStep": 8,
+    "sourceInsets": [
+      50,
+      50,
+      50,
+      50
+    ]
+  },
+  "slot-blue": {
+    "file": "./assets/ui/approved/slot-blue.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      52,
+      52,
+      52,
+      52
+    ]
+  },
+  "slot-gold": {
+    "file": "./assets/ui/approved/slot-gold.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      52,
+      52,
+      52,
+      52
+    ]
+  },
+  "slot-green": {
+    "file": "./assets/ui/approved/slot-green.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      52,
+      52,
+      52,
+      52
+    ]
+  },
+  "slot-grey": {
+    "file": "./assets/ui/approved/slot-grey.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      52,
+      52,
+      52,
+      52
+    ]
+  },
+  "slot-purple": {
+    "file": "./assets/ui/approved/slot-purple.png",
+    "sourceStep": 4,
+    "sourceInsets": [
+      52,
+      52,
+      52,
+      52
+    ]
+  }
+}
