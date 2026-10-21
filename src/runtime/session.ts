@@ -26,7 +26,7 @@ export interface SessionOptions {
   pathing?:import("../formats/wpm.ts").PathingMap;
   /** Host/lobby occupancy, independent of controller settings authored by config(). */
   playerSlots?: ReadonlyArray<{playerId: number; state: number}>;
-  /** Explicit local profile; no bundled or guessed stock values. */
+  /** Explicit caller profile; any source-declared normalization was provenance-gated during intake. */
   stockUnits?: ReadonlyArray<ObjectMod>;
   stockAbilities?:ReadonlyArray<ObjectMod>;
   pathingTextures?:Readonly<Record<string,import("../formats/stock-unit-abilities.ts").PathingFootprint>>;

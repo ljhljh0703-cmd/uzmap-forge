@@ -5,6 +5,87 @@ import type {GameConstants} from "../sim/balance/config.ts";
 import type { ObjectMod } from "../ir/types.ts";
 import { parseSlk } from "./slk.ts";
 
+/** Minimal declared stock fields, read from the caller-owned 1.28.5.7680 War3x.mpq.
+ * Members: Units\\AbilityData.slk and Units\\AbilityMetaData.slk; hashes below.
+ * Evidence: source-passives-data/STOCK-FOUR-FAMILIES.json. Blank cells stay absent.
+ * These are four scoped declarations, not a bundled table or a profile rewrite. */
+const SOURCE_128_PASSIVE_PROVENANCE={"sourceVersion":"1.28.5.7680","sourceSha256":"156052e0f5c7d8b69c2e299a8d975d94bffd64731b65fbac194a712a706e9410","dataSha256":"ddc360800784f808219bbc2518b16b0f12413082aada2755cc00944adcc31cec","metadataSha256":"42249bc577463896a9b1fece959c6bd5f815eb42c4899b8c899620b547a5b3f6"};
+const SOURCE_128_PASSIVES:ReadonlyArray<ObjectMod>=[
+ {kind:"ability",baseId:"AHbh",newId:null,mods:[
+  {"field":"alev","value":3,"level":0,"column":0},
+  {"field":"Hbh1","value":20,"level":1,"column":1},
+  {"field":"Hbh1","value":30,"level":2,"column":1},
+  {"field":"Hbh1","value":40,"level":3,"column":1},
+  {"field":"Hbh2","value":0,"level":1,"column":2},
+  {"field":"Hbh2","value":0,"level":2,"column":2},
+  {"field":"Hbh2","value":0,"level":3,"column":2},
+  {"field":"Hbh3","value":25,"level":1,"column":3},
+  {"field":"Hbh3","value":25,"level":2,"column":3},
+  {"field":"Hbh3","value":25,"level":3,"column":3},
+  {"field":"Hbh4","value":0,"level":1,"column":4},
+  {"field":"Hbh4","value":0,"level":2,"column":4},
+  {"field":"Hbh4","value":0,"level":3,"column":4},
+  {"field":"adur","value":2,"level":1,"column":0},
+  {"field":"adur","value":2,"level":2,"column":0},
+  {"field":"adur","value":2,"level":3,"column":0},
+  {"field":"ahdu","value":1,"level":1,"column":0},
+  {"field":"ahdu","value":1,"level":2,"column":0},
+  {"field":"ahdu","value":1,"level":3,"column":0},
+  {"field":"atar","value":"ground,air","level":1,"column":0},
+  {"field":"atar","value":"ground,air","level":2,"column":0},
+  {"field":"atar","value":"ground,air","level":3,"column":0},
+  {"field":"abuf","value":"BPSE","level":1,"column":0},
+  {"field":"abuf","value":"BPSE","level":2,"column":0},
+  {"field":"abuf","value":"BPSE","level":3,"column":0},
+  {"field":"aare","value":0,"level":1,"column":0},
+  {"field":"aare","value":0,"level":2,"column":0},
+  {"field":"aare","value":0,"level":3,"column":0},
+ ]},
+ {kind:"ability",baseId:"Aliq",newId:null,mods:[
+  {"field":"alev","value":1,"level":0,"column":0},
+  {"field":"liq1","value":8,"level":1,"column":1},
+  {"field":"liq2","value":0,"level":1,"column":2},
+  {"field":"liq3","value":0.8,"level":1,"column":3},
+  {"field":"liq4","value":0,"level":1,"column":4},
+  {"field":"adur","value":3,"level":1,"column":0},
+  {"field":"ahdu","value":3,"level":1,"column":0},
+  {"field":"atar","value":"structure,enemy,neutral","level":1,"column":0},
+  {"field":"abuf","value":"Bliq","level":1,"column":0},
+  {"field":"aare","value":0,"level":1,"column":0},
+ ]},
+ {kind:"ability",baseId:"Aven",newId:null,mods:[
+  {"field":"alev","value":1,"level":0,"column":0},
+  {"field":"Poi1","value":4,"level":1,"column":1},
+  {"field":"Poi2","value":0,"level":1,"column":2},
+  {"field":"Poi3","value":0,"level":1,"column":3},
+  {"field":"Poi4","value":1,"level":1,"column":4},
+  {"field":"adur","value":25,"level":1,"column":0},
+  {"field":"ahdu","value":1,"level":1,"column":0},
+  {"field":"atar","value":"air,ground,organic","level":1,"column":0},
+  {"field":"abuf","value":"Bpoi,Bpsd","level":1,"column":0},
+ ]},
+ {kind:"ability",baseId:"AUts",newId:null,mods:[
+  {"field":"alev","value":3,"level":0,"column":0},
+  {"field":"Uts1","value":0.15,"level":1,"column":1},
+  {"field":"Uts1","value":0.25,"level":2,"column":1},
+  {"field":"Uts1","value":0.35,"level":3,"column":1},
+  {"field":"Uts2","value":1,"level":1,"column":2},
+  {"field":"Uts2","value":1,"level":2,"column":2},
+  {"field":"Uts2","value":1,"level":3,"column":2},
+  {"field":"Uts3","value":3,"level":1,"column":3},
+  {"field":"Uts3","value":5,"level":2,"column":3},
+  {"field":"Uts3","value":7,"level":3,"column":3},
+  {"field":"adur","value":0,"level":1,"column":0},
+  {"field":"ahdu","value":0,"level":1,"column":0},
+  {"field":"atar","value":"_","level":1,"column":0},
+  {"field":"atar","value":"_","level":2,"column":0},
+  {"field":"atar","value":"_","level":3,"column":0},
+  {"field":"abuf","value":"BUts","level":1,"column":0},
+  {"field":"abuf","value":"BUts","level":2,"column":0},
+  {"field":"abuf","value":"BUts","level":3,"column":0},
+ ]},
+];
+
 export function abilityCodes(value: string): string[] {
   if (value === "" || value === "_") return [];
   const ids = value.split(",").map(id => id.trim());
@@ -83,6 +164,11 @@ export function parseUnitAbilityProfile(input: unknown): {sourceVersion: string;
         return {field:m.field,value:m.value as number|string,level:Number(m.level),column:Number(m.column)};
       });abilities.push({kind:"ability",baseId:id,newId:null,mods});
     }
+  }
+  const source=p.abilitySource;
+  if(p.sourceVersion===SOURCE_128_PASSIVE_PROVENANCE.sourceVersion&&p.sourceSha256===SOURCE_128_PASSIVE_PROVENANCE.sourceSha256&&source&&typeof source==='object'&&!Array.isArray(source)&&
+    (source as Record<string,unknown>).dataSha256===SOURCE_128_PASSIVE_PROVENANCE.dataSha256&&(source as Record<string,unknown>).metadataSha256===SOURCE_128_PASSIVE_PROVENANCE.metadataSha256){
+    for(const base of SOURCE_128_PASSIVES)if(!abilities.some(ability=>ability.baseId===base.baseId))abilities.push({...base,mods:base.mods.map(field=>({...field}))});
   }
   let gameplayConstants:Pick<GameConstants,'relativeUpgradeCost'|'frostMoveSpeedDecreasePm'|'frostAttackSpeedDecreasePm'>|undefined;
   if(p.gameplayConstants!==undefined){const g=p.gameplayConstants as Record<string,unknown>;if(!g||typeof g!=='object'||typeof g.relativeUpgradeCost!=='boolean'||!['frostMoveSpeedDecreasePm','frostAttackSpeedDecreasePm'].every(k=>Number.isInteger(g[k])&&Number(g[k])>=0&&Number(g[k])<=1000))throw new Error('invalid gameplay constants');gameplayConstants={relativeUpgradeCost:g.relativeUpgradeCost,frostMoveSpeedDecreasePm:Number(g.frostMoveSpeedDecreasePm),frostAttackSpeedDecreasePm:Number(g.frostAttackSpeedDecreasePm)};}
