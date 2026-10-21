@@ -3,9 +3,9 @@
  * 격리 신설 파일(§1 "sim/status.ts 신설로 격리, 소비 지점만 최소 훅") — combat-pipe.ts/combat-system.ts와
  * 의도적으로 분리한다. 초기 3종(slow/stun/dot)에 P25의 타격 방어 감소만 추가한다. 별도 버프 프레임워크는 만들지 않는다.
  *
- * 저장 모양: 엔티티id → (kind → StatusEffect) 2단 Map, 전부 정수, 둘 다 삽입순(INV-D4) — Sim.stateHash()가
+ * 저장 모양: 엔티티id → (key → StatusEffect) 2단 Map, 전부 정수, 둘 다 삽입순(INV-D4) — Sim.stateHash()가
  * 그대로 순회해 포함한다(sim.ts 참조). 동종 재부여는 갱신(§"동종 오라 최고 1개" 스택 규율과는 다른 개념 —
- * 여기는 3종이 서로 다른 kind라 동시 보유 가능하고, 같은 kind 재부여는 마지막 값으로 교체한다 — 스택 없음).
+ * 여기는 3종이 서로 다른 kind라 동시 보유 가능하고, 같은 key 재부여는 마지막 값으로 교체한다. 출처별 독은 다른 key로 공존한다).
  *
  * 소비 지점(호출측이 최소 훅으로 배선):
  *   - slow: movement.ts stepEntity가 slowMultiplierPm()으로 moveBudgetPm 가산치를 배율(정수 mulPm) 적용.
@@ -26,17 +26,17 @@ export type StatusEffect =
   | { kind: "armorReduction"; amount: number; remainingTicks: number }
   | { kind: "slow"; magnitudePm: number; remainingTicks: number }
   | { kind: "stun"; remainingTicks: number }
-  | { kind: "dot"; perTick: number; remainingTicks: number; perSecondPm?:number;remainder?:number;sourceUnitId?:number;sourceOwner?:number;pulseIntervalTicks?:number;pulseTicksLeft?:number;pulseDamagePm?:number };
+  | { kind: "dot"; perTick: number; remainingTicks: number; perSecondPm?:number;remainder?:number;sourceUnitId?:number;sourceOwner?:number;minHp?:number;pulseIntervalTicks?:number;pulseTicksLeft?:number;pulseDamagePm?:number };
 
-/** 엔티티id → (kind → effect) — 둘 다 삽입순 Map(INV-D4, Sim.stateHash()가 그대로 순회). */
-export type StatusEffectKey=StatusEffectKind|"frost"|`burn:${number}`|`armor:${string}`;
+/** 엔티티id → (key → effect) — 둘 다 삽입순 Map(INV-D4, Sim.stateHash()가 그대로 순회). */
+export type StatusEffectKey=StatusEffectKind|"frost"|`burn:${number}`|`armor:${string}`|`venom:${string}:${number}`|`liquid:${string}`;
 export type StatusStore = Map<number, Map<StatusEffectKey, StatusEffect>>;
 
 export function createStatusStore(): StatusStore {
   return new Map();
 }
 
-/** 상태효과 부여/갱신 — 동종 재부여는 최신 값으로 교체(스택 없음, §1 "과설계 금지"). */
+/** 상태효과 부여/갱신 — 동일 key 재부여는 최신 값으로 교체(각 key 안에서 스택 없음). */
 export function applyStatus(store: StatusStore, entityId: number, effect: StatusEffect, key:StatusEffectKey=effect.kind): void {
   let byKind = store.get(entityId);
   if (!byKind) {
@@ -81,13 +81,15 @@ export function tickStatus(store: StatusStore, entities: ReadonlyMap<number, Uni
       continue;
     }
     for (const [kind, effect] of [...byKind]) {
-      if (effect.kind === "dot" && !entity.invulnerable) {
+      if (effect.kind === "dot" && !entity.invulnerable && entity.hp>0) {
         let damage=effect.perTick;
         if(effect.pulseIntervalTicks!==undefined){
           effect.pulseTicksLeft=(effect.pulseTicksLeft??effect.pulseIntervalTicks)-1;
           if(effect.pulseTicksLeft<=0){const accumulated=(effect.remainder??0)+(effect.pulseDamagePm??0);damage+=Math.floor(accumulated/1000);effect.remainder=accumulated%1000;effect.pulseTicksLeft=effect.pulseIntervalTicks;}
         }else{const accumulated=(effect.remainder??0)+(effect.perSecondPm??0);damage+=Math.floor(accumulated/20_000);effect.remainder=accumulated%20_000;}
-        const before=entity.hp;entity.hp -= damage;
+        // A source-specific floor is nonlethal, never healing or resurrecting a target.
+        // 20Hz raw-HP accumulation is the existing compatibility policy, not native pulse/defense parity.
+        const before=entity.hp;entity.hp=effect.minHp===undefined?before-damage:Math.min(before,Math.max(effect.minHp,before-damage));
         if (before>0&&entity.hp <= 0){diedFromDot.push(entity);onDeath?.(entity,effect);}
       }
       effect.remainingTicks -= 1;

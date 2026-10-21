@@ -37,7 +37,7 @@ import {applyStatus} from "./status.ts";
 import { damageAfterDefense, typeBonusPm } from "./balance/combat.ts";
 import { mulPm } from "./balance/fixed.ts";
 import { rollBounty, type GoldLedger } from "./balance/economy.ts";
-import { isStunned, type StatusStore } from "./status.ts";
+import { isStunned, type StatusStore, type StatusEffectKey } from "./status.ts";
 
 /**
  * 정수 제곱거리(dx²+dy², √ 없음). R-203(이동/경로)이 정본을 소유할 예정(§8.4 경계) — 지금은 로컬 최소구현.
@@ -232,6 +232,14 @@ export function combatStep(ctx: CombatCtx): void {
     if(status&&target.entity.hp>0)for(const effect of effects)if(effect.kind==='poison'&&effect.durationTicks>0&&((effect.targetsMask??3)&target.targetsMask)){
       applyStatus(status,target.entity.id,{kind:'dot',perTick:0,perSecondPm:effect.damagePerSecondPm,remainder:0,remainingTicks:effect.durationTicks,sourceUnitId:tower.entity.id,sourceOwner:tower.entity.owner});
       if(effect.slowPm>0)applyStatus(status,target.entity.id,{kind:'slow',magnitudePm:effect.slowPm,remainingTicks:effect.durationTicks});
+    }
+    // Distinct source on-hit DOTs: only this main target, never barrage/splash copies.
+    // Reuse the current 20Hz fractional refresh/raw-HP policy; native timing/defenses remain unknown.
+    if(status&&target.entity.hp>0&&!target.entity.invulnerable&&target.entity.owner!==tower.entity.owner&&!ctx.areAllied?.(tower.entity.owner,target.entity.owner)){
+      for(const effect of effects)if((effect.kind==='venom'||effect.kind==='liquidFire')&&effect.durationTicks>0&&(effect.targetsMask&target.targetsMask)){
+        const key:StatusEffectKey=effect.kind==='venom'?`venom:${effect.buffId}:${tower.entity.id}`:`liquid:${effect.buffId}`;
+        applyStatus(status,target.entity.id,{kind:'dot',perTick:0,perSecondPm:effect.damagePerSecondPm,remainder:0,remainingTicks:effect.durationTicks,sourceUnitId:tower.entity.id,sourceOwner:tower.entity.owner,...(effect.kind==='venom'?{minHp:1}:{})},key);
+      }
     }
     if(status&&target.entity.hp>0)for(const effect of effects)if(effect.kind==='frost'&&effect.durationTicks>0&&(effect.targetsMask&target.targetsMask))applyStatus(status,target.entity.id,{kind:'slow',magnitudePm:effect.slowPm,remainingTicks:effect.durationTicks},'frost');
     // Aroc secondary missiles use this attack roll, not Efk1; a critical proc suppresses them.

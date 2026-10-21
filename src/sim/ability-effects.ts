@@ -7,6 +7,7 @@ export type CombatAbilityEffect=
  | {kind:'selfArmor';flatBonus:number}
  | {kind:'armorAura';flatBonus:number;radiusU:number;targetsMask:number;buffId:string}
  | {kind:'critical';chancePm:number;multiplierPm:number}
+ | {kind:'venom'|'liquidFire';damagePerSecondPm:number;durationTicks:number;targetsMask:number;buffId:string}
  | {kind:'bash';chancePm:number;multiplierPm:number;durationTicks:number;heroDurationTicks:number;targetsMask:number}
  | {kind:'immolation';damagePerSecondPm:number;radiusU:number;targetsMask:number;intervalTicks:number;pulseDamagePm:number}
  | {kind:'damageAura';bonusPm:number;flatBonus:number;radiusU:number;selfOnly:boolean}
