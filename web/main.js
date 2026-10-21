@@ -979,30 +979,30 @@ const RESEARCH_REJECT_LABEL = { "unknown-tech": "미지 연구", "max-level": "�
 const TRAIN_REASON={busy:'구입 중', 'insufficient-gold':'골드가 부족합니다', 'prereq-unmet':'선행 연구가 필요합니다', 'missing-data':'원작 자료가 필요합니다','unsupported-cost':'아직 지원하지 않는 자원 조건입니다','game-over':'게임이 끝났습니다','not-owner':'조종할 수 없는 시설입니다','not-trainable':'구입할 수 없는 항목입니다','missing-unit':'시설이 없습니다'};
 function renderTraining(w){
  const rows=trainingActions(w).sort((a,b)=>(a.cost??Infinity)-(b.cost??Infinity)),life=gemTowerPlayerState(w.vm).life,ready=w.modeDialog?.clicked&&gemTowerPlayerState(w.vm).difficulty;
- const sourceSpinning=new Set(gemTowerCasinoState(w.vm,w.sim).stations.filter(station=>station.spinning).map(station=>station.id));
- const gold=w.sim.ledger.gold(0),signature=JSON.stringify([rows.map(r=>[r.producerId,r.typeId,r.cost,r.reason]),life,Boolean(ready),gold,w.trainingBatch?.remaining,[...sourceSpinning]]);
+ const stations=gemTowerCasinoState(w.vm,w.sim).stations,sourceOwned=new Set(stations.filter(station=>station.owned).map(station=>station.id)),sourceSpinning=new Set(stations.filter(station=>station.spinning).map(station=>station.id));
+ const gold=w.sim.ledger.gold(0),signature=JSON.stringify([rows.map(r=>[r.producerId,r.typeId,r.cost,r.reason]),life,Boolean(ready),gold,w.trainingBatch?.remaining,[...sourceSpinning],[...sourceOwned]]);
  if(w.trainingSignature!==signature){w.trainingSignature=signature;
-  const host=$("trainingOptions");
+  const hosts=[$("trainingOptions"),$("casinoTrainingOptions")];
   // Only a new world clears the host. State refreshes keep existing keyed targets attached.
-  if(!w.trainingButtons){host.replaceChildren();w.trainingButtons=new Map();}
+  if(!w.trainingButtons){for(const host of hosts)host.replaceChildren();w.trainingButtons=new Map();}
   const buttons=w.trainingButtons,desired=[];
   for(const row of rows){
    const counts=row.typeId==='h01W'&&life<100&&row.cost>0?[1,Math.max(1,Math.min(10,100-life,Math.floor(gold/row.cost)))]:[1];
-   for(const count of [...new Set(counts)])desired.push({row,count,key:`${row.producerId}:${row.typeId}:${count}`});
+   for(const count of [...new Set(counts)])desired.push({row,count,key:`${row.producerId}:${row.typeId}:${count}`,host:hosts[sourceOwned.has(row.producerId)?1:0]});
   }
   const keep=new Set(desired.map(item=>item.key));
   for(const[key,button]of buttons)if(!keep.has(key)){button.remove();buttons.delete(key);}
-  let next=host.firstElementChild;
-  for(const{row,count,key}of desired){
+  for(const host of hosts){let next=host.firstElementChild;
+  for(const{row,count,key}of desired.filter(item=>item.host===host)){
    let button=buttons.get(key);
    if(!button){button=document.createElement('button');button.className='sec training-option';button.dataset.producerId=String(row.producerId);button.dataset.trainType=row.typeId;button.dataset.trainCount=String(count);buttons.set(key,button);}
    const label=count>1?`수명 ${count}회 순차 구입 · ${row.cost*count} 골드`:`${fullName(w,row.typeId)} · ${row.cost??'?'} 골드`;const capped=row.typeId==='h01W'&&life>=100;const spinning=sourceSpinning.has(row.producerId)&&['h044','h046'].includes(row.typeId);
    if(button.textContent!==label)button.textContent=label;
    button.disabled=Boolean(row.reason)||capped||!ready||Boolean(w.trainingBatch)||gold<row.cost*count||spinning;
    button.title=spinning?'추첨 완료 후 이용할 수 있습니다':capped?'최대 수명 100':!ready?'게임 방식과 난이도를 먼저 선택하세요':TRAIN_REASON[row.reason]??`${(row.durationTicks??0)*DT*count}초 동안 ${count}회 순서대로 구입`;
-   if(button!==next)host.insertBefore(button,next);
+   if(button!==next){const focused=document.activeElement===button;host.insertBefore(button,next);if(focused)button.focus();}
    next=button.nextElementSibling;
-  }
+  }}
  }
  const pending=[...w.sim.pendingTrainings.values()],batch=w.trainingBatch;
  // remaining excludes the accepted current request, which may still be queued before its next tick.
@@ -1010,6 +1010,9 @@ function renderTraining(w){
  $("trainingStatus").textContent=w.gameOver&&(pending.length||batch)?'게임 종료 · 구입 처리 중단':batch
   ?current?`묶음 구입 중 · 남은 ${batch.remaining+1}회 · 이번 1회: 게임 시간 ${(current.remainingTicks*DT).toFixed(1)}초 남음 · 완료 후 반영`:`묶음 구입 대기 · 남은 ${batch.remaining+1}회 · 1회씩 완료 후 반영`
   :current?`${fullName(w,current.typeId)} · 처리 중 · 게임 시간 ${(current.remainingTicks*DT).toFixed(1)}초 남음${current.typeId==='h01W'?' · 완료 후 반영':''}`:life>=100?'최대 수명에 도달했습니다':'';
+ const casinoCurrent=pending.find(q=>sourceOwned.has(q.producerId));
+ $("casinoUse").hidden=sourceOwned.size===0;
+ $("casinoTrainingStatus").textContent=sourceOwned.size===0?'':w.gameOver?'게임 종료 · 시설 이용 중단':!playing?'일시정지 · 상단 재개를 누르면 구입과 추첨이 진행됩니다':batch?$("trainingStatus").textContent:casinoCurrent?`${fullName(w,casinoCurrent.typeId)} · 처리 중 · 게임 시간 ${(casinoCurrent.remainingTicks*DT).toFixed(1)}초 남음`:[...sourceOwned].some(id=>sourceSpinning.has(id))?'추첨 중입니다 · 완료 후 다시 이용할 수 있어요':'코인 투입이나 나가기를 선택하세요';
  $("saveRun").disabled=Boolean(batch);
 }
 
@@ -1385,10 +1388,11 @@ $("sourceDialog").addEventListener('keydown',e=>{
  if(e.key!=='Tab')return;const buttons=[...$("sourceDialogButtons").querySelectorAll('button:not(:disabled)')];if(!buttons.length)return;
  if(e.shiftKey&&document.activeElement===buttons[0]){e.preventDefault();buttons.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===buttons.at(-1)){e.preventDefault();buttons[0].focus();}
 });
-$("trainingOptions").addEventListener('click',event=>{
+function handleTrainingClick(event){
  const button=event.target.closest('button[data-train-type]');if(!button||!world)return;
  if(requestTrainingBatch(world,Number(button.dataset.producerId),button.dataset.trainType,Number(button.dataset.trainCount??1)))flash('구입을 시작했습니다');else flash('지금은 구입할 수 없습니다');render(world);
-});
+}
+for(const id of ["trainingOptions","casinoTrainingOptions"])$(id).addEventListener('click',handleTrainingClick);
 $("gemUpgrades").addEventListener('click',event=>{
  const button=event.target.closest('button[data-upgrade-target]');if(!button||!world||world.selectedGemId===null||(world.viewPlayerId??0)!==0)return;
  const accepted=world.sim.issueUnitUpgrade(0,world.selectedGemId,button.dataset.upgradeTarget);recordInput(world,{kind:'upgrade',playerId:0,unitId:world.selectedGemId,targetTypeId:button.dataset.upgradeTarget,accepted});if(!accepted)flash('지금은 강화할 수 없습니다');else flash('강화 요청 중…');render(world);
