@@ -1,6 +1,6 @@
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
-import {copyFileSync,mkdirSync,mkdtempSync,readFileSync,writeFileSync} from 'node:fs';
+import {copyFileSync,mkdirSync,mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -52,9 +52,10 @@ it('normalized repeated builds are stable while actual HTML changes remain repla
  assert.equal(replayId([['web/index.html',build.normaliseBuildHtml(pinned)],['web/main.js','runtime']]),id);
  assert.notEqual(replayId([['web/index.html',build.normaliseBuildHtml(pinned).replace('<body>','<body data-input="changed">')],['web/main.js','runtime']]),id);
 });
-it('the real builder publishes both IDs and pins the whole graph in an isolated tiny tree without touching the shared build',()=>{
+it('the real builder publishes both IDs and pins the whole graph in an isolated tiny tree without touching the shared build',t=>{
  const repo=fileURLToPath(new URL('../../',import.meta.url)),artifacts=join(repo,'artifacts/save-safety-compat');mkdirSync(artifacts,{recursive:true});
  const root=mkdtempSync(join(artifacts,'builder-fixture-'));
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
  const put=(path:string,body:string|Buffer)=>{const dest=join(root,path);mkdirSync(dirname(dest),{recursive:true});writeFileSync(dest,body);};
  for(const path of ['scripts/build-web.mjs','scripts/lib/web-build-version.mjs']){mkdirSync(dirname(join(root,path)),{recursive:true});copyFileSync(join(repo,path),join(root,path));}
  put('src/api.ts','export const value:number=3;\n');put('web/main.js',"import {value} from './dist/api.js';\n");put('web/play.css','body{color:red}\n');put('web/index.html',html);
