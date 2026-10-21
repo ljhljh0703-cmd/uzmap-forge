@@ -125,3 +125,6 @@ html,body{font:13px/1.4 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","
 .route-legend[data-preview=true]>.entry-legend,.route-legend[data-preview=true]>.exit-legend{display:none}
 #buildPreviewStatus{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#dfd6ab}
 #buildPreviewStatus[hidden]{display:none}#buildPreviewStatus[data-state=blocked],#buildPreviewStatus[data-state=invalid]{color:#efb28c}
+
+/* Source machine actions stay with admission, independent of collapsed mine options. */
+.casino-use{margin:12px 0 16px;padding:12px;background:#ffffff06;border:1px solid #786342}.casino-use[hidden]{display:none}.casino-use h3{margin:0 0 10px;font-size:14px}.casino-use-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.casino-use-controls .training-option{min-height:48px;width:100%;white-space:normal}.casino-use p{margin:10px 0 0;line-height:1.5;color:var(--dim)}

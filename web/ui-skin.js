@@ -40,7 +40,7 @@ export function casinoViewModel(casino){
    buttonText:state==='available'&&viaEntrance?'입구로 이동':state==='owned'?'입장 완료':state==='moving'?'이동 중':state==='busy'?'사용 중':state==='paused'?'퇴장 필요':'입장',
    disabled:state!=='available',reason,reasonText:CASINO_REASON_TEXT[reason]??(state==='locked'?CASINO_REASON_TEXT.locked:state==='no-gambler'?CASINO_REASON_TEXT['no-gambler']:state==='paused'?CASINO_REASON_TEXT.paused:state==='busy'?CASINO_REASON_TEXT.busy:state==='blocked'?'지금은 입장할 수 없습니다':'')};
  });
- const hint=!unlocked?CASINO_REASON_TEXT.locked:!gamblerReady?CASINO_REASON_TEXT['no-gambler']:rows.some(row=>row.state==='owned'&&row.spinning)?'추첨 중입니다 · 완료 후 코인을 넣거나 나갈 수 있어요':paused?'다른 기계로 이동하려면 먼저 ‘나가기’를 누르세요':rows.some(row=>row.state==='available'&&row.viaEntrance)?'입구로 이동한 뒤 입장을 누르세요':rows.some(row=>row.state==='moving')?'타짜가 이동 중입니다 · 다른 기계로 목적지를 바꿀 수 있어요':'기계를 고르면 타짜가 입장하러 이동합니다';
+ const hint=!unlocked?CASINO_REASON_TEXT.locked:!gamblerReady?CASINO_REASON_TEXT['no-gambler']:rows.some(row=>row.state==='owned'&&row.spinning)?'추첨 중입니다 · 완료 후 코인을 넣거나 나갈 수 있어요':rows.some(row=>row.state==='owned')?'아래에서 코인 투입이나 나가기를 선택하세요':paused?'다른 기계로 이동하려면 먼저 ‘나가기’를 누르세요':rows.some(row=>row.state==='available'&&row.viaEntrance)?'입구로 이동한 뒤 입장을 누르세요':rows.some(row=>row.state==='moving')?'타짜가 이동 중입니다 · 다른 기계로 목적지를 바꿀 수 있어요':'기계를 고르면 타짜가 입장하러 이동합니다';
  return {visible:true,hint,rows};
 }
 /** Returns callback-dispatched, not source admission success. Never mutates the snapshot. */
@@ -115,9 +115,13 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const casinoPanel=doc.createElement('section');casinoPanel.id='casinoPanel';casinoPanel.hidden=true;casinoPanel.setAttribute('aria-labelledby','casinoHeading');
  const casinoHeading=doc.createElement('h2');casinoHeading.id='casinoHeading';casinoHeading.textContent='빠칭코 입장';
  const casinoHint=doc.createElement('p');casinoHint.id='casinoHint';casinoHint.setAttribute('role','status');
+ const casinoUse=doc.createElement('section');casinoUse.id='casinoUse';casinoUse.className='casino-use';casinoUse.hidden=true;casinoUse.setAttribute('aria-label','입장한 빠칭코 이용');
+ const casinoUseTitle=doc.createElement('h3');casinoUseTitle.textContent='입장한 기계 이용';
+ const casinoTraining=doc.createElement('div');casinoTraining.id='casinoTrainingOptions';casinoTraining.className='casino-use-controls';casinoTraining.setAttribute('role','group');casinoTraining.setAttribute('aria-label','코인 투입과 나가기');
+ const casinoTrainingStatus=doc.createElement('p');casinoTrainingStatus.id='casinoTrainingStatus';casinoTrainingStatus.setAttribute('role','status');casinoUse.append(casinoUseTitle,casinoTraining,casinoTrainingStatus);
  const casinoList=doc.createElement('ul');casinoList.id='casinoStationList';
- const casinoHelp=doc.createElement('p');casinoHelp.className='casino-help';casinoHelp.textContent='입장 후 위쪽 구입 목록에서 코인 투입과 나가기를 사용할 수 있어요.';
- casinoPanel.append(casinoHeading,casinoHint,casinoList,casinoHelp);doc.getElementById('rsR002Btn').closest('.research').after(casinoPanel);
+ const casinoHelp=doc.createElement('p');casinoHelp.className='casino-help';casinoHelp.textContent='입장하면 이곳에 코인 투입과 나가기가 표시됩니다.';
+ casinoPanel.append(casinoHeading,casinoHint,casinoUse,casinoList,casinoHelp);doc.getElementById('rsR002Btn').closest('.research').after(casinoPanel);
  const training=doc.getElementById('trainingOptions'),trainingIntro=training.previousElementSibling;
  training.setAttribute('aria-label','구입 · 시설 이용');if(trainingIntro?.tagName==='P'){trainingIntro.textContent='수명 구입과 입장한 시설의 이용 버튼입니다.';if(trainingIntro.previousElementSibling?.tagName==='H2')trainingIntro.previousElementSibling.textContent='광산 · 시설 이용';}
  let casinoView=casinoViewModel(),casinoSignature='';const casinoRows=new Map();
