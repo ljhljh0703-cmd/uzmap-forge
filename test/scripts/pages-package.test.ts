@@ -9,3 +9,12 @@ it('packaging cannot overwrite the project, web root, or an existing output',()=
 it('Pages action uploads the allowlisted .site artifact and separates build/deploy authority',()=>{const source=readFileSync(new URL('../../.github/workflows/pages.yml',import.meta.url),'utf8');assert.match(source,/path: \.site/);assert.doesNotMatch(source,/path: ['"]?\.['"]?\s*$/m);assert.match(source,/needs: build/);assert.match(source,/pages: write/);assert.match(source,/id-token: write/);assert.match(source,/node scripts\/package-pages.mjs/);});
 
 it('hosted-source inclusion is explicit and rejects unknown bytes before creating output',()=>{const root=fixture();try{assert.throws(()=>packagePages(root,join(root,'.site'),{withSourceInputs:true}),/source input|source hash/);assert.equal(existsSync(join(root,'.site')),false);}finally{rmSync(root,{recursive:true,force:true});}});
+
+it('a published runtime includes the automatic checkpoint dependency imported by the game entry',()=>{
+ const root=fixture();try{
+  writeFileSync(join(root,'web/main.js'),"import {createRunCheckpoint} from './run-checkpoint.js'; export const ready=typeof createRunCheckpoint==='function';");
+  writeFileSync(join(root,'web/run-checkpoint.js'),'export function createRunCheckpoint(){}');
+  packagePages(root,join(root,'.site'));
+  assert.equal(existsSync(join(root,'.site/web/run-checkpoint.js')),true,'a local-only dependency would make the published module graph fail');
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

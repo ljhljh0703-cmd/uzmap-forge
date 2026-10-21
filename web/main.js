@@ -1,7 +1,8 @@
 import {createBuildPreview} from './dist/runtime/build-preview.js';
 import {terrainPixel,drawFieldRim,drawBuildRoute} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
-import {createRunId,restoredRunId,saveRunRecord,listRunRecords} from './run-storage.js';
+import {createRunCheckpoint} from './run-checkpoint.js';
+import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
 import {mountGemSkin} from "./ui-skin.js";
@@ -38,6 +39,7 @@ simplifyPlayShell(document);
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
 const artManifestURL=new URL("./assets/manifest.json",import.meta.url);
 const contentBuild=new URL(import.meta.url).searchParams.get("build");
+const replayBuild=/^[a-f0-9]{16}$/.test(window.UZMAP_REPLAY_BUILD??'')?window.UZMAP_REPLAY_BUILD:null;
 if(contentBuild)artManifestURL.searchParams.set("build",contentBuild);
 void sprites.load(artManifestURL.href).then(()=>{
   $("artStatus").textContent=sprites.errors.length?"일부 그림은 기본 도형으로 표시됩니다":"기존 제작 그래픽 연결됨";
@@ -55,7 +57,7 @@ let selectedSource=null;
 // Real elapsed time drives the existing fixed-step simulation; one displayed 1x is one second per second.
 const frameClock = createFrameClock();
 let restoring=false,restoreCancelled=false;
-let runtimeFailed=false;
+let runtimeFailed=false,loadingRun=false;
 let world = null, playing = false, tps = 1, rectEntered = 0, deaths = 0, gatePassed = 0;
 window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;frameClock.reset();$("play").disabled=true;$("runState").textContent='오류로 정지';});
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6, GEM_IDENTITY_MINE_DESIGN §6) — TextTag(피격/획득 부유 숫자).
@@ -308,7 +310,26 @@ async function loadNameMap() {
 // 함수로 승격해도 표시 형식이 절대 나빠지지 않는다(name이 없을 때만 옛 표기 그대로 유지).
 function sourceText(w,text){return resolveWtsText(String(text??''),w.strings??new Map()).replace(/\|c[0-9a-fA-F]{8}|\|r/g,'').replace(/\|n/g,'\n');}
 function recordInput(w,input){(w.inputLog??=[]).push({tick:w.sim.tickCount,...input});}
-function runSnapshot(w){return {format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,seed:w.seed??sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
+function runSnapshot(w){return {format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,...(replayBuild?{replayBuild}:{}),seed:w.seed??sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
+// Save ordinary input only at settled browser boundaries. Never replace manual/legacy slots.
+function checkpointRun(w,force=false,now=Date.now()) {
+ const status=$("automaticSaveStatus");
+ if(!w||restoring||loadingRun)return {kind:'skipped',reason:'ineligible'};
+ const state=gemTowerPlayerState(w.vm),healthy=!runtimeFailed&&!w.replayMismatch&&!w.runtimeCrashes?.length;
+ const eligible=healthy&&w.runMode==='race'&&w.modeDialog?.clicked&&w.modeDialog.pendingButtonId===undefined&&!w.trainingBatch&&state.difficulty>0&&w.sim.tickCount>=2;
+ if(!eligible){const notice=!healthy?'자동 저장 중지 · 이전 기록은 보존됩니다':w.runMode==='classic'?'클래식은 이어하기를 지원하지 않습니다':w.trainingBatch?'묶음 구입을 마치면 자동 저장합니다':'게임을 시작하면 자동 저장합니다';if(status&&status.textContent!==notice)status.textContent=notice;return {kind:'skipped',reason:'ineligible'};}
+ w.runCheckpoint??=createRunCheckpoint((trace,at)=>saveRunRecord(localStorage,trace,at,{automatic:true}));
+ const result=w.runCheckpoint.attempt({now,eligible,force,revision:w.sim.tickCount+':'+(w.inputLog?.length??0),snapshot:()=>runSnapshot(w)});
+ if(result.kind==='saved'){
+  w.checkpointFailed=false;w.checkpointNotice='자동 저장됨 · '+new Date(result.savedAt).toLocaleTimeString('ko-KR');
+  if(!$("gameDrawer").hidden)refreshSavedRuns();
+ }else if(result.kind==='failed'){
+  w.checkpointNotice='자동 저장 실패 · 저장 공간이나 브라우저 설정을 확인하세요';
+  if(!w.checkpointFailed)flash(w.checkpointNotice);w.checkpointFailed=true;
+ }
+ if(status&&w.checkpointNotice&&status.textContent!==w.checkpointNotice)status.textContent=w.checkpointNotice;
+ return result;
+}
 // Replay text is a paused, visible inspection view; explicit save reuses its validated trace.
 function refreshReplayOutput(w,trace) {
  const explicit=trace!==undefined;
@@ -340,12 +361,12 @@ function renderControls(w) {
 function refreshSavedRuns(selectedKey){
  const list=$("savedRuns"),selected=selectedKey??list.value;list.replaceChildren();
  try{
-  const records=listRunRecords(localStorage,contentBuild);
+  const records=listRunRecords(localStorage,contentBuild,replayBuild);
   for(const record of records){
    const option=document.createElement('option');option.value=record.key;option.record=record;
    const date=record.trace?.savedAt?new Date(record.trace.savedAt).toLocaleString('ko-KR'):'이전 기록';
    const round=record.trace?.sourceState?.round;
-   option.textContent=`${record.legacy?'보호된 예전 저장 · ':''}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전'}`;
+   option.textContent=`${record.legacy?'보호된 예전 저장 · ':record.automatic?'자동 저장 · ':'수동 저장 · '}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전'}`;
    list.append(option);
   }
   if(records.some(r=>r.key===selected))list.value=selected;
@@ -358,7 +379,7 @@ function showSavedRun(){
  $("savedRunRaw").value=record?.raw??'';
  $("resumeRun").disabled=restoring||!record?.compatible;
  $("exportRun").disabled=!record;
- $("savedRunHelp").textContent=!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?'원본을 내보낼 수 있습니다. 이어하기에는 같은 게임 버전이 필요합니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.';
+ $("savedRunHelp").textContent=!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?'원본을 내보낼 수 있습니다. 이어하기에는 같은 게임 로직이 필요합니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.';
 }
 $("savedRuns").onchange=showSavedRun;
 $("exportRun").onclick=()=>{
@@ -380,8 +401,9 @@ function cancelRestore(){
  if(!restoring)return;restoreCancelled=true;$("cancelRestore").disabled=true;$("restoreProgressText").textContent='복원 취소 중… 기존 진행으로 돌아갑니다';
 }
 async function restoreRun(raw){
- if(restoring)return;
- let trace;try{trace=validateInputReplay(raw);if(typeof contentBuild!=='string'||!contentBuild||trace.build!==contentBuild)throw Error('저장 기록의 게임 버전이 다릅니다. 기록을 보관하고 같은 버전에서 이어하세요');}catch(error){flash(error.message);return;}
+ if(restoring||loadingRun)return;
+ let trace;try{trace=validateInputReplay(raw);if(!isRunCompatible(trace,contentBuild,replayBuild))throw Error('저장 기록의 게임 버전이 다릅니다. 기록을 보관하고 같은 버전에서 이어하세요');}catch(error){flash(error.message);return;}
+ const checkpoint=checkpointRun(world,true);if(checkpoint?.kind==='failed'){flash('현재 진행을 보관하지 못해 이어하기를 중단했습니다 · 현재 게임은 계속할 수 있습니다');return;}
  const before=captureRunView();restoring=true;restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent='저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
   await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
@@ -397,7 +419,7 @@ async function restoreRun(raw){
   if(restoreCancelled)throw Error('복원을 취소했습니다');
   if(world.sim.stateHash()!==trace.stateHash||trace.sourceState&&JSON.stringify(gemTowerPlayerState(world.vm))!==JSON.stringify(trace.sourceState)||world.runtimeCrashes.length)throw Error('저장 당시와 결과가 일치하지 않아 이어하기를 중단했습니다');
   world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
-  frameClock.reset();$("msg").style.display='none';render(world);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);commitSessionSeed(trace.seed);
+  frameClock.reset();$("msg").style.display='none';render(world,true);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);commitSessionSeed(trace.seed);
  }catch(error){restoreRunView(before);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
  finally{restoring=false;playing=false;frameClock.reset();renderControls(world);$("researchToggle").focus();}
 }
@@ -1202,10 +1224,10 @@ function flash(t) { flashMsg = ""; flashUntil = performance.now() + 1800;gemSkin
 
 function loop(now = performance.now()) {
   requestAnimationFrame(loop);
-  if(runtimeFailed)return;
+  if(runtimeFailed||loadingRun)return;
   try{
     const ticks=frameClock.advance(now,Boolean(world&&playing&&!restoring),tps);
-    if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);}
+    if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);checkpointRun(world);}
   }catch(error){runtimeFailed=true;playing=false;frameClock.reset();window.showErr('게임 화면 오류',error);}
 }
 
@@ -1370,9 +1392,9 @@ function startWaves(w) {
   playing = true; $("play").textContent = "일시정지";
   $("engineTag").textContent = "웨이브 진행 · 점이 있는 빈 칸을 눌러 건설";
 }
-$("play").onclick = () => { if (!world||restoring) return;if(world.replayMismatch){flash("기록이 일치하지 않습니다 · 새 게임을 시작하세요");return;} playing = !playing; $("play").textContent = playing ? "일시정지" : "재개"; };
+$("play").onclick = () => { if (!world||restoring||loadingRun||runtimeFailed) return;if(world.replayMismatch){flash("기록이 일치하지 않습니다 · 새 게임을 시작하세요");return;} playing = !playing; $("play").textContent = playing ? "일시정지" : "재개";if(!playing)checkpointRun(world,true); };
 $("skip").onclick = () => { if (world && world.prepActive) startWaves(world); };
-$("stepBtn").onclick = () => { if (world) { stepN(world, 1); render(world); } };
+$("stepBtn").onclick = () => { if (world&&!restoring&&!loadingRun&&!runtimeFailed) { stepN(world, 1); render(world);checkpointRun(world,true); } };
 $("reset").onclick = () => loadFromUrl(freshSessionSeed(sessionSeed,crypto));
 $("speed").oninput = (e) => { tps = +e.target.value; $("spd").textContent = tps + "×"; };
 for (const id of ["A009", "A007", "A00R", "A03M", "A02G", "A008", "A02J"]) {
@@ -1464,6 +1486,10 @@ function commitSessionSeed(seed) {
   history.replaceState(history.state,'',url);sessionSeed=seed;
 }
 async function loadFromUrl(seed=sessionSeed,{publishSeed=true}={}) {
+  if(loadingRun)return false;
+  checkpointRun(world,true);
+  const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
+  loadingRun=true;playing=false;frameClock.reset();
   runtimeFailed=false;document.documentElement.dataset.gameReady='false';
   try {
     setMsg("맵 로딩 중…");
@@ -1488,12 +1514,12 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true}={}) {
     playing = false; $("play").textContent = "방식 선택";
     render(world);
     if(publishSeed)commitSessionSeed(seed);
-    return true;
+    loaded=true;return true;
   } catch (e) {
     console.error(e);
     if(!localSourceMode){showSourceFiles(e?.message??String(e));return false;}
     setMsg(`게임을 열지 못했습니다\n${e?.message??e}\n\n‘보석타워 실행.command’로 다시 여세요.\n원작 맵·능력 자료와 게임 빌드가 같은 폴더에 필요합니다.\n기본 주소는 127.0.0.1:8097입니다.`);
-  }
+  } finally {loadingRun=false;if(!loaded&&world===priorWorld)runtimeFailed=priorFailure;}
 }
 
 function showSourceFiles(message='두 파일을 선택하면 게임을 열 수 있습니다.'){
@@ -1511,7 +1537,13 @@ $("openSourceFiles").addEventListener('click',async()=>{
 
 document.addEventListener("visibilitychange", () => {
   frameClock.reset();
-  if (document.hidden) { playing = false; renderControls(world); }
+  if (document.hidden) { playing = false;checkpointRun(world,true);renderControls(world); }
+});
+window.addEventListener("pagehide", () => {
+ frameClock.reset();playing=false;checkpointRun(world,true);renderControls(world);
+});
+window.addEventListener("pageshow", () => {
+ frameClock.reset();playing=false;renderControls(world);
 });
 resize(); requestAnimationFrame(loop); loadFromUrl();
 

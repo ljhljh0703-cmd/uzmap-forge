@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-const {restoredRunId}=await import(pathToFileURL(resolve('web/run-storage.js')).href);
+const {restoredRunId,isRunCompatible}=await import(pathToFileURL(resolve('web/run-storage.js')).href);
 const {validateInputReplay}=await import(pathToFileURL(resolve('web/gem-actions.js')).href);
 const mainSource=process.env.RESTORE_UI_SOURCE??resolve('web/main.js');
 const controlIds=['play','stepBtn','speed','chatInput','chatSend','reset','saveRun','resumeRun','importRun'];
@@ -24,8 +24,8 @@ function fixture({ended=false,mismatch=false}={}){
  const timers:Array<()=>void>=[],messages:string[]=[],chunks:number[]=[];let onVisibility:()=>void=()=>{};
  let release:()=>void=()=>{},running:Promise<void>|null=null;
  const makeWorld=()=>({sim:{tickCount:0,stateHash:()=> 'abcdef01',getUnit:()=>undefined},sourceVersion:'fixture-source',runtimeCrashes:[],inputLog:[],gameOver:ended?{winner:null}:null});
- const trace={format:'uzmap-ui-input-v1',build:'fixture-build',seed:6,tick:5000,stateHash:mismatch?'fedcba98':'abcdef01',sourceVersion:'fixture-source',sourceState:{round:40,life:100},actions:[],camera:{cx:10,cy:20,zoom:.2},selectedGemId:null};
- const context:any={world:makeWorld(),restoring:false,restoreCancelled:false,playing:true,runtimeFailed:false,performance:{now:()=>0},prevHp:new Map(),prevGold:[10],textTags:[],goldTags:[],lastPos:new Map(),attackFx:[],waveNum:3,prevCreeps:2,waveFlashUntil:0,rectEntered:4,deaths:5,gatePassed:6,renderChatHelp:()=>{},sessionSeed:6,commitSessionSeed:()=>{},contentBuild:'fixture-build',cam:{cx:0,cy:0,zoom:.2},$:(id:string)=>nodes[id],document:{hidden:false,querySelectorAll:()=>inputAreas,addEventListener:(_type:string,callback:()=>void)=>{onVisibility=callback;}},validateInputReplay,restoredRunId,flash:(text:string)=>messages.push(text),setDrawer:()=>{},frameClock:{reset:()=>{}},gemTowerPlayerState:()=>({round:40,life:100}),setTimeout:(resolve:()=>void)=>timers.push(resolve),stepN:(w:any,n:number)=>{w.sim.tickCount+=n;},replayInputBatch:(w:any,t:any,cursor:number,advance:(n:number)=>void,maxTicks:number)=>{const n=Math.min(maxTicks,t.tick-w.sim.tickCount);chunks.push(n);advance(n);return cursor;}};
+ const trace={format:'uzmap-ui-input-v1',build:'aaaaaaaaaaaaaaaa',seed:6,tick:5000,stateHash:mismatch?'fedcba98':'abcdef01',sourceVersion:'fixture-source',sourceState:{round:40,life:100},actions:[],camera:{cx:10,cy:20,zoom:.2},selectedGemId:null};
+ const context:any={world:makeWorld(),restoring:false,restoreCancelled:false,playing:true,runtimeFailed:false,loadingRun:false,replayBuild:null,checkpointRun(){},isRunCompatible,performance:{now:()=>0},prevHp:new Map(),prevGold:[10],textTags:[],goldTags:[],lastPos:new Map(),attackFx:[],waveNum:3,prevCreeps:2,waveFlashUntil:0,rectEntered:4,deaths:5,gatePassed:6,renderChatHelp:()=>{},sessionSeed:6,commitSessionSeed:()=>{},contentBuild:'aaaaaaaaaaaaaaaa',cam:{cx:0,cy:0,zoom:.2},$:(id:string)=>nodes[id],document:{hidden:false,querySelectorAll:()=>inputAreas,addEventListener:(_type:string,callback:()=>void)=>{onVisibility=callback;}},validateInputReplay,restoredRunId,flash:(text:string)=>messages.push(text),setDrawer:()=>{},frameClock:{reset:()=>{}},gemTowerPlayerState:()=>({round:40,life:100}),setTimeout:(resolve:()=>void)=>timers.push(resolve),stepN:(w:any,n:number)=>{w.sim.tickCount+=n;},replayInputBatch:(w:any,t:any,cursor:number,advance:(n:number)=>void,maxTicks:number)=>{const n=Math.min(maxTicks,t.tick-w.sim.tickCount);chunks.push(n);advance(n);return cursor;}};
  const paint=()=>{context.w=context.world;vm.runInNewContext(renderStatement,context);};
  context.render=paint;const originalWorld=context.world,originalCam={...context.cam};
  context.loadFromUrl=async()=>{context.world=makeWorld();context.textTags=[];context.goldTags=[];context.attackFx=[];context.playing=true;paint();await new Promise<void>(resolve=>{release=resolve;});};
@@ -54,7 +54,7 @@ it('a restored terminal world keeps play and step disabled after finally instead
 });
 
 it('unknown or different save builds are refused before replacing a running world or entering restoration',async()=>{
- for(const [currentBuild,build] of [['fixture-build','previous-combat-build'],['fixture-build',undefined],['fixture-build',null],[null,null],['','']]){
+ for(const [currentBuild,build] of [['aaaaaaaaaaaaaaaa','previous-combat-build'],['aaaaaaaaaaaaaaaa',undefined],['aaaaaaaaaaaaaaaa',null],[null,null],['','']]){
   const f=fixture();f.context.contentBuild=currentBuild;const before=f.context.world;const original=JSON.stringify(f.trace);
   const trace={...f.trace,build};
   const refused=f.context.restoreRun(trace);
@@ -100,4 +100,13 @@ it('failed or cancelled restoration preserves the old fatal lock and original er
 it('a successful strict replacement can clear a previous fatal lock without restoring its obsolete error message',async()=>{
  const f=fixture(),load=f.context.loadFromUrl;f.context.runtimeFailed=true;f.context.playing=false;f.nodes.msg.innerHTML='old error';f.nodes.msg.style.display='flex';
  f.context.loadFromUrl=async()=>{f.context.runtimeFailed=false;return load();};f.begin();await f.finish();assert.notEqual(f.context.world,f.originalWorld);assert.equal(f.context.runtimeFailed,false);assert.equal(f.nodes.play.disabled,false);assert.equal(f.nodes.msg.style.display,'none');
+});
+
+
+it('different cosmetic builds restore through a matching behavior identity and still enforce source/hash validation',async()=>{
+ for(const mismatch of [false,true]){
+  const f=fixture({mismatch});f.context.replayBuild='bbbbbbbbbbbbbbbb';Object.assign(f.trace,{build:'cccccccccccccccc',replayBuild:f.context.replayBuild});f.begin();await f.finish();
+  assert.equal(f.context.world===f.originalWorld,mismatch);assert.match(f.messages.at(-1)??'',mismatch?/일치하지 않아/:/정확히 복원/);
+ }
+ const f=fixture();f.context.replayBuild='bbbbbbbbbbbbbbbb';Object.assign(f.trace,{build:'cccccccccccccccc',replayBuild:'dddddddddddddddd'});await f.context.restoreRun(f.trace);assert.equal(f.context.world,f.originalWorld);assert.equal(f.chunks.length,0);assert.match(f.messages.at(-1)??'',/게임 버전/);
 });
