@@ -320,18 +320,19 @@ function refreshReplayOutput(w,trace) {
 }
 // Keep native control state and normal input regions consistent throughout strict restoration.
 function renderControls(w) {
- const ended=Boolean(w?.gameOver),awaitingMode=Boolean(w?.modeDialog&&!w.modeDialog.clicked),play=$("play");
- const runLabel=restoring?'복원 중':ended?'게임 종료':awaitingMode?'방식 선택':playing?'진행 중':'일시정지';
+ const ended=Boolean(w?.gameOver),awaitingMode=Boolean(w?.modeDialog&&!w.modeDialog.clicked),pendingMode=w?.modeDialog?.pendingButtonId!==undefined,play=$("play");
+ const runLabel=runtimeFailed?'오류로 정지':restoring?'복원 중':ended?'게임 종료':awaitingMode?'방식 선택':playing?'진행 중':'일시정지';
  if($("runState").textContent!==runLabel)$("runState").textContent=runLabel;
- $("runState").dataset.state=restoring?'restoring':ended?'ended':awaitingMode?'mode':playing?'playing':'paused';
+ $("runState").dataset.state=runtimeFailed?'error':restoring?'restoring':ended?'ended':awaitingMode?'mode':playing?'playing':'paused';
  $("restoreOverlay").hidden=!restoring;$("cancelRestore").disabled=!restoring||restoreCancelled;
- for(const id of ["play","stepBtn","speed","chatInput","chatSend"])$(id).disabled=restoring||ended;
+ for(const id of ["play","stepBtn","speed","chatInput","chatSend"])$(id).disabled=restoring||ended||runtimeFailed;
  if(awaitingMode)for(const id of ["play","stepBtn"])$(id).disabled=true;
  if(w?.replayMismatch)play.disabled=true;
  for(const id of ["reset","resumeRun","importRun"])$(id).disabled=restoring;
- $("saveRun").disabled=restoring||Boolean(w?.trainingBatch);
+ $("saveRun").disabled=restoring||Boolean(w?.trainingBatch)||pendingMode;
+ $("saveRun").title=pendingMode?'재개해서 게임 방식 선택을 처리한 뒤 저장하세요':'';
  $("resumeRun").disabled=restoring||!$("savedRuns").selectedOptions[0]?.record?.compatible;
- const label=restoring?'복원 중…':ended?'게임 종료':w?.replayMismatch?'복원 실패':awaitingMode?'방식 선택':playing?'일시정지':'재개';
+ const label=runtimeFailed?'오류로 정지':restoring?'복원 중…':ended?'게임 종료':w?.replayMismatch?'복원 실패':awaitingMode?'방식 선택':playing?'일시정지':'재개';
  if(play.textContent!==label)play.textContent=label;
  // The existing progress message and its ancestors stay outside the inert regions.
  for(const area of document.querySelectorAll('.header-actions,footer,#gameDrawer,#drawerScrim,#bottomPanel,#battlefield > :not(#msg):not(#restoreOverlay)'))if(area.inert!==restoring)area.inert=restoring;
@@ -400,7 +401,7 @@ async function restoreRun(raw){
  finally{restoring=false;playing=false;frameClock.reset();renderControls(world);$("researchToggle").focus();}
 }
 $("cancelRestore").onclick=cancelRestore;
-$("saveRun").onclick=()=>{if(!world||restoring)return;if(world.trainingBatch){flash('묶음 구입을 마친 뒤 저장하세요');return;}try{const trace=validateInputReplay(runSnapshot(world));const saved=saveRunRecord(localStorage,trace);refreshReplayOutput(world,saved.trace);refreshSavedRuns(saved.key);flash('현재 진행을 이 브라우저에 저장했습니다');}catch(error){flash(error.message);}};
+$("saveRun").onclick=()=>{if(!world||restoring)return;if(world.modeDialog?.pendingButtonId!==undefined){flash('재개해서 게임 방식 선택을 처리한 뒤 저장하세요');return;}if(world.trainingBatch){flash('묶음 구입을 마친 뒤 저장하세요');return;}try{const trace=validateInputReplay(runSnapshot(world));const saved=saveRunRecord(localStorage,trace);refreshReplayOutput(world,saved.trace);refreshSavedRuns(saved.key);flash('현재 진행을 이 브라우저에 저장했습니다');}catch(error){flash(error.message);}};
 $("resumeRun").onclick=()=>{const record=$("savedRuns").selectedOptions[0]?.record;if(!record?.compatible){flash('이어할 수 있는 저장을 선택하세요');return;}void restoreRun(record.raw);};
 $("importRun").onclick=()=>void restoreRun($("restoreInput").value);
 
@@ -1014,7 +1015,7 @@ function renderTraining(w){
  const casinoCurrent=pending.find(q=>sourceOwned.has(q.producerId));
  $("casinoUse").hidden=sourceOwned.size===0;
  $("casinoTrainingStatus").textContent=sourceOwned.size===0?'':w.gameOver?'게임 종료 · 시설 이용 중단':!playing?'일시정지 · 상단 재개를 누르면 구입과 추첨이 진행됩니다':batch?$("trainingStatus").textContent:casinoCurrent?`${fullName(w,casinoCurrent.typeId)} · 처리 중 · 게임 시간 ${(casinoCurrent.remainingTicks*DT).toFixed(1)}초 남음`:[...sourceOwned].some(id=>sourceSpinning.has(id))?'추첨 중입니다 · 완료 후 다시 이용할 수 있어요':'코인 투입이나 나가기를 선택하세요';
- $("saveRun").disabled=Boolean(batch);
+ $("saveRun").disabled=Boolean(batch)||w.modeDialog?.pendingButtonId!==undefined;
 }
 
 function stepN(w, n) {
@@ -1447,8 +1448,9 @@ function sendChat() {
   const text = input.value;
   if (!text) return;
   world.sim.injectChat(0, text); // P0 왕복 — 효과(§8.1)는 실맵 스크립트가 다음 triggerBridge 단계에서 수행
+  recordInput(world,{kind:'chat',playerId:0,text});
   const log = $("chatLog");
-  if (log) log.innerHTML = `<div>› ${text.replace(/</g, "&lt;")}</div>` + log.innerHTML;
+  if (log) { const line=document.createElement('div');line.textContent='› '+text;log.prepend(line); }
   input.value = "";
 }
 if ($("chatSend")) $("chatSend").onclick = sendChat;
