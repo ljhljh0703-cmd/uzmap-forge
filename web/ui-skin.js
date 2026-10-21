@@ -27,21 +27,35 @@ const CASINO_REASON_TEXT={
  'game-over':'게임이 종료되었습니다','invalid-order':'지금은 이동을 요청할 수 없습니다',
  'not-owner':'타짜를 조종할 수 없습니다',immobile:'타짜가 이동할 수 없는 상태입니다'
 };
+/** Format already observed source prizes; missing values stay explicit. */
+function casinoPayoutModel(payout){
+ const amount=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString('ko-KR'):null;
+ const two=amount(payout?.two),three=amount(payout?.three),min=amount(payout?.jackpot?.min),max=amount(payout?.jackpot?.max);
+ const formula=(base,factor)=>amount(base)!==null&&amount(factor)!==null?`${amount(base)} × ${amount(factor)}`:'배율 확인 필요';
+ const jackpotFormula=amount(payout?.base?.jackpot)!==null&&amount(payout?.jackpotMultiplier?.min)!==null&&amount(payout?.jackpotMultiplier?.max)!==null?`${amount(payout.base.jackpot)} × ${amount(payout.jackpotMultiplier.min)}~${amount(payout.jackpotMultiplier.max)}`:'배율 확인 필요';
+ const range=min!==null&&max!==null?`${min}~${max}`:null;
+ return {payoutSummary:two!==null&&three!==null&&range!==null?`2개 ${two} · 3개 ${three} · 잭팟 ${range} 골드`:'당첨금 확인 필요',payoutRows:[
+  {label:'같은 모양 2개',condition:'왼쪽부터 2개 일치 · 3번째는 다름',amount:two!==null?`${two} 골드`:'당첨금 확인 필요',formula:formula(payout?.base?.two,payout?.factor)},
+  {label:'같은 모양 3개',condition:'왼쪽부터 3개 일치 · 4번째는 다름',amount:three!==null?`${three} 골드`:'당첨금 확인 필요',formula:formula(payout?.base?.three,payout?.factor)},
+  {label:'같은 모양 4개 · 잭팟',condition:'왼쪽부터 4개 모두 일치',amount:range!==null?`${range} 골드`:'당첨금 확인 필요',formula:jackpotFormula}
+ ]};
+}
 /** Presentation of source observations only. No VM, path, ownership, price or payout logic. */
-export function casinoViewModel(casino){
- if(!casino||typeof casino!=='object')return {visible:false,hint:'',rows:[]};
+export function casinoViewModel(casino,selectedId=null){
+ if(!casino||typeof casino!=='object')return {visible:false,hint:'',rows:[],primaryId:null};
  const unlocked=casino.unlocked===true,gamblerReady=Number.isSafeInteger(casino.gamblerId)&&casino.gamblerId>0,paused=casino.paused===true;
  const rows=(casino.stations??[]).map(station=>{
   const reason=station.reason??null,idReady=Number.isSafeInteger(station.id)&&station.id>0;
   let state=!unlocked||reason==='locked'?'locked':!gamblerReady||reason==='no-gambler'?'no-gambler':station.owned?'owned':station.busy||reason==='busy'?'busy':paused||reason==='paused'?'paused':reason==='moving'?'moving':!idReady||!station.canApproach||reason?'blocked':'available';
   const viaEntrance=station.viaEntrance===true;
   const status=state==='available'&&viaEntrance?'입구 경유 필요':({locked:'잠김','no-gambler':'타짜 확인 필요',owned:'입장 완료',busy:'다른 사용자 이용 중',paused:'퇴장 필요',moving:'이동 중',blocked:'입장 불가',available:'입장 가능'})[state];
-  return {id:station.id,index:station.index,title:String(station.title??'기계 정보 확인 필요'),state,status:status+(station.spinning===true?' · 추첨 중':''),spinning:station.spinning===true,viaEntrance,
+  return {id:station.id,index:station.index,title:String(station.title??'기계 정보 확인 필요'),...casinoPayoutModel(station.payout),state,status:status+(station.spinning===true?' · 추첨 중':''),spinning:station.spinning===true,viaEntrance,
    buttonText:state==='available'&&viaEntrance?'입구로 이동':state==='owned'?'입장 완료':state==='moving'?'이동 중':state==='busy'?'사용 중':state==='paused'?'퇴장 필요':'입장',
    disabled:state!=='available',reason,reasonText:CASINO_REASON_TEXT[reason]??(state==='locked'?CASINO_REASON_TEXT.locked:state==='no-gambler'?CASINO_REASON_TEXT['no-gambler']:state==='paused'?CASINO_REASON_TEXT.paused:state==='busy'?CASINO_REASON_TEXT.busy:state==='blocked'?'지금은 입장할 수 없습니다':'')};
  });
  const hint=!unlocked?CASINO_REASON_TEXT.locked:!gamblerReady?CASINO_REASON_TEXT['no-gambler']:rows.some(row=>row.state==='owned'&&row.spinning)?'추첨 중입니다 · 완료 후 코인을 넣거나 나갈 수 있어요':rows.some(row=>row.state==='owned')?'아래에서 코인 투입이나 나가기를 선택하세요':paused?'다른 기계로 이동하려면 먼저 ‘나가기’를 누르세요':rows.some(row=>row.state==='available'&&row.viaEntrance)?'입구로 이동한 뒤 입장을 누르세요':rows.some(row=>row.state==='moving')?'타짜가 이동 중입니다 · 다른 기계로 목적지를 바꿀 수 있어요':'기계를 고르면 타짜가 입장하러 이동합니다';
- return {visible:true,hint,rows};
+ const primary=rows.find(row=>row.state==='owned')??rows.find(row=>row.id===selectedId)??rows.find(row=>row.state==='moving')??rows[0];
+ return {visible:true,hint,rows,primaryId:primary?.id??null};
 }
 /** Returns callback-dispatched, not source admission success. Never mutates the snapshot. */
 export function dispatchCasinoApproach(view,id,approach){
@@ -119,32 +133,47 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const casinoUseTitle=doc.createElement('h3');casinoUseTitle.textContent='입장한 기계 이용';
  const casinoTraining=doc.createElement('div');casinoTraining.id='casinoTrainingOptions';casinoTraining.className='casino-use-controls';casinoTraining.setAttribute('role','group');casinoTraining.setAttribute('aria-label','코인 투입과 나가기');
  const casinoTrainingStatus=doc.createElement('p');casinoTrainingStatus.id='casinoTrainingStatus';casinoTrainingStatus.setAttribute('role','status');casinoUse.append(casinoUseTitle,casinoTraining,casinoTrainingStatus);
- const casinoList=doc.createElement('ul');casinoList.id='casinoStationList';
+ const casinoList=doc.createElement('ul');casinoList.id='casinoStationList';casinoList.setAttribute('aria-label','현재 기계');
+ const casinoChoices=doc.createElement('details');casinoChoices.id='casinoChoices';
+ const casinoChoiceSummary=doc.createElement('summary');casinoChoiceSummary.textContent='다른 기계 · 당첨금 비교';
+ const casinoComparisonNote=doc.createElement('p');casinoComparisonNote.className='casino-comparison-note';casinoComparisonNote.textContent='기계마다 같은 모양이 나왔을 때 받는 골드가 달라요. 왼쪽부터 연속으로 일치해야 당첨됩니다.';
+ const casinoOtherList=doc.createElement('ul');casinoOtherList.id='casinoOtherStationList';casinoOtherList.setAttribute('aria-label','다른 빠칭코 기계');casinoChoices.append(casinoChoiceSummary,casinoComparisonNote,casinoOtherList);
  const casinoHelp=doc.createElement('p');casinoHelp.className='casino-help';casinoHelp.textContent='입장하면 이곳에 코인 투입과 나가기가 표시됩니다.';
  const casinoResult=doc.createElement('section');casinoResult.id='casinoResult';casinoResult.className='casino-result';casinoResult.hidden=true;casinoResult.setAttribute('aria-label','최근 추첨 결과');
  const resultLabel=doc.createElement('span');resultLabel.textContent='최근 추첨 결과';const resultText=doc.createElement('p');resultText.id='casinoResultText';resultText.setAttribute('role','status');resultText.setAttribute('aria-live','polite');
  const recent=doc.createElement('details');recent.id='casinoRecent';const recentSummary=doc.createElement('summary');recentSummary.textContent='최근 결과';const recentList=doc.createElement('ol');recentList.id='casinoResultHistory';recent.append(recentSummary,recentList);casinoResult.append(resultLabel,resultText,recent);
- casinoPanel.append(casinoHeading,casinoHint,casinoResult,casinoUse,casinoList,casinoHelp);doc.getElementById('rsR002Btn').closest('.research').after(casinoPanel);
+ casinoPanel.append(casinoHeading,casinoHint,casinoResult,casinoUse,casinoList,casinoChoices,casinoHelp);doc.getElementById('rsR002Btn').closest('.research').after(casinoPanel);
  const training=doc.getElementById('trainingOptions'),trainingIntro=training.previousElementSibling;
  training.setAttribute('aria-label','구입 · 시설 이용');if(trainingIntro?.tagName==='P'){trainingIntro.textContent='수명 구입과 입장한 시설의 이용 버튼입니다.';if(trainingIntro.previousElementSibling?.tagName==='H2')trainingIntro.previousElementSibling.textContent='광산 · 시설 이용';}
- let casinoView=casinoViewModel(),casinoSignature='',receiptSignature='';const casinoRows=new Map();
+ let casinoView=casinoViewModel(),casinoSelectedId=null,casinoSnapshot=null,casinoSignature='',receiptSignature='';const casinoRows=new Map();
  function renderCasino(snapshot){
+  casinoSnapshot=snapshot;
   const receipt=snapshot?.feedback,last=receipt?.last??null,receiptKey=JSON.stringify(receipt??null);
   if(receiptSignature!==receiptKey){receiptSignature=receiptKey;casinoResult.hidden=!last;resultText.textContent=last?.message??'';casinoResult.dataset.outcome=last?.outcome??'';recentList.replaceChildren();for(const result of receipt?.results??[]){const item=doc.createElement('li');item.textContent=result.message;recentList.append(item);}recentSummary.textContent=`최근 ${receipt?.results?.length??0}회 결과`;}
 
-  casinoView=casinoViewModel(snapshot);const key=JSON.stringify(casinoView);if(casinoSignature===key)return;casinoSignature=key;casinoPanel.hidden=!casinoView.visible;if(!casinoView.visible)return;casinoHint.textContent=casinoView.hint;
-  const keep=new Set();for(const model of casinoView.rows){
+  casinoView=casinoViewModel(snapshot,casinoSelectedId);const key=JSON.stringify(casinoView);if(casinoSignature===key)return;casinoSignature=key;casinoPanel.hidden=!casinoView.visible;if(!casinoView.visible)return;casinoHint.textContent=casinoView.hint;
+  const active=doc.activeElement;let movedActive=false,focusTarget=active;
+  casinoChoices.hidden=casinoView.rows.length<2;casinoChoiceSummary.textContent=`다른 기계 · 당첨금 비교 (${Math.max(0,casinoView.rows.length-1)}대)`;
+  const positions=new Map([[casinoList,0],[casinoOtherList,0]]),keep=new Set();for(const model of casinoView.rows){
    const key=String(model.index)+':'+String(model.id);keep.add(key);let row=casinoRows.get(key);
    if(!row){
     const element=doc.createElement('li');element.className='casino-station';element.dataset.casinoIndex=String(model.index);
-    const info=doc.createElement('div'),title=doc.createElement('b'),status=doc.createElement('span');title.className='casino-station-title';status.className='casino-station-status';info.append(title,status);
+    const info=doc.createElement('div'),title=doc.createElement('b'),status=doc.createElement('span'),payoutPreview=doc.createElement('span');title.className='casino-station-title';status.className='casino-station-status';payoutPreview.className='casino-payout-preview';info.append(title,status,payoutPreview);
     const button=doc.createElement('button');button.type='button';button.className='sec training-option casino-approach';button.dataset.casinoId=String(model.id);
-    button.addEventListener('click',()=>dispatchCasinoApproach(casinoView,model.id,approachCasino));element.append(info,button);casinoList.append(element);row={element,title,status,button};casinoRows.set(key,row);
+    const payoutDetails=doc.createElement('details');payoutDetails.className='casino-payout-details';const payoutTitle=doc.createElement('summary');payoutTitle.textContent='배율 · 당첨 조건';const payoutList=doc.createElement('ul');payoutList.className='casino-payout-list';
+    const payoutItems=Array.from({length:3},()=>{const item=doc.createElement('li');payoutList.append(item);return item;});payoutDetails.append(payoutTitle,payoutList);
+    button.addEventListener('click',()=>{if(typeof approachCasino==='function')dispatchCasinoApproach(casinoView,model.id,id=>{casinoSelectedId=id;approachCasino(id);renderCasino(casinoSnapshot);});});element.append(info,button,payoutDetails);row={element,title,status,button,payoutPreview,payoutDetails,payoutTitle,payoutItems};casinoRows.set(key,row);
    }
-   row.title.textContent=model.title;row.status.textContent=model.status;row.element.dataset.state=model.state;row.element.dataset.spinning=String(model.spinning);
+   const host=model.id===casinoView.primaryId?casinoList:casinoOtherList;
+   const position=positions.get(host);positions.set(host,position+1);
+   if(host.children[position]!==row.element){movedActive||=Boolean(active&&row.element.contains(active));host.insertBefore(row.element,host.children[position]??null);}
+   row.title.textContent=model.title;row.status.textContent=model.status;row.payoutPreview.textContent=model.payoutSummary;row.element.dataset.state=model.state;row.element.dataset.spinning=String(model.spinning);
+   for(let i=0;i<model.payoutRows.length;i++){const prize=model.payoutRows[i];row.payoutItems[i].textContent=`${prize.label}: ${prize.amount} (${prize.formula}) · ${prize.condition}`;}
    row.button.disabled=model.disabled||typeof approachCasino!=='function';row.button.textContent=model.buttonText;row.button.title=model.reasonText||'타짜가 이 기계로 이동해 입장합니다';row.button.setAttribute('aria-label',`${row.title.textContent} · ${model.buttonText}`);row.button.dataset.reason=model.reason??'';
+   if(active===row.button&&row.button.disabled)focusTarget=row.payoutTitle;
   }
   for(const[key,row]of casinoRows)if(!keep.has(key)){row.element.remove();casinoRows.delete(key);}
+  if((movedActive||focusTarget!==active)&&focusTarget?.isConnected!==false)focusTarget.focus({preventScroll:true});
  }
  const selectedPortrait=doc.createElement('canvas');selectedPortrait.id='selectedGemPortrait';selectedPortrait.width=64;selectedPortrait.height=64;selectedPortrait.setAttribute('aria-hidden','true');doc.querySelector('.bp-info').prepend(selectedPortrait);
  function framePanel(element,kind='panel',corner=12){

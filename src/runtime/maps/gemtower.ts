@@ -74,6 +74,17 @@ function segmentNear(a:{x:number;y:number},b:{x:number;y:number},p:{x:number;y:n
  const t=d===0?0:Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/d));
  return (a.x+t*dx-p.x)**2+(a.y+t*dy-p.y)**2<=radius*radius;
 }
+/** Read-only explanation of 7C fle/f8e/FHe/F3e/gfe/gZe/GBe payouts.
+ * GR/hR multiply the viewing player's eI; HR uses a source draw in 3..6+zR.
+ * These observed amounts never decide a spin, change odds or settle a prize. */
+function casinoPayoutView(vm:JassVm,index:number,playerId:number){
+ const integer=(name:string,at:number,minimum=0)=>{const v=vm.getGlobalIndexed(name,at);return v.t==='int'&&Number.isSafeInteger(v.v)&&v.v>=minimum?v.v:null;};
+ const base={two:integer('GR',index,1),three:integer('hR',index,1),jackpot:integer('HR',index,1)};
+ const factor=integer('eI',playerId+1,1),bonus=integer('zR',playerId+1);
+ const product=(a:number|null,b:number|null)=>a!==null&&b!==null&&Number.isSafeInteger(a*b)?a*b:null;
+ const maximum=bonus!==null&&Number.isSafeInteger(6+bonus)?6+bonus:null;
+ return {base,factor,two:product(base.two,factor),three:product(base.three,factor),jackpotMultiplier:{min:3,max:maximum},jackpot:{min:product(base.jackpot,3),max:product(base.jackpot,maximum)}};
+}
 export function gemTowerCasinoState(vm:JassVm,sim:Sim,playerId=0){
  const unlocked=sim.getResearchLevel(playerId,'R000')>=8;
  const gambler=[...sim.entities.values()].find(e=>e.alive&&e.owner===playerId&&e.typeId==='h045');
@@ -98,7 +109,7 @@ export function gemTowerCasinoState(vm:JassVm,sim:Sim,playerId=0){
   if(viaEntrance)entry=gambler&&entrance&&destination&&![{a:gambler,b:entrance},{a:entrance,b:destination}].some(leg=>blockers.some(other=>segmentNear(leg.a,leg.b,other!,margin)))?entrance:null;
   let reason:string|null=sim.gameOver?'game-over':!unlocked?'locked':!gambler?'no-gambler':gambler.paused?'paused':owned||busy?'busy':!entry?'invalid-order':sim.validateMoveOrder(playerId,gambler.id,entry.x,entry.y);
   if(reason===null&&gambler!.orderActive===1&&gambler!.orderX===entry!.x&&gambler!.orderY===entry!.y)reason='moving';
-  return [{id:machine.id,index:index+1,title:`${index+1}번 빠칭코`,owned,busy,spinning:Boolean(spin.t==='bool'&&spin.v),canApproach:reason===null,reason,entry,destination,viaEntrance}];
+  return [{id:machine.id,index:index+1,title:`${index+1}번 빠칭코`,payout:casinoPayoutView(vm,index+1,playerId),owned,busy,spinning:Boolean(spin.t==='bool'&&spin.v),canApproach:reason===null,reason,entry,destination,viaEntrance}];
  });
  return {unlocked,gamblerId:gambler?.id??null,paused:Boolean(gambler?.paused),stations};
 }
