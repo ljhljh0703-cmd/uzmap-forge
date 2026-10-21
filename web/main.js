@@ -706,6 +706,7 @@ function render(w,preservePendingDialog=false) {
       button.hidden=!showGemAction(action);
       button.textContent = action.abilityId==="A008"?"바위 제거":action.label;
       button.title = action.reason ? abilityOrderReason(action.reason) : "보유한 능력 사용";
+      if(action.disabled&&!button.hidden&&["A03M","A02J","A02G","A008"].includes(action.abilityId))button.textContent+=" · "+button.title;
     }
     $("gemCombineGate").textContent = gemActionConditions(actions).join("\n");
 
@@ -1399,11 +1400,11 @@ $("gemUpgrades").addEventListener('click',event=>{
 });
 $("findCombination").onclick=()=>{
  if(!world)return;cancelGemTarget(world);const ids=availableGemCombinations(world,(world.availableComboIds??[]).map(id=>world.sim.getUnit(id)).filter(Boolean));
- if(!ids.length)return;const id=ids[(ids.indexOf(world.selectedGemId)+1)%ids.length],e=world.sim.getUnit(id);
- world.showRocks=false;world.pendingCombatFocus=false;world.selectedGemId=id;render(world);
+ if(!ids.length)return;const id=ids[(ids.indexOf(world.selectedGemId)+1)%ids.length];
+ selectGemById(world,id);
 };
 $("showRocks").onclick=()=>{if(world){world.showRocks=!world.showRocks;render(world);}};
-$("pathWarning").onclick=()=>{if(world){world.showRocks=true;render(world);}};
+$("pathWarning").onclick=()=>{if(world){world.showRocks=true;setDrawer(true);$("ownedExplorer").open=true;render(world);$("gemRoster").querySelector("button")?.focus();}};
 $("gemRoster").addEventListener("click",event=>{
  const button=event.target.closest("button[data-unit-id]");if(!button||!world)return;
  selectGemById(world,Number(button.dataset.unitId));
