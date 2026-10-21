@@ -34,8 +34,17 @@ export function createCombatAbilityCatalog(stock:ReadonlyArray<ObjectMod>,object
    // Higher-level numeric lookup is the existing latest-declared-field policy.
    if(returned===0&&received===1&&armor!==undefined&&Number.isFinite(armor))effects.push({kind:'selfArmor',flatBonus:armor});
   }else if(family==='Aven'||family==='Aliq'){
-   // Stock data is now available, but native pulse/stack/defense semantics are not
-   // implemented. Keep the current-level gap visible rather than misusing Aspo.
+   const venom=family==='Aven',damage=value(venom?'Poi1':'liq1',level),duration=value('adur',level),heroDuration=value('ahdu',level),buffs=text('abuf',level),targets=text('atar',level)?.split(',').map(t=>t.trim());
+   const targetMask=targets?((targets.includes('ground')?1:0)|(targets.includes('air')?2:0)):0;
+   const noSpeed=value(venom?'Poi2':'liq2',level)===0&&value(venom?'Poi3':'liq3',level)===0;
+   // Bounded source variants: damage-only venom (no Kill Unit flag) and fire with
+   // zero speed changes and the canonical Allows Repair=0 field. Repair restrictions
+   // are not modeled here. Reuse the existing 20Hz/raw-HP DOT model;
+   // native pulse, spell defenses and Aliq cross-source refresh parity are unverified.
+   const supported=venom?value('Poi4',level)===1&&buffs==='Bpoi,Bpsd':value('liq4',level)===0&&buffs==='Bliq';
+   const damagePm=damage===undefined?NaN:Math.round(Math.abs(damage)*1000),ticks=duration===undefined?NaN:secondsToTicks(duration);
+   if(Number.isSafeInteger(damagePm)&&damagePm<=Number.MAX_SAFE_INTEGER-20000&&Number.isSafeInteger(ticks)&&ticks>0&&noSpeed&&supported&&heroDuration===duration&&targetMask&&targets?.includes('enemies')&&targets.every(t=>['ground','air','enemies'].includes(t)))
+    effects.push({kind:venom?'venom':'liquidFire',damagePerSecondPm:damagePm,durationTicks:ticks,targetsMask:targetMask,buffId:venom?'Bpsd':'Bliq'});
   }else if(family==='ACct'||family==='AOcr'){
    const chance=value('Ocr1',level),multiplier=value('Ocr2',level);
    if(chance!==undefined&&multiplier!==undefined)effects.push({kind:'critical',chancePm:Math.max(0,Math.min(1000,Math.round(chance*10))),multiplierPm:Math.max(1000,Math.round(multiplier*1000))});

@@ -670,7 +670,7 @@ export class Sim implements IWorld {
         if (effect.kind === "slow") statusPart += `${entityId}:${kind}:${effect.magnitudePm}:${effect.remainingTicks}|`;
         else if (effect.kind === "stun") statusPart += `${entityId}:stun:${effect.remainingTicks}|`;
         else if(effect.kind === "armorReduction")statusPart += `${entityId}:${kind}:${effect.amount}:${effect.remainingTicks}|`;
-        else statusPart += `${entityId}:${kind}:${effect.perTick}:${effect.remainingTicks}:${effect.perSecondPm??0}:${effect.remainder??0}:${effect.sourceUnitId??0}:${effect.sourceOwner??-1}:${effect.pulseIntervalTicks??0}:${effect.pulseTicksLeft??0}:${effect.pulseDamagePm??0}|`;
+        else statusPart += `${entityId}:${kind}:${effect.perTick}:${effect.remainingTicks}:${effect.perSecondPm??0}:${effect.remainder??0}:${effect.sourceUnitId??0}:${effect.sourceOwner??-1}:${effect.pulseIntervalTicks??0}:${effect.pulseTicksLeft??0}:${effect.pulseDamagePm??0}${effect.minHp!==undefined?`:floor=${effect.minHp}`:""}|`;
       }
     }
     let upgradePart='';for(const q of this.upgradeQueue)upgradePart+=`q:${q.playerId}:${q.unitId}:${q.targetTypeId}|`;for(const p of this.pendingUpgrades.values())upgradePart+=`p:${p.playerId}:${p.unitId}:${p.fromTypeId}:${p.targetTypeId}:${p.owner}:${p.cost}:${p.remainingTicks}|`;
