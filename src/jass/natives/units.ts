@@ -124,7 +124,11 @@ export function registerUnitNatives(vm: JassVm): void {
     const which = unitOf(ctx, args[0]);
     const newTypeId = args[1]?.t === "int" ? args[1].v : 0;
     if (!which) return vhandle(null);
-    const h = createUnitEntity(ctx, which.data.owner as number, newTypeId, which.data.x as number, which.data.y as number, which.data.face as number);
+    // Ordinary movement updates the authoritative Sim entity, not the creation-time handle mirror.
+    const previous = entOf(ctx, which);
+    const h = createUnitEntity(ctx, previous?.owner ?? which.data.owner as number, newTypeId,
+      previous?.x ?? which.data.x as number, previous?.y ?? which.data.y as number,
+      previous?.facing ?? which.data.face as number);
     which.data.alive = false; // 원본 제거(단순화 — 실제는 RemoveUnit 시맨틱)
     ctx.sim?.removeUnit(which.id); // sim 엔티티도 제거(티어 교체 = 옛 유닛 사라짐)
     ctx.setGlobal("bj_lastReplacedUnit", vhandle(h.id));
