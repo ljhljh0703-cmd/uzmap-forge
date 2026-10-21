@@ -4,12 +4,13 @@ import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
 import {mountGemSkin} from "./ui-skin.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
-import {installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
+import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
 import {pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels} from "./play-ui.js";
 import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, freshSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
 import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
+import {createUnitIdentityProvider} from "./dist/runtime/unit-identity.js";
 import { createSession, readScriptMap } from "./dist/runtime/session.js";
 // Mobile play: source terrain, direct construction and the approved automatically fitted field.
 import { parseMiscConstants } from "./dist/formats/misc.js";
@@ -86,8 +87,8 @@ let waveFlashUntil = 0;
 const cam = { cx: 0, cy: 0, zoom: 0.2 };
 const MAX_FIELD_PLAYERS=2;
 // Authored source route rectangles: entry, four turns, and the local exit.
-// Original approach/return corridors remain in the Sim; gutter cues explain their direction.
-const FIELD_RECTS=[['Vx','Ex','Xx','Ox','Rx','Ix'],['bx','Bx','cx','Cx','Dx','fx']];
+// Mobile source spawn is at this frame; the original return corridor and leak gate remain.
+const FIELD_RECTS=GEMTOWER_FIELD_RECTS;
 function sourceRect(w,name){
  const value=w.vm.getGlobal(name),h=value.t==='handle'&&value.v!==null?w.vm.handles.get(value.v):null;
  return h?.kind==='rect'?{minX:h.data.minx,minY:h.data.miny,maxX:h.data.maxx,maxY:h.data.maxy}:null;
@@ -105,7 +106,8 @@ function fitPlayerField(w){
   const role=defOf(w,e.typeId)?.meta?.role;
   if(e.typeId==='h00G'||w.knownGemIds?.has(e.typeId)||role?.kind==='tower'||role?.archetype==='specialGem')rects.push({minX:e.x,minY:e.y,maxX:e.x,maxY:e.y});
  }
- if(rects.length){w.viewBounds=battlefieldBounds(rects);w.playerBounds=sourceIndexedRect(w,'Ge',player+1);Object.assign(cam,battlefieldCamera(rects,cv.width,cv.height));}
+ if(w.mobileFields?.[player]){const b=w.mobileFields[player].bounds;w.viewBounds=b;w.playerBounds=sourceIndexedRect(w,'Ge',player+1);Object.assign(cam,{cx:(b.minX+b.maxX)/2,cy:(b.minY+b.maxY)/2,zoom:Math.max(.001,Math.min(Math.max(1,cv.width-40)/(b.maxX-b.minX),Math.max(1,cv.height-40)/(b.maxY-b.minY)))});}
+ else if(rects.length){w.viewBounds=battlefieldBounds(rects);w.playerBounds=sourceIndexedRect(w,'Ge',player+1);Object.assign(cam,battlefieldCamera(rects,cv.width,cv.height));}
  else{const anchor=w.sim.playerState.getStartLocation(player);if(anchor)Object.assign(cam,playerCamera(anchor,cv.width,cv.height));}
 }
 function switchField(w,playerId){
@@ -213,6 +215,7 @@ function W2SY(y) { return -(y - cam.cy) * cam.zoom + cv.height / 2; }
 function S2WX(px) { return (px - cv.width / 2) / cam.zoom + cam.cx; }
 function S2WY(py) { return -(py - cv.height / 2) / cam.zoom + cam.cy; }
 
+function resolveMobileBuildCells(profile,objects){return profile?createUnitIdentityProvider(profile.units,objects,profile.pathingTextures).resolve("h006").pathing?.width??4:4;}
 function boot(bytes, presentation, stockProfile, seed) {
   const stockUnits=stockProfile?.units;
   const loaded = readScriptMap(new Uint8Array(bytes), "GemTower_Max_7C.w3x");
@@ -222,8 +225,10 @@ function boot(bytes, presentation, stockProfile, seed) {
   try { gc = parseMiscConstants(archive.read("war3mapMisc.txt"), GEMTOWER_BALANCE.armorTypeColumnOrder,stockProfile?.gameplayConstants); } catch (error) { console.warn("Misc unavailable; legacy neutral constants", error); }
   const sourceDefs=stockUnits?createGemTowerSourceDefs(stockUnits,loaded.ir.objectMods):{defStore:new DefStore(),weaponGaps:[]};
   if(sourceDefs.weaponGaps.length)console.warn('[source unit gaps]',sourceDefs.weaponGaps.join(', '));
-  const {vm, sim, registry, defStore} = createSession(loaded.ir, {
-    seed, defStore: sourceDefs.defStore, stockUnits,stockAbilities:stockProfile?.abilities, pathing:pm,pathingTextures:stockProfile?.pathingTextures, playerSlots: GEMTOWER_SOLO_SLOTS, gc, bountyMode: GEMTOWER_BALANCE.bountyMode,
+  const buildTexture=resolveMobileBuildCells(stockProfile,loaded.ir.objectMods);
+  const mobile=pm?gemTowerMobileLayout(loaded.ir,pm,buildTexture):null;
+  const {vm, sim, registry, defStore} = createSession(mobile?.ir??loaded.ir, {
+    seed, navigationBounds:mobile?.boundsFor, defStore: sourceDefs.defStore, stockUnits,stockAbilities:stockProfile?.abilities, pathing:pm,pathingTextures:stockProfile?.pathingTextures, playerSlots: GEMTOWER_SOLO_SLOTS, gc, bountyMode: GEMTOWER_BALANCE.bountyMode,
     life: GEMTOWER_BALANCE.life, researchConfig: GEMTOWER_BALANCE.researches,
   });
   presentation=sourceGemPresentation(presentation,loaded.ir.objectMods,id=>defStore.getDef(id));
@@ -247,7 +252,7 @@ function boot(bytes, presentation, stockProfile, seed) {
   const modeDialog = modeButtons && modeButtons.length === 2
     ? { dialogId: modeDialogObj.id, classicButtonId: modeButtons[0], raceButtonId: modeButtons[1], clicked: false }
     : null;
-  const w = { seed, runId:createRunId(),runMode:null,vm, sim, registry, defStore, pm, roundTimer, modeDialog, defCache: new Map(), terrain: null, hover: null,
+  const w = { mobileFields:mobile?.fields, seed, runId:createRunId(),runMode:null,vm, sim, registry, defStore, pm, roundTimer, modeDialog, defCache: new Map(), terrain: null, hover: null,
     // U-6c: 병합 이름 원장(fullName()이 조회). loadFromUrl()이 fetch해 넘긴다 — 실패 시 {} 폴백.
     strings:loaded.strings,sourceVersion:stockProfile?.sourceVersion,inputLog:[],runtimeCrashes:initialVmEvents.filter(event=>event.kind==='ThreadCrashed'),
     nameMap: presentation.names || {}, knownGemIds:presentation.gemIds || new Set(),
@@ -513,6 +518,10 @@ function render(w,preservePendingDialog=false) {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(w.terrain, leftX, topY, w.pm.width * w.pm.cellSize * z, w.pm.height * w.pm.cellSize * z);
   }
+  if(fieldBounds){
+    ctx.save();ctx.lineWidth=2;ctx.strokeStyle="#e2c17e";ctx.setLineDash([]);
+    ctx.strokeRect(W2SX(fieldBounds.minX)+1,W2SY(fieldBounds.maxY)+1,(fieldBounds.maxX-fieldBounds.minX)*z-2,(fieldBounds.maxY-fieldBounds.minY)*z-2);ctx.restore();
+  }
   // Dashed source waypoint guide is planned intent, not a claim about the walked path.
   const field=[...(w.fieldRects?.[w.viewPlayerId??0]??[])],next=sourceRect(w,(w.viewPlayerId??0)===0?'Ax':'Fx');if(next)field.push(next);
   if(field.length){
@@ -525,8 +534,8 @@ function render(w,preservePendingDialog=false) {
   for(const path of w.routeSegments.values()){
     ctx.moveTo(W2SX(path.x),W2SY(path.y));ctx.lineTo(W2SX(path.toX),W2SY(path.toY));
   }
-  ctx.lineWidth=112*z;ctx.strokeStyle="#a8a47c";ctx.stroke();
-  ctx.lineWidth=96*z;ctx.strokeStyle="#f4d7a5";ctx.stroke();
+  ctx.lineWidth=12*z;ctx.strokeStyle="#a8a47c";ctx.stroke();
+  ctx.lineWidth=6*z;ctx.strokeStyle="#f4d7a5";ctx.stroke();
   ctx.restore();
   // U-2a: 기술적 셀 그리드 오버레이 제거 — "에디터 그리드 느낌"의 직접 원인(디스패치 §2 U-2a 명시).
   // 건설 정렬 피드백은 호버 프리뷰(2×2 블록 하이라이트, 아래)와 배치된 타워의 풋프린트 윤곽만으로
