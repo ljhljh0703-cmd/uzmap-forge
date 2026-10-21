@@ -83,3 +83,18 @@ it('resume stays disabled when the selected preserved save is from another versi
 it('actual controls announce running, paused, restoring and terminal display states',()=>{const f=fixture();for(const [playing,restoring,ended,label]of [[true,false,false,'진행 중'],[false,false,false,'일시정지'],[false,true,false,'복원 중'],[false,false,true,'게임 종료']]){f.context.playing=playing;f.context.restoring=restoring;f.context.world.gameOver=ended?{winner:null}:null;f.paint();assert.equal(f.nodes.runState.textContent,label);}});
 
 it('initial unselected mode keeps play and diagnostic stepping disabled until an explicit mode choice',()=>{const f=fixture();f.context.playing=false;f.context.world.modeDialog={clicked:false};f.paint();assert.equal(f.nodes.play.disabled,true);assert.equal(f.nodes.stepBtn.disabled,true);assert.equal(f.nodes.play.textContent,'방식 선택');assert.equal(f.nodes.runState.textContent,'방식 선택');f.context.world.modeDialog.clicked=true;f.context.playing=true;f.paint();assert.equal(f.nodes.play.disabled,false);assert.equal(f.nodes.stepBtn.disabled,false);assert.equal(f.nodes.play.textContent,'일시정지');});
+
+it('failed or cancelled restoration preserves the old fatal lock and original error message',async()=>{
+ for(const failure of ['boot','mismatch','cancel']){
+  const f=fixture({mismatch:failure==='mismatch'}),load=f.context.loadFromUrl;
+  f.context.runtimeFailed=true;f.context.playing=false;f.nodes.msg.innerHTML='<h3>original runtime failure</h3><pre>kept diagnostic</pre>';f.nodes.msg.style.display='flex';f.paint();
+  const originalMessage=f.nodes.msg.innerHTML,paint=f.context.render;let retriedBrokenFrame=0;f.context.render=(w:any)=>{if(w===f.originalWorld&&f.context.runtimeFailed){retriedBrokenFrame++;throw Error('must not retry a failed renderer during rollback');}return paint(w);};
+  f.context.loadFromUrl=async()=>{f.context.runtimeFailed=false;f.nodes.msg.innerHTML='loading replacement';f.nodes.msg.style.display='flex';if(failure==='boot')throw Error('fixture boot failure');return load();};
+  f.begin();if(failure==='cancel'){await f.firstChunk();f.context.cancelRestore();}await f.finish();
+  assert.equal(f.context.world,f.originalWorld,failure);assert.equal(f.context.runtimeFailed,true,failure);assert.equal(f.nodes.play.disabled,true,failure);assert.equal(f.nodes.stepBtn.disabled,true,failure);assert.equal(f.nodes.runState.textContent,'오류로 정지',failure);assert.equal(f.nodes.msg.innerHTML,originalMessage,failure);assert.equal(f.nodes.msg.style.display,'flex',failure);assert.equal(f.nodes.reset.disabled,false,failure);assert.equal(retriedBrokenFrame,0,failure);
+ }
+});
+it('a successful strict replacement can clear a previous fatal lock without restoring its obsolete error message',async()=>{
+ const f=fixture(),load=f.context.loadFromUrl;f.context.runtimeFailed=true;f.context.playing=false;f.nodes.msg.innerHTML='old error';f.nodes.msg.style.display='flex';
+ f.context.loadFromUrl=async()=>{f.context.runtimeFailed=false;return load();};f.begin();await f.finish();assert.notEqual(f.context.world,f.originalWorld);assert.equal(f.context.runtimeFailed,false);assert.equal(f.nodes.play.disabled,false);assert.equal(f.nodes.msg.style.display,'none');
+});

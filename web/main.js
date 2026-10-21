@@ -367,13 +367,14 @@ $("exportRun").onclick=()=>{
  const link=document.createElement('a');link.href=url;link.download=`보석타워-${record.legacy?'이전기록':record.trace?.runId??'기록'}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function captureRunView(){
- return {world,cam:{...cam},mode:$("gameApp").dataset.mode,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed};
+ return {world,runtimeFailed,failureMessage:runtimeFailed?{html:$("msg").innerHTML,display:$("msg").style.display}:null,cam:{...cam},mode:$("gameApp").dataset.mode,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed};
 }
 function restoreRunView(before){
  world=before.world;Object.assign(cam,before.cam);
- ({prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed}=before);
+ ({runtimeFailed,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed}=before);
  if(before.mode===undefined)delete $("gameApp").dataset.mode;else $("gameApp").dataset.mode=before.mode;
- if(world){for(const key of ['rosterSignature','upgradeSignature','nativeDialogKey','trainingSignature','trainingButtons','buildCellsView','buildCellsCheck','replayOutputKey'])delete world[key];renderChatHelp(world);render(world,true);}
+ if(world){for(const key of ['rosterSignature','upgradeSignature','nativeDialogKey','trainingSignature','trainingButtons','buildCellsView','buildCellsCheck','replayOutputKey'])delete world[key];renderChatHelp(world);if(!runtimeFailed)render(world,true);}
+ if(before.failureMessage){$("msg").innerHTML=before.failureMessage.html;$("msg").style.display=before.failureMessage.display;}
 }
 function cancelRestore(){
  if(!restoring)return;restoreCancelled=true;$("cancelRestore").disabled=true;$("restoreProgressText").textContent='복원 취소 중… 기존 진행으로 돌아갑니다';
@@ -397,7 +398,7 @@ async function restoreRun(raw){
   if(world.sim.stateHash()!==trace.stateHash||trace.sourceState&&JSON.stringify(gemTowerPlayerState(world.vm))!==JSON.stringify(trace.sourceState)||world.runtimeCrashes.length)throw Error('저장 당시와 결과가 일치하지 않아 이어하기를 중단했습니다');
   world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
   frameClock.reset();$("msg").style.display='none';render(world);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);commitSessionSeed(trace.seed);
- }catch(error){restoreRunView(before);$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
+ }catch(error){restoreRunView(before);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
  finally{restoring=false;playing=false;frameClock.reset();renderControls(world);$("researchToggle").focus();}
 }
 $("cancelRestore").onclick=cancelRestore;
