@@ -2,8 +2,8 @@ import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import * as actions from '../../web/gem-actions.js';
-import {listRunRecords,saveRunRecord} from '../../web/run-storage.js';
+const actions=await import(new URL('../../web/gem-actions.js',import.meta.url).href);
+const {listRunRecords,saveRunRecord}=await import(new URL('../../web/run-storage.js',import.meta.url).href);
 
 const source=fs.readFileSync(new URL('../../web/main.js',import.meta.url),'utf8');
 function declaration(name:string){const body=source.match(new RegExp('^(?:async )?function '+name+'\\([^\\n]*\\{[\\s\\S]*?\\n\\}','m'))?.[0];assert.ok(body,`actual ${name} function`);return body;}
