@@ -367,14 +367,14 @@ $("exportRun").onclick=()=>{
  const link=document.createElement('a');link.href=url;link.download=`보석타워-${record.legacy?'이전기록':record.trace?.runId??'기록'}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function captureRunView(){
- return {world,runtimeFailed,failureMessage:runtimeFailed?{html:$("msg").innerHTML,display:$("msg").style.display}:null,cam:{...cam},mode:$("gameApp").dataset.mode,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed};
+ return {world,runtimeFailed,failureMessage:runtimeFailed?{nodes:[...$("msg").childNodes],display:$("msg").style.display}:null,cam:{...cam},mode:$("gameApp").dataset.mode,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed};
 }
 function restoreRunView(before){
  world=before.world;Object.assign(cam,before.cam);
  ({runtimeFailed,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed}=before);
  if(before.mode===undefined)delete $("gameApp").dataset.mode;else $("gameApp").dataset.mode=before.mode;
  if(world){for(const key of ['rosterSignature','upgradeSignature','nativeDialogKey','trainingSignature','trainingButtons','buildCellsView','buildCellsCheck','replayOutputKey'])delete world[key];renderChatHelp(world);if(!runtimeFailed)render(world,true);}
- if(before.failureMessage){$("msg").innerHTML=before.failureMessage.html;$("msg").style.display=before.failureMessage.display;}
+ if(before.failureMessage){$("msg").replaceChildren(...before.failureMessage.nodes);$("msg").style.display=before.failureMessage.display;}
 }
 function cancelRestore(){
  if(!restoring)return;restoreCancelled=true;$("cancelRestore").disabled=true;$("restoreProgressText").textContent='복원 취소 중… 기존 진행으로 돌아갑니다';

@@ -17,6 +17,8 @@ function fixture({ended=false,mismatch=false}={}){
  const nodes:any={};for(const id of [...controlIds,'gameApp','battlefield','msg','restoreOverlay','restoreProgressText','cancelRestore','runState'])nodes[id]={disabled:false,textContent:id==='play'?'재개':'',inert:false,dataset:{mode:'race'},focus:()=>{},style:{display:'none'},hidden:true};
  // Existing input-region roots, supplied as native inert targets. #msg and its
  // ancestors are separate observations; actual browser/AT behavior is not mocked.
+ const message=nodes.msg;message.childNodes=[];message.replaceChildren=(...items:any[])=>{message.childNodes=items;};
+ Object.defineProperty(message,'innerHTML',{get:()=>message.childNodes.map((node:any)=>node.html).join(''),set:(html:string)=>{message.childNodes=html?[{html}]:[];}});
  const inputAreas=Array.from({length:8},()=>({inert:false}));nodes.researchToggle={focus:()=>{}};nodes.savedRuns={selectedOptions:[{record:{compatible:true}}]};
  const visibility=source.match(/document[.]addEventListener\("visibilitychange",[\s\S]*?\n\}\);/)?.[0];assert.ok(visibility);
  const timers:Array<()=>void>=[],messages:string[]=[],chunks:number[]=[];let onVisibility:()=>void=()=>{};
@@ -88,10 +90,11 @@ it('failed or cancelled restoration preserves the old fatal lock and original er
  for(const failure of ['boot','mismatch','cancel']){
   const f=fixture({mismatch:failure==='mismatch'}),load=f.context.loadFromUrl;
   f.context.runtimeFailed=true;f.context.playing=false;f.nodes.msg.innerHTML='<h3>original runtime failure</h3><pre>kept diagnostic</pre>';f.nodes.msg.style.display='flex';f.paint();
+  let reloads=0;const retry={html:'<button>페이지 다시 열기</button>',click:()=>reloads++};f.nodes.msg.childNodes.push(retry);
   const originalMessage=f.nodes.msg.innerHTML,paint=f.context.render;let retriedBrokenFrame=0;f.context.render=(w:any)=>{if(w===f.originalWorld&&f.context.runtimeFailed){retriedBrokenFrame++;throw Error('must not retry a failed renderer during rollback');}return paint(w);};
   f.context.loadFromUrl=async()=>{f.context.runtimeFailed=false;f.nodes.msg.innerHTML='loading replacement';f.nodes.msg.style.display='flex';if(failure==='boot')throw Error('fixture boot failure');return load();};
   f.begin();if(failure==='cancel'){await f.firstChunk();f.context.cancelRestore();}await f.finish();
-  assert.equal(f.context.world,f.originalWorld,failure);assert.equal(f.context.runtimeFailed,true,failure);assert.equal(f.nodes.play.disabled,true,failure);assert.equal(f.nodes.stepBtn.disabled,true,failure);assert.equal(f.nodes.runState.textContent,'오류로 정지',failure);assert.equal(f.nodes.msg.innerHTML,originalMessage,failure);assert.equal(f.nodes.msg.style.display,'flex',failure);assert.equal(f.nodes.reset.disabled,false,failure);assert.equal(retriedBrokenFrame,0,failure);
+  assert.equal(f.context.world,f.originalWorld,failure);assert.equal(f.context.runtimeFailed,true,failure);assert.equal(f.nodes.play.disabled,true,failure);assert.equal(f.nodes.stepBtn.disabled,true,failure);assert.equal(f.nodes.runState.textContent,'오류로 정지',failure);assert.equal(f.nodes.msg.innerHTML,originalMessage,failure);assert.equal(f.nodes.msg.style.display,'flex',failure);assert.equal(f.nodes.reset.disabled,false,failure);assert.equal(retriedBrokenFrame,0,failure);assert.equal(f.nodes.msg.childNodes.at(-1),retry,failure+' retry node identity');f.nodes.msg.childNodes.at(-1).click();assert.equal(reloads,1,failure+' retry listener');
  }
 });
 it('a successful strict replacement can clear a previous fatal lock without restoring its obsolete error message',async()=>{
