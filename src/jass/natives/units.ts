@@ -129,6 +129,15 @@ export function registerUnitNatives(vm: JassVm): void {
     const h = createUnitEntity(ctx, previous?.owner ?? which.data.owner as number, newTypeId,
       previous?.x ?? which.data.x as number, previous?.y ?? which.data.y as number,
       previous?.facing ?? which.data.face as number);
+    // Caller-owned 1.28 Scripts/Blizzard.j: source-active RELATIVE(1) uses
+    // current/max ratios; either zero max mana leaves the new factory mana alone.
+    // Preserve the current factory path for MAXIMUM(3) and other unused methods.
+    if(args[2]?.t==='int'&&args[2].v===1){
+      const oldUnit=vhandle(which.id),newUnit=vhandle(h.id),oldMaxLife=num(getState(ctx,[oldUnit,vint(1)]));
+      if(oldMaxLife>0)setState(ctx,[newUnit,vint(0),vreal(num(getState(ctx,[oldUnit,vint(0)]))/oldMaxLife*num(getState(ctx,[newUnit,vint(1)])))]);
+      const oldMaxMana=num(getState(ctx,[oldUnit,vint(3)])),newMaxMana=num(getState(ctx,[newUnit,vint(3)]));
+      if(oldMaxMana>0&&newMaxMana>0)setState(ctx,[newUnit,vint(2),vreal(num(getState(ctx,[oldUnit,vint(2)]))/oldMaxMana*newMaxMana)]);
+    }
     which.data.alive = false; // 원본 제거(단순화 — 실제는 RemoveUnit 시맨틱)
     ctx.sim?.removeUnit(which.id); // sim 엔티티도 제거(티어 교체 = 옛 유닛 사라짐)
     ctx.setGlobal("bj_lastReplacedUnit", vhandle(h.id));
@@ -332,16 +341,22 @@ export function registerUnitNatives(vm: JassVm): void {
     if(key===0)return vreal(e?.hp??(u.data.simBacked?0:Number(u.data.hp)));
     if(key===1)return vreal(e?.hpMax??Number(u.data.hpMax));
     if(key===2)return vreal(e?.mana??num((u.data.states as Map<string,JassValue>).get(JSON.stringify(vint(2)))));
-    const v=(u.data.states as Map<string,JassValue>).get(JSON.stringify(args[1]??null));return vreal(num(v));
+    const v=(u.data.states as Map<string,JassValue>).get(JSON.stringify(args[1]??null));
+    if(key===3){
+      if(v!==undefined)return vreal(num(v)); // An explicit override of zero is still authoritative.
+      return vreal((e?ctx.sim?.defStore?.getDef(e.typeId).mana:undefined)??0);
+    }
+    return vreal(num(v));
   };
   vm.registerNative("GetUnitState",getState);
   vm.registerNative("GetUnitStateSwap",(ctx,args)=>getState(ctx,[args[1]!,args[0]!]));
-  vm.registerNative("SetUnitState",(ctx,args)=>{
+  const setState=(ctx:NativeCallContext,args:JassValue[])=>{
     const u=unitOf(ctx,args[0]);if(!u)return vint(0);
     const key=num(args[1]);if(key===0)setLife(ctx,u,num(args[2]));
     else {const e=entOf(ctx,u);if(key===2&&e)e.mana=Math.max(0,Math.round(num(args[2])));(u.data.states as Map<string,JassValue>).set(JSON.stringify(args[1]??null),args[2]??vreal(0));}
     return vint(0);
-  });
+  };
+  vm.registerNative("SetUnitState",setState);
 
   // 이벤트 응답(발화 컨텍스트) — R-207: 스레드-로컬(threadMeta)에서 제공.
   vm.registerNative("GetTriggerUnit", (ctx) => ctx.threadMeta.unit ?? vhandle(null));
