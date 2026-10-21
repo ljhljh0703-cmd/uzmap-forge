@@ -6,10 +6,12 @@ import type {PathingMap} from '../ir/pathing.ts';
 import {FLAG_NO_WALK,FLAG_NO_FLY,FLAG_NO_BUILD} from '../ir/pathing.ts';
 import type {UnitEntity} from './unit-entity.ts';import type {DefStore} from './def-store.ts';
 type Point={x:number;y:number};
+export type NavigationBounds={minX:number;minY:number;maxX:number;maxY:number};
+export type NavigationBoundsResolver=(entity:UnitEntity)=>NavigationBounds|undefined;
 export class GridNavigation {
  private blocks:Uint8Array;private signature='';private cache=new Map<string,Point|null>();
- readonly grid:PathingMap;private units:()=>Iterable<UnitEntity>;private defs:DefStore;
- constructor(grid:PathingMap,units:()=>Iterable<UnitEntity>,defs:DefStore){this.grid=grid;this.units=units;this.defs=defs;this.blocks=new Uint8Array(grid.cells);}
+ readonly grid:PathingMap;private units:()=>Iterable<UnitEntity>;private defs:DefStore;private readonly boundsFor?:NavigationBoundsResolver;
+ constructor(grid:PathingMap,units:()=>Iterable<UnitEntity>,defs:DefStore,boundsFor?:NavigationBoundsResolver){this.boundsFor=boundsFor;this.grid=grid;this.units=units;this.defs=defs;this.blocks=new Uint8Array(grid.cells);}
  cell(p:Point){const g=this.grid;return {x:Math.floor((p.x-g.originX)/g.cellSize+.5),y:Math.floor((p.y-g.originY)/g.cellSize+.5)};}
  private index(x:number,y:number){return y*this.grid.width+x;}
  private inBounds(x:number,y:number){return x>=0&&y>=0&&x<this.grid.width&&y<this.grid.height;}
@@ -29,10 +31,12 @@ export class GridNavigation {
    if(!this.inBounds(q.x+dx,q.y+dy)||(this.blocks[this.index(q.x+dx,q.y+dy)]!&(FLAG_NO_BUILD|FLAG_NO_WALK)))return false;
   }return true;
  }
- route(from:Point,to:Point,flying=false,goalRadiusU=0):Point[]|null{
+ route(from:Point,to:Point,flying=false,goalRadiusU=0,bounds?:NavigationBounds):Point[]|null{
   this.refresh();const g=this.grid,start=this.cell(from),rawGoal=this.cell(to),mask=flying?FLAG_NO_FLY:FLAG_NO_WALK;
   if(!this.inBounds(start.x,start.y)||!this.inBounds(rawGoal.x,rawGoal.y))return null;
-  const free=(x:number,y:number)=>this.inBounds(x,y)&&(this.blocks[this.index(x,y)]!&mask)===0;
+  const allowed=(x:number,y:number)=>{const p=this.world(x,y);return !bounds||p.x>=bounds.minX&&p.x<=bounds.maxX&&p.y>=bounds.minY&&p.y<=bounds.maxY;};
+  const free=(x:number,y:number)=>this.inBounds(x,y)&&allowed(x,y)&&(this.blocks[this.index(x,y)]!&mask)===0;
+  if(!allowed(start.x,start.y)||!allowed(rawGoal.x,rawGoal.y))return null;
   const ranged=goalRadiusU>0;
   let goal=rawGoal;
   // A move aimed inside a solid building stops at its nearest reachable perimeter.
@@ -63,8 +67,8 @@ export class GridNavigation {
  }
  waypoint(e:UnitEntity):Point|null{
   this.refresh(); // Live blocker changes must invalidate both reachable and unreachable cached paths.
-  const c=this.cell(e),flying=this.defs.getDef(e.typeId).movementType==='fly',key=`${c.x}:${c.y}:${e.orderX}:${e.orderY}:${flying}`;
-  if(!this.cache.has(key))this.cache.set(key,this.route(e,{x:e.orderX,y:e.orderY},flying)?.[0]??null);
+  const c=this.cell(e),flying=this.defs.getDef(e.typeId).movementType==='fly',bounds=this.boundsFor?.(e),key=`${c.x}:${c.y}:${e.orderX}:${e.orderY}:${flying}:${bounds?`${bounds.minX},${bounds.minY},${bounds.maxX},${bounds.maxY}`:''}`;
+  if(!this.cache.has(key))this.cache.set(key,this.route(e,{x:e.orderX,y:e.orderY},flying,0,bounds)?.[0]??null);
   return this.cache.get(key)!;
  }
 }

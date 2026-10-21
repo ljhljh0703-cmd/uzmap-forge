@@ -42,10 +42,19 @@ export function observeGemCast(w, request, tick) {
   return tick - request.spellTick < 20 ? {state: "waiting"} : {state: "processed"};
 }
 
-export function parseSessionSeed(input) {
-  if (typeof input !== "string" || !/^\d+$/.test(input)) return 424242;
+export function parseSessionSeed(input, fallback = 424242) {
+  if (typeof input !== "string" || !/^\d+$/.test(input)) return fallback;
   const value = Number(input);
-  return Number.isSafeInteger(value) && value <= 0xffffffff ? value : 424242;
+  return Number.isSafeInteger(value) && value <= 0xffffffff ? value : fallback;
+}
+
+/** Browser session boundary only; a running Sim always retains its one fixed seed. */
+export function freshSessionSeed(previousSeed, entropy = globalThis.crypto) {
+  const values = new Uint32Array(1);
+  entropy.getRandomValues(values);
+  const seed = values[0];
+  // A second game must not accidentally reuse the previous draw, including uint32 wrap.
+  return seed === previousSeed ? (seed + 1) >>> 0 : seed;
 }
 
 export function flushModeChoice(w) {

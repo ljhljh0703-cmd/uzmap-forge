@@ -4,7 +4,7 @@
  * This local run presents that source-owned result via the existing idempotent terminal API.
  * No wave threshold, enemy count, unit grant or VM mutation is used to invent a result.
  */
-import type {ObjectMod} from "../../ir/types.ts";
+import type {MapIR,ObjectMod} from "../../ir/types.ts";
 import {resolveObjectFields} from '../../formats/objects.ts';
 import {sourceUnitStats} from "../unit-stats.ts";
 import {DefStore} from "../../sim/def-store.ts";
@@ -101,4 +101,34 @@ export function gemTowerCasinoState(vm:JassVm,sim:Sim,playerId=0){
   return [{id:machine.id,index:index+1,title:`${index+1}번 빠칭코`,owned,busy,spinning:Boolean(spin.t==='bool'&&spin.v),canApproach:reason===null,reason,entry,destination,viaEntrance}];
  });
  return {unlocked,gamblerId:gambler?.id??null,paused:Boolean(gambler?.paused),stations};
+}
+
+
+/** Mobile geometry is an explicit map adaptation, never a mutation of the uploaded
+ * original. Keep source wave timers, grouping and enter-rect orders; shorten only
+ * the source spawn rectangle so the first enemy starts at the visible entrance. */
+export const GEMTOWER_FIELD_RECTS=[['Vx','Ex','Xx','Ox','Rx','Ix'],['bx','Bx','cx','Cx','Dx','fx']] as const;
+export function gemTowerMobileLayout(ir:MapIR,grid:import('../../ir/pathing.ts').PathingMap,buildCells:number){
+ const source=ir.script.source,rects=new Map<string,import('../../sim/navigation.ts').NavigationBounds>();
+ for(const m of source.matchAll(/\bset\s+(\w+)\s*=\s*Rect\(([-\d., ]+)\)/g)){
+  const v=m[2]!.split(',').map(Number);if(v.length===4&&v.every(Number.isFinite))rects.set(m[1]!,{minX:v[0]!,minY:v[1]!,maxX:v[2]!,maxY:v[3]!});
+ }
+ if(!Number.isInteger(buildCells)||buildCells<1)throw Error('invalid mobile build footprint');
+ const size=grid.cellSize*buildCells,ox=grid.originX-grid.cellSize/2,oy=grid.originY-grid.cellSize/2;
+ const replacements=new Map<string,string>();
+ const centre=(r:import('../../sim/navigation.ts').NavigationBounds)=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2});
+ const fields=GEMTOWER_FIELD_RECTS.map((names,playerId)=>{
+  const waypoints=names.map(name=>{const r=rects.get(name);if(!r)throw Error('missing GemTower route rectangle: '+name);return r;});
+  const bounds={minX:ox+Math.ceil((Math.min(...waypoints.map(r=>r.minX))-size-ox)/size)*size,maxX:ox+Math.floor((Math.max(...waypoints.map(r=>r.maxX))+size-ox)/size)*size,minY:oy+Math.ceil((Math.min(...waypoints.map(r=>r.minY))-size-oy)/size)*size,maxY:oy+Math.floor((Math.max(...waypoints.map(r=>r.maxY))+size-oy)/size)*size};
+  const alias=source.match(new RegExp('set\\s+x\\['+(playerId+1)+'\\]\\s*=\\s*(\\w+)'))?.[1];
+  const old=alias&&rects.get(alias);if(!old)throw Error('missing GemTower spawn rectangle');
+  const entry=centre(waypoints[0]!),from=centre(old),horizontal=Math.abs(entry.x-from.x)>=Math.abs(entry.y-from.y);
+  const spawn=horizontal?{x:entry.x>from.x?bounds.minX+grid.cellSize:bounds.maxX-grid.cellSize,y:entry.y}:{x:entry.x,y:entry.y>from.y?bounds.minY+grid.cellSize:bounds.maxY-grid.cellSize};
+  const half=grid.cellSize/2;replacements.set(alias!,[spawn.x-half,spawn.y-half,spawn.x+half,spawn.y+half].map(n=>n+'.').join(','));
+  return {playerId,bounds,waypoints,entry,spawn};
+ });
+ const mobileSource=source.replace(/(\bset\s+(\w+)\s*=\s*Rect\()([-\d., ]+)(\))/g,(all,prefix,name,_values,end)=>replacements.has(name)?prefix+replacements.get(name)+end:all);
+ const contains=(b:import('../../sim/navigation.ts').NavigationBounds,x:number,y:number)=>x>=b.minX&&x<=b.maxX&&y>=b.minY&&y<=b.maxY;
+ const boundsFor:import('../../sim/navigation.ts').NavigationBoundsResolver=e=>e.owner===11?fields.find(f=>contains(f.bounds,e.orderX,e.orderY))?.bounds:undefined;
+ return {ir:{...ir,script:{...ir.script,source:mobileSource}},fields,boundsFor};
 }

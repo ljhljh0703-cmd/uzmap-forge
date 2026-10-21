@@ -21,6 +21,8 @@ import type { LifeConfig } from "../sim/life.ts";
 
 export interface SessionOptions {
   seed: number;
+  /** App field policy, separate from authored WPM layers and generic movement. */
+  navigationBounds?:import("../sim/navigation.ts").NavigationBoundsResolver;
   pathing?:import("../formats/wpm.ts").PathingMap;
   /** Host/lobby occupancy, independent of controller settings authored by config(). */
   playerSlots?: ReadonlyArray<{playerId: number; state: number}>;
@@ -86,7 +88,7 @@ export function createSession(ir: MapIR, options: SessionOptions) {
   sim.defStore = defStore;
   sim.abilityRange=createAbilityRangeResolver(options.stockAbilities??[],ir.objectMods);
   sim.abilityEffects=createCombatAbilityCatalog(options.stockAbilities??[],ir.objectMods,options.gc);
-  if(options.pathing)sim.navigation=new GridNavigation(options.pathing,()=>sim.entities.values(),defStore);
+  if(options.pathing)sim.navigation=new GridNavigation(options.pathing,()=>sim.entities.values(),defStore,options.navigationBounds);
   installCombat(sim, {defStore, gc: options.gc, ledger: sim.ledger,
     bountyMode: options.bountyMode, minDamage: 1});
   if (options.life) sim.installLife(options.life);
