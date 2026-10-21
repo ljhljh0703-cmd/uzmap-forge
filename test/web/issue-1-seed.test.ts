@@ -27,13 +27,13 @@ it('new-game and play-again buttons request fresh entropy rather than replaying 
   let entropyCalls=0;const requested:number[]=[],reset:any={},goRestart:any={};
   const context:any={...actions,sessionSeed:6,world:{seed:6},restoring:false,goRestart,$:()=>reset,crypto:{getRandomValues(out:Uint32Array){entropyCalls++;out[0]=6;return out;}},loadFromUrl:async(seed:number)=>{requested.push(seed);context.sessionSeed=seed;return true;}};
   vm.runInNewContext(callback,context);await (callback.startsWith('if')?goRestart:reset).onclick();
-  assert.equal(entropyCalls,1);assert.equal(requested.length,1);assert.notEqual(requested[0],6);assert.ok(requested[0]>=0&&requested[0]<=0xffffffff);
+  assert.equal(entropyCalls,1);assert.equal(requested.length,1);assert.notEqual(requested[0],6);assert.ok(requested[0]!>=0&&requested[0]!<=0xffffffff);
  }
 });
 
 it('same-build saved games can resume across a new-game seed, while other versions and classic remain protected',()=>{
  const store=memoryStorage();saveRunRecord(store,trace(7),1);saveRunRecord(store,{...trace(8),runId:'other-run-0001',build:'b'.repeat(16)},2);saveRunRecord(store,{...trace(9),runId:'classic-run-0001',mode:'classic'},3);
- const saved=listRunRecords(store,build,6);assert.equal(saved.find(r=>r.trace?.seed===7)?.compatible,true);assert.equal(saved.find(r=>r.trace?.seed===8)?.compatible,false);assert.equal(saved.find(r=>r.trace?.seed===9)?.compatible,false);
+ const saved=listRunRecords(store,build,6);assert.equal(saved.find((r:any)=>r.trace?.seed===7)?.compatible,true);assert.equal(saved.find((r:any)=>r.trace?.seed===8)?.compatible,false);assert.equal(saved.find((r:any)=>r.trace?.seed===9)?.compatible,false);
 });
 
 it('snapshots record the world seed even while a different URL seed is still active',()=>{
