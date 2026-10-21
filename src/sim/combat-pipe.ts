@@ -171,7 +171,12 @@ export function combatStep(ctx: CombatCtx): void {
     if (!tower.entity.alive || tower.entity.paused) continue;
     const weapons=[tower.def.attack,tower.def.secondaryAttack].filter((a):a is NonNullable<typeof a>=>Boolean(a));
     if(!weapons.length)continue;
-    const weaponFor=(c:CreepCombatant,forced=false)=>weapons.find(a=>isValidTarget(tower.entity,a.targetsMask,forced?a.rangeU:Math.min(a.rangeU,tower.entity.acquireRangeU??a.acquireU),c));
+    const weaponFor=(c:CreepCombatant,forced=false)=>{
+      // Automatic acquisition/retention follows the existing alliance state. Explicit
+      // attack orders keep their separate, existing permission and range policy.
+      if(!forced&&(c.entity.owner===tower.entity.owner||ctx.areAllied?.(tower.entity.owner,c.entity.owner)))return undefined;
+      return weapons.find(a=>isValidTarget(tower.entity,a.targetsMask,forced?a.rangeU:Math.min(a.rangeU,tower.entity.acquireRangeU??a.acquireU),c));
+    };
     let targetId=tower.state.targetId;
     if(tower.entity.attackTargetId!==undefined){
       const forced=creepById.get(tower.entity.attackTargetId);

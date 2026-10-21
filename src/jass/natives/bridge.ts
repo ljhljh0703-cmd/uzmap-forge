@@ -250,14 +250,21 @@ export function registerEventBridge(vm: JassVm, sim: Sim, registry: TriggerRegis
         // G-1(GEM_IDENTITY_MINE_DESIGN §5.1) — 명중할 때마다(사망 무관) 발화. 실맵 트리거뎀 9사이트가
         // GetTriggerUnit()=피격자(victim)·GetAttacker()=공격자로 읽는다(units.ts native가 threadMeta.attacker
         // 조회) — hJ 광산 릴레이도 동일 meta 모양을 그대로 소비한다(§3.2 재해석: "mine-hit relay").
-        // v1: 필터 없음(사망 구독과 동일 정신 — 전원 발화, 조건 트리거 내부 조건식이 자체 필터링).
+        // Snapshot the victim owner once per dispatch, as the other player-event
+        // paths do. A lethal hit may already have removed its Sim entity; the
+        // existing unit handle retains its last owner for this pending event.
+        const victim = sim.getUnit(event.targetUnitId), victimHandle = vm.handles.get(event.targetUnitId);
+        const victimOwner = victim?.owner ?? (victimHandle?.kind === "unit" && typeof victimHandle.data.owner === "number" ? victimHandle.data.owner : undefined);
+        const player = victimOwner === undefined ? vhandle(null) : vhandle(getOrCreatePlayerHandle(vm.handles, playerHandleCache, victimOwner));
         for (const sub of attackSubscriptions(registry)) {
+          if (sub.playerId !== null && sub.playerId !== victimOwner) continue;
           const trig = vm.handles.get(sub.triggerId);
           if (!trig) continue;
           fireTrigger(vm, trig, {
             trigger: vhandle(trig.id),
             unit: vhandle(event.targetUnitId),
             attacker: vhandle(event.attackerUnitId),
+            player,
           });
         }
       }

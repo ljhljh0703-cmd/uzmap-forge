@@ -91,6 +91,7 @@ export function validateInputReplay(input){
  for(const a of trace.actions){
   if(!a||!int(a.tick)||a.tick<previous||a.tick>trace.tick||a.playerId!==0)throw Error('조작 순서나 플레이어가 올바르지 않습니다');previous=a.tick;
   if(a.kind==='dialog'){if(!int(a.buttonId)||a.buttonId===0||!int(a.dialogId))throw Error('대화상자 기록 오류');}
+  else if(a.kind==='chat'){if(typeof a.text!=='string')throw Error('채팅 기록 오류');}
   else if(a.kind==='place'){if(a.typeId!=='h006'||!Number.isFinite(a.x)||!Number.isFinite(a.y))throw Error('건설 기록 오류');}
   else if(a.kind==='ability'){
    const targeted=GEM_TARGET_COMMAND_IDS.includes(a.abilityId);
@@ -115,7 +116,8 @@ export function replayInputBatch(w,trace,cursor,advance,maxTicks=200,shouldYield
     const button=w.vm.handles.get(a.buttonId),dialog=w.vm.handles.get(a.dialogId);
     if(button?.kind!=='button'||dialog?.kind!=='dialog'||button.data.dialogId!==dialog.id||!dialog.data.buttons.includes(button.id)||dialog.id!==w.modeDialog?.dialogId&&!dialog.data.visibleTo.includes(a.playerId))throw Error('저장 당시의 선택창과 일치하지 않습니다');
     w.sim.injectDialogClick(a.playerId,a.buttonId);if(a.dialogId===w.modeDialog?.dialogId){w.modeDialog.clicked=true;delete w.modeDialog.pendingButtonId;}
-   }else if(a.kind==='place'){accepted=w.sim.placeStructure(a.playerId,a.typeId,a.x,a.y);if(accepted)w.pendingBuilds?.push({x:a.x,y:a.y});}
+   }else if(a.kind==='chat'){w.sim.injectChat(a.playerId,a.text);}
+   else if(a.kind==='place'){accepted=w.sim.placeStructure(a.playerId,a.typeId,a.x,a.y);if(accepted)w.pendingBuilds?.push({x:a.x,y:a.y});}
    else if(a.kind==='ability'){const unit=w.sim.getUnit(a.unitId);accepted=GEM_TARGET_COMMAND_IDS.includes(a.abilityId)?w.sim.issueAbilityOrder(a.playerId,a.unitId,a.abilityId,a.targetUnitId):w.sim.issueAbilityOrder(a.playerId,a.unitId,a.abilityId);if(accepted&&unit&&!GEM_TARGET_COMMAND_IDS.includes(a.abilityId))w.pendingCasts?.push(captureGemCast(w,unit,a.abilityId));}
    else if(a.kind==='pointAbility')accepted=w.sim.issuePointAbilityOrder(a.playerId,a.unitId,a.abilityId,a.x,a.y);
    else if(a.kind==='move')accepted=w.sim.issueMoveOrder(a.playerId,a.unitId,a.x,a.y);

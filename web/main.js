@@ -320,18 +320,19 @@ function refreshReplayOutput(w,trace) {
 }
 // Keep native control state and normal input regions consistent throughout strict restoration.
 function renderControls(w) {
- const ended=Boolean(w?.gameOver),awaitingMode=Boolean(w?.modeDialog&&!w.modeDialog.clicked),play=$("play");
- const runLabel=restoring?'복원 중':ended?'게임 종료':awaitingMode?'방식 선택':playing?'진행 중':'일시정지';
+ const ended=Boolean(w?.gameOver),awaitingMode=Boolean(w?.modeDialog&&!w.modeDialog.clicked),pendingMode=w?.modeDialog?.pendingButtonId!==undefined,play=$("play");
+ const runLabel=runtimeFailed?'오류로 정지':restoring?'복원 중':ended?'게임 종료':awaitingMode?'방식 선택':playing?'진행 중':'일시정지';
  if($("runState").textContent!==runLabel)$("runState").textContent=runLabel;
- $("runState").dataset.state=restoring?'restoring':ended?'ended':awaitingMode?'mode':playing?'playing':'paused';
+ $("runState").dataset.state=runtimeFailed?'error':restoring?'restoring':ended?'ended':awaitingMode?'mode':playing?'playing':'paused';
  $("restoreOverlay").hidden=!restoring;$("cancelRestore").disabled=!restoring||restoreCancelled;
- for(const id of ["play","stepBtn","speed","chatInput","chatSend"])$(id).disabled=restoring||ended;
+ for(const id of ["play","stepBtn","speed","chatInput","chatSend"])$(id).disabled=restoring||ended||runtimeFailed;
  if(awaitingMode)for(const id of ["play","stepBtn"])$(id).disabled=true;
  if(w?.replayMismatch)play.disabled=true;
  for(const id of ["reset","resumeRun","importRun"])$(id).disabled=restoring;
- $("saveRun").disabled=restoring||Boolean(w?.trainingBatch);
+ $("saveRun").disabled=restoring||Boolean(w?.trainingBatch)||pendingMode;
+ $("saveRun").title=pendingMode?'재개해서 게임 방식 선택을 처리한 뒤 저장하세요':'';
  $("resumeRun").disabled=restoring||!$("savedRuns").selectedOptions[0]?.record?.compatible;
- const label=restoring?'복원 중…':ended?'게임 종료':w?.replayMismatch?'복원 실패':awaitingMode?'방식 선택':playing?'일시정지':'재개';
+ const label=runtimeFailed?'오류로 정지':restoring?'복원 중…':ended?'게임 종료':w?.replayMismatch?'복원 실패':awaitingMode?'방식 선택':playing?'일시정지':'재개';
  if(play.textContent!==label)play.textContent=label;
  // The existing progress message and its ancestors stay outside the inert regions.
  for(const area of document.querySelectorAll('.header-actions,footer,#gameDrawer,#drawerScrim,#bottomPanel,#battlefield > :not(#msg):not(#restoreOverlay)'))if(area.inert!==restoring)area.inert=restoring;
@@ -366,13 +367,14 @@ $("exportRun").onclick=()=>{
  const link=document.createElement('a');link.href=url;link.download=`보석타워-${record.legacy?'이전기록':record.trace?.runId??'기록'}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function captureRunView(){
- return {world,cam:{...cam},mode:$("gameApp").dataset.mode,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed};
+ return {world,runtimeFailed,failureMessage:runtimeFailed?{nodes:[...$("msg").childNodes],display:$("msg").style.display}:null,cam:{...cam},mode:$("gameApp").dataset.mode,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed};
 }
 function restoreRunView(before){
  world=before.world;Object.assign(cam,before.cam);
- ({prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed}=before);
+ ({runtimeFailed,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed}=before);
  if(before.mode===undefined)delete $("gameApp").dataset.mode;else $("gameApp").dataset.mode=before.mode;
- if(world){for(const key of ['rosterSignature','upgradeSignature','nativeDialogKey','trainingSignature','trainingButtons','buildCellsView','buildCellsCheck','replayOutputKey'])delete world[key];renderChatHelp(world);render(world,true);}
+ if(world){for(const key of ['rosterSignature','upgradeSignature','nativeDialogKey','trainingSignature','trainingButtons','buildCellsView','buildCellsCheck','replayOutputKey'])delete world[key];renderChatHelp(world);if(!runtimeFailed)render(world,true);}
+ if(before.failureMessage){$("msg").replaceChildren(...before.failureMessage.nodes);$("msg").style.display=before.failureMessage.display;}
 }
 function cancelRestore(){
  if(!restoring)return;restoreCancelled=true;$("cancelRestore").disabled=true;$("restoreProgressText").textContent='복원 취소 중… 기존 진행으로 돌아갑니다';
@@ -396,11 +398,11 @@ async function restoreRun(raw){
   if(world.sim.stateHash()!==trace.stateHash||trace.sourceState&&JSON.stringify(gemTowerPlayerState(world.vm))!==JSON.stringify(trace.sourceState)||world.runtimeCrashes.length)throw Error('저장 당시와 결과가 일치하지 않아 이어하기를 중단했습니다');
   world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
   frameClock.reset();$("msg").style.display='none';render(world);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);commitSessionSeed(trace.seed);
- }catch(error){restoreRunView(before);$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
+ }catch(error){restoreRunView(before);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
  finally{restoring=false;playing=false;frameClock.reset();renderControls(world);$("researchToggle").focus();}
 }
 $("cancelRestore").onclick=cancelRestore;
-$("saveRun").onclick=()=>{if(!world||restoring)return;if(world.trainingBatch){flash('묶음 구입을 마친 뒤 저장하세요');return;}try{const trace=validateInputReplay(runSnapshot(world));const saved=saveRunRecord(localStorage,trace);refreshReplayOutput(world,saved.trace);refreshSavedRuns(saved.key);flash('현재 진행을 이 브라우저에 저장했습니다');}catch(error){flash(error.message);}};
+$("saveRun").onclick=()=>{if(!world||restoring)return;if(world.modeDialog?.pendingButtonId!==undefined){flash('재개해서 게임 방식 선택을 처리한 뒤 저장하세요');return;}if(world.trainingBatch){flash('묶음 구입을 마친 뒤 저장하세요');return;}try{const trace=validateInputReplay(runSnapshot(world));const saved=saveRunRecord(localStorage,trace);refreshReplayOutput(world,saved.trace);refreshSavedRuns(saved.key);flash('현재 진행을 이 브라우저에 저장했습니다');}catch(error){flash(error.message);}};
 $("resumeRun").onclick=()=>{const record=$("savedRuns").selectedOptions[0]?.record;if(!record?.compatible){flash('이어할 수 있는 저장을 선택하세요');return;}void restoreRun(record.raw);};
 $("importRun").onclick=()=>void restoreRun($("restoreInput").value);
 
@@ -706,6 +708,7 @@ function render(w,preservePendingDialog=false) {
       button.hidden=!showGemAction(action);
       button.textContent = action.abilityId==="A008"?"바위 제거":action.label;
       button.title = action.reason ? abilityOrderReason(action.reason) : "보유한 능력 사용";
+      if(action.disabled&&!button.hidden&&["A03M","A02J","A02G","A008"].includes(action.abilityId))button.textContent+=" · "+button.title;
     }
     $("gemCombineGate").textContent = gemActionConditions(actions).join("\n");
 
@@ -1013,7 +1016,7 @@ function renderTraining(w){
  const casinoCurrent=pending.find(q=>sourceOwned.has(q.producerId));
  $("casinoUse").hidden=sourceOwned.size===0;
  $("casinoTrainingStatus").textContent=sourceOwned.size===0?'':w.gameOver?'게임 종료 · 시설 이용 중단':!playing?'일시정지 · 상단 재개를 누르면 구입과 추첨이 진행됩니다':batch?$("trainingStatus").textContent:casinoCurrent?`${fullName(w,casinoCurrent.typeId)} · 처리 중 · 게임 시간 ${(casinoCurrent.remainingTicks*DT).toFixed(1)}초 남음`:[...sourceOwned].some(id=>sourceSpinning.has(id))?'추첨 중입니다 · 완료 후 다시 이용할 수 있어요':'코인 투입이나 나가기를 선택하세요';
- $("saveRun").disabled=Boolean(batch);
+ $("saveRun").disabled=Boolean(batch)||w.modeDialog?.pendingButtonId!==undefined;
 }
 
 function stepN(w, n) {
@@ -1399,11 +1402,11 @@ $("gemUpgrades").addEventListener('click',event=>{
 });
 $("findCombination").onclick=()=>{
  if(!world)return;cancelGemTarget(world);const ids=availableGemCombinations(world,(world.availableComboIds??[]).map(id=>world.sim.getUnit(id)).filter(Boolean));
- if(!ids.length)return;const id=ids[(ids.indexOf(world.selectedGemId)+1)%ids.length],e=world.sim.getUnit(id);
- world.showRocks=false;world.pendingCombatFocus=false;world.selectedGemId=id;render(world);
+ if(!ids.length)return;const id=ids[(ids.indexOf(world.selectedGemId)+1)%ids.length];
+ selectGemById(world,id);
 };
 $("showRocks").onclick=()=>{if(world){world.showRocks=!world.showRocks;render(world);}};
-$("pathWarning").onclick=()=>{if(world){world.showRocks=true;render(world);}};
+$("pathWarning").onclick=()=>{if(world){world.showRocks=true;setDrawer(true);$("ownedExplorer").open=true;render(world);$("gemRoster").querySelector("button")?.focus();}};
 $("gemRoster").addEventListener("click",event=>{
  const button=event.target.closest("button[data-unit-id]");if(!button||!world)return;
  selectGemById(world,Number(button.dataset.unitId));
@@ -1446,8 +1449,9 @@ function sendChat() {
   const text = input.value;
   if (!text) return;
   world.sim.injectChat(0, text); // P0 왕복 — 효과(§8.1)는 실맵 스크립트가 다음 triggerBridge 단계에서 수행
+  recordInput(world,{kind:'chat',playerId:0,text});
   const log = $("chatLog");
-  if (log) log.innerHTML = `<div>› ${text.replace(/</g, "&lt;")}</div>` + log.innerHTML;
+  if (log) { const line=document.createElement('div');line.textContent='› '+text;log.prepend(line); }
   input.value = "";
 }
 if ($("chatSend")) $("chatSend").onclick = sendChat;

@@ -22,7 +22,6 @@ main{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(
 @media(min-width:431px) and (max-width:600px){.bp-info{padding-left:72px}#selectedGemPortrait{display:block}.gem-stats{grid-template-columns:1fr}}
 
 /* Fixed primary actions; only source-unacquired optional commands are absent. */
-.bp-actions #castA03M:disabled,.bp-actions #castA02J:disabled,.bp-actions #castA02G:disabled,.bp-actions #castA008:disabled{display:none}
 .bp-actions #castA009{grid-column:1;grid-row:1}.bp-actions #castA007{grid-column:2;grid-row:1}.bp-actions #castA00R{grid-column:3;grid-row:1}.bp-actions{grid-template-columns:repeat(3,minmax(44px,1fr))}.bp-actions .close-selection{min-height:44px}#skip{min-height:44px}
 #ownedExplorer{position:static;min-width:56px;background:none;border:0}#ownedExplorer>summary{min-height:44px;padding:12px 8px;color:#d7c394;border:2px solid #785b37;list-style:none;white-space:nowrap}#ownedExplorer>summary::marker{content:''}#ownedExplorer[open]>summary{color:#f0d68c}#ownedExplorer>.roster-bar{position:absolute;left:0;right:0;top:48px;max-height:180px;background:#281c13;padding:16px 20px;z-index:18;border:1px solid #87653c}#ownedExplorer>.roster-bar #gemRoster{flex:1;overflow-x:auto}.header-actions{gap:8px}
 #gemPanel{padding-top:12px;padding-bottom:12px}.bp-actions button{padding:4px 2px}

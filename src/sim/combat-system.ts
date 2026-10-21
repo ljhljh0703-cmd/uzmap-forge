@@ -127,7 +127,12 @@ export function installCombat(sim: Sim, opts: InstallCombatOptions): void {
       // Actual race input leaves h04Q circling at full HP in round 25; the original has a death trigger
       // for it. Reuse the existing target/damage/death pipeline, preserving its configured 150000 HP.
       const eventBoss = role.kind === "static" && role.archetype === "eventBoss";
-      if ((def.attack||def.secondaryAttack) && role.kind !== "creep" && !eventBoss) {
+      // Original classic events xz/wZ spawn the same special-gem types used by players
+      // under Player(11). Current ownership separates those targets from retained gems;
+      // their shared definitions, weapons and parameterized stats remain unchanged.
+      const hostileSpecialGem = role.kind === "static" && role.archetype === "specialGem" && entity.owner === 11;
+      const combatTarget = role.kind === "creep" || eventBoss || hostileSpecialGem;
+      if ((def.attack||def.secondaryAttack) && !combatTarget) {
         // 타워(role.kind==="tower") 또는 attack 보유 static(lowestGem 4종 등, role.kind==="static") — 기존과 동일.
         let state = towerStates.get(entity.id);
         if (!state) {
@@ -138,7 +143,7 @@ export function installCombat(sim: Sim, opts: InstallCombatOptions): void {
         continue;
       }
 
-      if (role.kind === "creep" || eventBoss) {
+      if (combatTarget) {
         // P6: event bosses join this pool too; builders and markers remain excluded. G-2a: 타워 파이프의 유효 타깃 풀 = "크립"으로만 한정(attack 유무 무관 — done-gate ①).
         creeps.push({
           entity,
