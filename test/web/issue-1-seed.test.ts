@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const actions=await import(new URL('../../web/gem-actions.js',import.meta.url).href);
-const {listRunRecords,saveRunRecord}=await import(new URL('../../web/run-storage.js',import.meta.url).href);
+const {listRunRecords,saveRunRecord,isRunCompatible}=await import(new URL('../../web/run-storage.js',import.meta.url).href);
 
 const source=fs.readFileSync(new URL('../../web/main.js',import.meta.url),'utf8');
 function declaration(name:string){const body=source.match(new RegExp('^(?:async )?function '+name+'\\([^\\n]*\\{[\\s\\S]*?\\n\\}','m'))?.[0];assert.ok(body,`actual ${name} function`);return body;}
@@ -38,13 +38,13 @@ it('same-build saved games can resume across a new-game seed, while other versio
 
 it('snapshots record the world seed even while a different URL seed is still active',()=>{
  const snapshot=source.match(/^function runSnapshot\([^\n]+$/m)?.[0];assert.ok(snapshot);
- const context:any={sessionSeed:6,contentBuild:build,cam:{},gemTowerPlayerState:()=>({}),w:{seed:77,runId:'saved-run-0001',sim:{tickCount:0,stateHash:()=> '01234567'},inputLog:[]}};
+ const context:any={sessionSeed:6,contentBuild:build,replayBuild:null,isRunCompatible,cam:{},gemTowerPlayerState:()=>({}),w:{seed:77,runId:'saved-run-0001',sim:{tickCount:0,stateHash:()=> '01234567'},inputLog:[]}};
  vm.runInNewContext(snapshot+'\nglobalThis.actual=runSnapshot(w);',context);assert.equal(context.actual.seed,77);
 });
 
 function restoration({mismatch=false,cancel=false}={}){
  const original={seed:6,runId:'original-run001'},saved=trace(77),loaded:any[]=[];let commits=0,paints=0;const nodes:any=new Proxy({}, {get(target:any,key:string){return target[key]??= {disabled:false,textContent:'',style:{},focus(){}};}});
- const context:any={world:original,sessionSeed:6,restoring:false,restoreCancelled:false,playing:true,runtimeFailed:false,contentBuild:build,validateInputReplay:actions.validateInputReplay,restoredRunId:(t:any)=>t.runId,$:(id:string)=>nodes[id],captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{context.world=before.world;},renderControls(){},performance:{now:()=>0},frameClock:{reset(){}},setDrawer(){},flash(){},gemTowerPlayerState:()=>({}),textTags:[],goldTags:[],attackFx:[],render(){paints++;},commitSessionSeed:(seed:number)=>{assert.equal(context.world.sim.stateHash(),saved.stateHash,'publish only a verified replay');context.sessionSeed=seed;commits++;}};
+ const context:any={world:original,sessionSeed:6,restoring:false,restoreCancelled:false,playing:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},contentBuild:build,replayBuild:null,isRunCompatible,validateInputReplay:actions.validateInputReplay,restoredRunId:(t:any)=>t.runId,$:(id:string)=>nodes[id],captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{context.world=before.world;},renderControls(){},performance:{now:()=>0},frameClock:{reset(){}},setDrawer(){},flash(){},gemTowerPlayerState:()=>({}),textTags:[],goldTags:[],attackFx:[],render(){paints++;},commitSessionSeed:(seed:number)=>{assert.equal(context.world.sim.stateHash(),saved.stateHash,'publish only a verified replay');context.sessionSeed=seed;commits++;}};
  context.loadFromUrl=async(seed:number,options:any)=>{loaded.push({seed,options});assert.equal(context.sessionSeed,6,'URL seed stays unchanged during candidate boot');assert.equal(commits,0);context.world={seed,sim:{tickCount:0,stateHash:()=>mismatch?'fedcba98':'01234567',getUnit:()=>undefined},sourceVersion:null,runtimeCrashes:[],inputLog:[]};if(cancel)context.restoreCancelled=true;return true;};
  vm.runInNewContext(declaration('restoreRun'),context);
  return {context,saved,original,loaded,stats:()=>({commits,paints})};
@@ -63,7 +63,7 @@ it('publishing a verified seed keeps unrelated query fields and the URL fragment
 
 it('actual loader passes each chosen seed to boot and withholds URL publication for a restore candidate',async()=>{
  const nodes:any=new Proxy({}, {get(target:any,key:string){return target[key]??= {textContent:'',dataset:{},style:{},hidden:true};}}),bootSeeds:number[]=[],published:number[]=[];
- const context:any={sessionSeed:6,selectedSource:{mapBytes:new ArrayBuffer(0),stockProfile:{}},localSourceMode:true,runtimeFailed:false,document:{documentElement:{dataset:{}}},setMsg(){},extractGemPresentation:()=>({}),frameClock:{reset(){}},drag:{on:false},$:(id:string)=>nodes[id],resize(){},boot:(_bytes:any,_names:any,_profile:any,seed:number)=>{bootSeeds.push(seed);return {seed,sim:{ledger:{gold:()=>10}}};},world:null,Map,renderChatHelp(){},render(){},commitSessionSeed:(seed:number)=>{published.push(seed);context.sessionSeed=seed;},console};
+ const context:any={sessionSeed:6,selectedSource:{mapBytes:new ArrayBuffer(0),stockProfile:{}},localSourceMode:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},document:{documentElement:{dataset:{}}},setMsg(){},extractGemPresentation:()=>({}),frameClock:{reset(){}},drag:{on:false},$:(id:string)=>nodes[id],resize(){},boot:(_bytes:any,_names:any,_profile:any,seed:number)=>{bootSeeds.push(seed);return {seed,sim:{ledger:{gold:()=>10}}};},world:null,Map,renderChatHelp(){},render(){},commitSessionSeed:(seed:number)=>{published.push(seed);context.sessionSeed=seed;},console};
  vm.runInNewContext(declaration('loadFromUrl'),context);
  assert.equal(await context.loadFromUrl(),true);assert.equal(context.world.seed,6);assert.deepEqual(published,[6]);
  assert.equal(await context.loadFromUrl(77,{publishSeed:false}),true);assert.equal(context.world.seed,77);assert.deepEqual(published,[6]);assert.equal(context.sessionSeed,6);

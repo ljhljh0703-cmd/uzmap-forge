@@ -14,7 +14,7 @@ function fixture(){
  const nodes:any=Object.fromEntries(ids.map(id=>[id,{disabled:false,textContent:'',dataset:{},inert:false}]));
  nodes.savedRuns.selectedOptions=[{record:{compatible:true}}];
  const callbacks:Record<string,()=>void>={};let steps=0;
- const context:any={world:{sim:{}},playing:true,restoring:false,restoreCancelled:false,runtimeFailed:false,tps:1,frameClock:{reset(){},advance(){return 1;}},$:(id:string)=>nodes[id],document:{hidden:true,querySelectorAll:()=>[],addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn},window:{addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn,showErr(){}},requestAnimationFrame(){},render(){},stepN(){steps++;},performance:{now:()=>0}};
+ const context:any={world:{sim:{}},playing:true,restoring:false,restoreCancelled:false,runtimeFailed:false,loadingRun:false,checkpointRun(){},tps:1,frameClock:{reset(){},advance(){return 1;}},$:(id:string)=>nodes[id],document:{hidden:true,querySelectorAll:()=>[],addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn},window:{addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn,showErr(){}},requestAnimationFrame(){},render(){},stepN(){steps++;},performance:{now:()=>0}};
  vm.runInNewContext(controls+'\n'+visibility+'\n'+fatal+'\n'+loop,context);
  return {context,nodes,callbacks,steps:()=>steps};
 }
