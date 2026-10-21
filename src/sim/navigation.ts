@@ -6,7 +6,9 @@ import type {PathingMap} from '../ir/pathing.ts';
 import {FLAG_NO_WALK,FLAG_NO_FLY,FLAG_NO_BUILD} from '../ir/pathing.ts';
 import type {UnitEntity} from './unit-entity.ts';import type {DefStore} from './def-store.ts';
 type Point={x:number;y:number};
-export type NavigationBounds={minX:number;minY:number;maxX:number;maxY:number};
+export type NavigationRectangle={minX:number;minY:number;maxX:number;maxY:number};
+/** Stay inside the arena or an explicit source-owned exit corridor. */
+export type NavigationBounds=NavigationRectangle&{readonly corridors?:ReadonlyArray<Readonly<NavigationRectangle>>};
 export type NavigationBoundsResolver=(entity:UnitEntity)=>NavigationBounds|undefined;
 export class GridNavigation {
  private blocks:Uint8Array;private signature='';private cache=new Map<string,Point|null>();
@@ -34,7 +36,7 @@ export class GridNavigation {
  route(from:Point,to:Point,flying=false,goalRadiusU=0,bounds?:NavigationBounds):Point[]|null{
   this.refresh();const g=this.grid,start=this.cell(from),rawGoal=this.cell(to),mask=flying?FLAG_NO_FLY:FLAG_NO_WALK;
   if(!this.inBounds(start.x,start.y)||!this.inBounds(rawGoal.x,rawGoal.y))return null;
-  const allowed=(x:number,y:number)=>{const p=this.world(x,y);return !bounds||p.x>=bounds.minX&&p.x<=bounds.maxX&&p.y>=bounds.minY&&p.y<=bounds.maxY;};
+  const allowed=(x:number,y:number)=>{if(!bounds)return true;const p=this.world(x,y),inside=(b:Readonly<NavigationRectangle>)=>p.x>=b.minX&&p.x<=b.maxX&&p.y>=b.minY&&p.y<=b.maxY;return inside(bounds)||(bounds.corridors?.some(inside)??false);};
   const free=(x:number,y:number)=>this.inBounds(x,y)&&allowed(x,y)&&(this.blocks[this.index(x,y)]!&mask)===0;
   if(!allowed(start.x,start.y)||!allowed(rawGoal.x,rawGoal.y))return null;
   const ranged=goalRadiusU>0;
@@ -67,7 +69,9 @@ export class GridNavigation {
  }
  waypoint(e:UnitEntity):Point|null{
   this.refresh(); // Live blocker changes must invalidate both reachable and unreachable cached paths.
-  const c=this.cell(e),flying=this.defs.getDef(e.typeId).movementType==='fly',bounds=this.boundsFor?.(e),key=`${c.x}:${c.y}:${e.orderX}:${e.orderY}:${flying}:${bounds?`${bounds.minX},${bounds.minY},${bounds.maxX},${bounds.maxY}`:''}`;
+  const c=this.cell(e),flying=this.defs.getDef(e.typeId).movementType==='fly',bounds=this.boundsFor?.(e);
+  const areaKey=bounds?[bounds,...(bounds.corridors??[])].map(b=>`${b.minX},${b.minY},${b.maxX},${b.maxY}`).join('|'):'';
+  const key=`${c.x}:${c.y}:${e.orderX}:${e.orderY}:${flying}:${areaKey}`;
   if(!this.cache.has(key))this.cache.set(key,this.route(e,{x:e.orderX,y:e.orderY},flying,0,bounds)?.[0]??null);
   return this.cache.get(key)!;
  }

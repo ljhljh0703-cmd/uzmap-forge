@@ -129,6 +129,15 @@ export function gemTowerMobileLayout(ir:MapIR,grid:import('../../ir/pathing.ts')
  });
  const mobileSource=source.replace(/(\bset\s+(\w+)\s*=\s*Rect\()([-\d., ]+)(\))/g,(all,prefix,name,_values,end)=>replacements.has(name)?prefix+replacements.get(name)+end:all);
  const contains=(b:import('../../sim/navigation.ts').NavigationBounds,x:number,y:number)=>x>=b.minX&&x<=b.maxX&&y>=b.minY&&y<=b.maxY;
- const boundsFor:import('../../sim/navigation.ts').NavigationBoundsResolver=e=>e.owner===11?fields.find(f=>contains(f.bounds,e.orderX,e.orderY))?.bounds:undefined;
+ // The last source goal is outside the arena. Releasing all bounds for that
+ // order let A* bypass completed mazes above/below the visible field. Extend
+ // only along the authored last-waypoint -> Ax/Fx corridor, not the full WPM.
+ const exits=fields.map((field,playerId)=>{
+  const target=rects.get(playerId===0?'Ax':'Fx'),last=field.waypoints.at(-1)!;
+  if(!target)throw Error('missing GemTower exit rectangle');
+  const corridor={minX:Math.min(last.minX,target.minX),maxX:Math.max(last.maxX,target.maxX),minY:Math.min(last.minY,target.minY),maxY:Math.max(last.maxY,target.maxY)};
+  return {target,bounds:{...field.bounds,corridors:[corridor]}};
+ });
+ const boundsFor:import('../../sim/navigation.ts').NavigationBoundsResolver=e=>e.owner===11?(fields.find(f=>contains(f.bounds,e.orderX,e.orderY))?.bounds??exits.find(f=>contains(f.target,e.orderX,e.orderY))?.bounds):undefined;
  return {ir:{...ir,script:{...ir.script,source:mobileSource}},fields,boundsFor};
 }
