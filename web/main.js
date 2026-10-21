@@ -1,3 +1,5 @@
+import {createBuildPreview} from './dist/runtime/build-preview.js';
+import {terrainPixel,drawFieldRim,drawBuildRoute} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
@@ -124,7 +126,7 @@ function renderFieldView(w){
  }
  $('fieldOther').hidden=w.sim.playerState.getSlotState(1)!==1;
  $('fieldOtherState').textContent=w.sim.playerState.getSlotState(1)===1?'관전':'미접속';
- $('cv').setAttribute('aria-label',other?'상대 전장 관전. 내 전장 탭으로 돌아가 건설하세요':'내 전장. 점이 있는 빈 칸을 눌러 건설하고 보석을 눌러 선택하세요');
+ $('cv').setAttribute('aria-label',other?'상대 전장 관전. 내 전장 탭으로 돌아가 건설하세요':'내 전장. 빈칸을 눌러 건설하고, 누른 동안 지상 예상 길을 확인하세요. 보석을 누르면 선택합니다');
  $('combatCount').hidden=other&&!connected;
  $('spectatorBanner').hidden=!other;$('spectatorBanner').textContent=connected?'상대 전장 · 관전 중':'상대 미접속 · 두 번째 전장';
  $('spectatorActions').hidden=!other;$('bottomPanel').inert=other||restoring;
@@ -138,7 +140,7 @@ function renderFieldView(w){
  w.displayedLife[player]=state.life;const hit=now<(w.lifeHitUntil[player]??0);
  $('hudLife').closest('.hud-pill').dataset.lifeHit=String(hit);$('exitMarker').dataset.hit=String(hit);
  $('exitLegendLabel').textContent=hit?w.lifeHitMessage[player]:'광산 도달 시 생명 감소';
- const hint=$('gemNone').querySelector('span');hint.textContent=w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개${playing?' · 완성 중':' · 재개해서 완성하기'}`:'점이 있는 빈 칸: 건설 · 보석: 선택';
+ const hint=$('gemNone').querySelector('span');hint.textContent=w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개${playing?' · 완성 중':' · 재개해서 완성하기'}`:'빈칸 탭: 건설 · 누른 채: 지상 길 확인';
  if(other){
   $('hudGold').textContent=connected?Math.floor(w.sim.ledger.gold(player)):'—';
   $('hudLife').textContent=connected?(state.life??'—'):'—';
@@ -414,25 +416,9 @@ function buildTerrain(w) {
   const octx = off.getContext("2d");
   const img = octx.createImageData(width, height);
   const d = img.data;
-  // U-4c(DISPATCH_SONNET_U4_FIXES §2 U-4c, 작가 명시 "몬스터가 지나는 길을 전부 밝은 색상(살색)으로
-  // 표시") — U-3c의 가장자리(curb)만 어둡게 누르던 방식을 폐기하고, 경로 셀 전체를 균일한 밝은 살색으로
-  // 칠한다("가장자리만 X, 전체"가 피드백 원문). wpm flags 그대로(발명 0), 색상 값만 교체.
-  // catOf: 0=벽(NO_WALK) 1=경로(걷기O 건설X) 2=건설 펜.
-  const catOf = (f) => (f & FLAG_NO_WALK) ? 0 : (f & FLAG_NO_BUILD) ? 1 : 2;
-  for (let row = 0; row < height; row++) {
-    const imgRow = height - 1 - row;
-    for (let col = 0; col < width; col++) {
-      const f = cells[row * width + col];
-      const cat = catOf(f);
-      let r, g, b;
-      // U-2a(DISPATCH_SONNET_U2_GAMESHELL §2 U-2a) — 무톤 다크블루 3색을 밝은 벡터 카툰 톤으로 교체
-      // (하이퍼캐주얼). 세 지형 flag(NO_WALK/NO_BUILD/펜)는 그대로, 색만 재배색 — 데이터·로직 무변경.
-      if (cat === 0) { r = 35; g = 77; b = 43; }         // 벽/장식 — 짙은 숲 그린(강한 실루엣 대비용 어두운 축)
-      else if (cat === 1) { r = 255; g = 205; b = 148; } // U-4c: 경로 전체 — 밝은 살색(건설 펜 초록·벽 어두운 그린과 색상군 자체가 달라 혼동 없음)
-      else { r = 81; g = 118; b = 72; }                        // 건설 펜 — 밝은 잔디 그린(base 60%)
-      const i = (imgRow * width + col) * 4;
-      d[i] = r; d[i + 1] = g; d[i + 2] = b; d[i + 3] = 255;
-    }
+  for(let row=0;row<height;row++)for(let col=0;col<width;col++){
+    const colour=terrainPixel(cells[row*width+col],col,row),i=((height-1-row)*width+col)*4;
+    d[i]=colour[0];d[i+1]=colour[1];d[i+2]=colour[2];d[i+3]=255;
   }
   octx.putImageData(img, 0, 0);
   w.terrain = off;
@@ -453,6 +439,24 @@ function renderRouteCues(w){
  };
  if(!marker.hidden)place(marker,ingressMarker(project(spawn),project(entry),box),true);
  if(!exit.hidden){place(exit,ingressMarker(project(last),project(next),box,true),false);exit.dataset.gate=gateSpec.id;}
+}
+
+
+function renderBuildPreview(w){
+ const target=$('buildPreviewStatus'),state=gemTowerPlayerState(w.vm),field=w.mobileFields?.[w.viewPlayerId??0];
+ const ready=Boolean(field&&w.pm&&w.hover&&(w.hoverGemId===null||w.hoverGemId===undefined)&&(w.viewPlayerId??0)===0&&w.modeDialog?.clicked&&state.difficulty&&!state.chosen&&!w.gameOver&&!restoring&&!w.pendingTargetAbility&&!w.pendingPointAbility&&remainingBuildSlots(state,w.pendingBuilds)>0);
+ if(target){target.hidden=!ready;target.parentElement.dataset.preview=String(ready);}
+ if(!ready){w.buildPreviewResult=null;return;}
+ const point={x:w.hover.cx,y:w.hover.cy},last=field.waypoints.at(-1),exit={x:field.bounds.maxX-w.pm.cellSize/2,y:(last.minY+last.maxY)/2};
+ w.previewSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
+ const preview=w.previewSearch.evaluate({entities:w.sim.entities.values(),bounds:field.bounds,start:field.spawn,waypoints:[...field.waypoints.map(r=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2})),exit],waypointBounds:[...field.waypoints,null],pending:w.pendingBuilds.map(p=>({typeId:'h006',...p})),candidate:{typeId:'h006',...point}});
+ w.buildPreviewResult=preview;
+ if(target){target.dataset.state=preview.status;target.textContent=preview.status==='open'?'배치 후 지상 예상 길':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침';}
+ drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}));
+ const ok=canPlaceBlock(w,w.hover.blockCol,w.hover.blockRow,buildGridCells(w)),size=w.pm.cellSize*buildGridCells(w)*cam.zoom;
+ ctx.save();ctx.fillStyle=ok?(preview.status==='blocked'?'#e0ab6b50':'#d8d99d40'):'#dc8e8155';ctx.fillRect(W2SX(point.x)-size/2,W2SY(point.y)-size/2,size,size);
+ ctx.strokeStyle=ok?'#dacb98':'#e09b8b';ctx.lineWidth=1;ctx.strokeRect(W2SX(point.x)-size/2+1,W2SY(point.y)-size/2+1,Math.max(1,size-2),Math.max(1,size-2));
+ if(ok){ctx.globalAlpha=.5;sprites.draw(ctx,'gem:unknown:0',W2SX(point.x),W2SY(point.y),gemSpriteSize(size),{tick:0});}ctx.restore();
 }
 
 function renderCreeps(w,footprintPx,z) {
@@ -522,34 +526,7 @@ function render(w,preservePendingDialog=false) {
     ctx.save();ctx.lineWidth=2;ctx.strokeStyle="#e2c17e";ctx.setLineDash([]);
     ctx.strokeRect(W2SX(fieldBounds.minX)+1,W2SY(fieldBounds.maxY)+1,(fieldBounds.maxX-fieldBounds.minX)*z-2,(fieldBounds.maxY-fieldBounds.minY)*z-2);ctx.restore();
   }
-  // Dashed source waypoint guide is planned intent, not a claim about the walked path.
-  const field=[...(w.fieldRects?.[w.viewPlayerId??0]??[])],next=sourceRect(w,(w.viewPlayerId??0)===0?'Ax':'Fx');if(next)field.push(next);
-  if(field.length){
-    ctx.save();ctx.beginPath();field.forEach((r,index)=>{const x=W2SX((r.minX+r.maxX)/2),y=W2SY((r.minY+r.maxY)/2);if(index)ctx.lineTo(x,y);else ctx.moveTo(x,y);});
-    ctx.lineWidth=3;ctx.setLineDash([5,6]);ctx.strokeStyle='#f5d8a6aa';ctx.stroke();ctx.restore();
-  }
-  // Actual observed travel, including detours; never paint a straight order as a walked route.
-  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";
-  ctx.beginPath();
-  for(const path of w.routeSegments.values()){
-    ctx.moveTo(W2SX(path.x),W2SY(path.y));ctx.lineTo(W2SX(path.toX),W2SY(path.toY));
-  }
-  ctx.lineWidth=12*z;ctx.strokeStyle="#a8a47c";ctx.stroke();
-  ctx.lineWidth=6*z;ctx.strokeStyle="#f4d7a5";ctx.stroke();
-  ctx.restore();
-  // U-2a: 기술적 셀 그리드 오버레이 제거 — "에디터 그리드 느낌"의 직접 원인(디스패치 §2 U-2a 명시).
-  // 건설 정렬 피드백은 호버 프리뷰(2×2 블록 하이라이트, 아래)와 배치된 타워의 풋프린트 윤곽만으로
-  // 충분(U-1a 기존 구현 재사용 — 대체 그리드 신설 0).
-  // 건설 커서 — U-1a: 2×2 건설 그리드(BUILD_GRID_CELLS) 전체 풋프린트를 미리보기(단일 셀 아님).
-  if (w.hover && w.pm) {
-    const ok = canPlaceBlock(w,w.hover.blockCol,w.hover.blockRow,buildGridCells(w));
-    const cs = w.pm.cellSize * buildGridCells(w) * z;
-    // U-2a 파생 조정: 기존 "가능=초록" 오버레이는 어두운 배경 전제였다 — U-2a 이후 건설 펜 자체가 밝은
-    // 잔디 그린이라 초록-온-초록으로 신호가 묻힌다(내 변경이 만든 하위 회귀). accent(파랑, 기존 사거리
-    // 표시 등에서 이미 쓰는 색)로 교체해 "가능" 신호를 지형색과 분리 — 새 색상 창작 아님, 기존 accent 재사용.
-    ctx.fillStyle = ok ? "rgba(62,147,186,.42)" : "rgba(215,78,60,.4)";
-    ctx.fillRect(W2SX(w.hover.cx) - cs / 2, W2SY(w.hover.cy) - cs / 2, cs, cs);
-  }
+  renderBuildPreview(w);
   // Accepted queued placements have the same footprint and art scale as their eventual gem.
   for(const spot of w.pendingBuilds){const size=w.pm.cellSize*buildGridCells(w)*z;ctx.save();ctx.globalAlpha=.45;ctx.fillStyle='#d9c783';ctx.fillRect(W2SX(spot.x)-size/2,W2SY(spot.y)-size/2,size,size);sprites.draw(ctx,'gem:unknown:0',W2SX(spot.x),W2SY(spot.y),gemSpriteSize(size),{tick:0});ctx.restore();}
   const cellPx = (w.pm ? w.pm.cellSize : 32) * z;
@@ -937,7 +914,9 @@ function render(w,preservePendingDialog=false) {
   // Original P0 construct handler xTv writes I[1..5] after O[1] increments.
   // vuv/vUv/vwv/vWv/vyv are the exact O[1]==1..5 predicates. Never infer a
   // round hand from DOM order, coordinates or the retained R group.
-  ctx.restore();renderRouteCues(w);
+  ctx.restore();
+  if(fieldBounds)drawFieldRim(ctx,{left:W2SX(fieldBounds.minX),top:W2SY(fieldBounds.maxY),width:(fieldBounds.maxX-fieldBounds.minX)*z,height:(fieldBounds.maxY-fieldBounds.minY)*z},sprites);
+  renderRouteCues(w);
   const sourceHand=gemTowerPlayerState(w.vm);
   const skinGem=(entity,slot)=>{
    if(!entity?.alive)return null;
@@ -1298,6 +1277,8 @@ function renderBuildCells(w){
  const keep=new Set();for(const {col,row} of blocks){const id=`${col}:${row}`;keep.add(id);let button=overlay.querySelector(`[data-cell="${id}"]`);if(!button){button=document.createElement('button');button.className='build-cell';button.dataset.cell=id;overlay.append(button);}button.textContent=point?'◎':'+';button.setAttribute('aria-label',`${point?'슬레이트 이동':'보석 건설'} ${row/cells+1}행 ${col/cells+1}열`);const p=blockCenter(w.pm,col,row,cells);button.dataset.x=p.x;button.dataset.y=p.y;const box=screenFootprintBox(p,size,cam,cv.width,cv.height);button.style.left=(box.left*sx)+'px';button.style.top=(box.top*sy)+'px';button.style.width=(box.width*sx)+'px';button.style.height=(box.height*sy)+'px';}
  for(const button of [...overlay.children])if(!keep.has(button.dataset.cell))button.remove();
 }
+$("buildCells").addEventListener('focusin',event=>{const button=event.target.closest('.build-cell');if(!button||!world?.pm)return;const x=Number(button.dataset.x),y=Number(button.dataset.y);world.hoverGemId=null;world.hover={cx:x,cy:y,...buildBlockAt(world.pm,x,y,buildGridCells(world))};render(world);});
+$("buildCells").addEventListener('focusout',event=>{if(event.relatedTarget?.closest?.('.build-cell')||drag.on||!world)return;world.hover=null;render(world);});
 $("buildCells").addEventListener('click',event=>{const button=event.target.closest('.build-cell');if(event.detail===0&&button&&world){if(world.pendingTargetAbility)requestGemTarget(world,null);else if(world.pendingPointAbility)requestSlateDestination(world,Number(button.dataset.x),Number(button.dataset.y));else placeTower(world,Number(button.dataset.x),Number(button.dataset.y));render(world);}});
 
 function gemNear(w, worldX, worldY, candidateIds=null) {
@@ -1325,7 +1306,7 @@ surface.addEventListener("pointerdown", (ev) => {
   if(ev.isPrimary===false){drag.on=false;return;}
   if(ev.button!==0)return;
   drag.cell=ev.target.closest?.(".build-cell")??null;
-  if(world?.pm&&drag.cell){const block=buildBlockAt(world.pm,Number(drag.cell.dataset.x),Number(drag.cell.dataset.y),buildGridCells(world));world.hover={cx:Number(drag.cell.dataset.x),cy:Number(drag.cell.dataset.y),...block};render(world);}
+  if(world?.pm&&drag.cell){world.hoverGemId=null;const block=buildBlockAt(world.pm,Number(drag.cell.dataset.x),Number(drag.cell.dataset.y),buildGridCells(world));world.hover={cx:Number(drag.cell.dataset.x),cy:Number(drag.cell.dataset.y),...block};render(world);}
   drag.on=true;drag.moved=false;drag.id=ev.pointerId;drag.sx=ev.clientX;drag.sy=ev.clientY;
   surface.setPointerCapture(ev.pointerId);
 });
@@ -1333,6 +1314,7 @@ surface.addEventListener("pointerup", (ev) => {
   if(!drag.on||ev.pointerId!==drag.id)return;
   const tap=!drag.moved&&Math.hypot(ev.clientX-drag.sx,ev.clientY-drag.sy)<=6;
   drag.on=false;
+  if(!tap&&world)world.hover=null;
   if(tap&&world&&(world.viewPlayerId??0)===0){
     const r=cv.getBoundingClientRect();
     if(ev.clientX<r.left||ev.clientX>r.right||ev.clientY<r.top||ev.clientY>r.bottom)return;
@@ -1367,6 +1349,8 @@ surface.addEventListener("pointermove", (ev) => {
     world.hoverGemId = drag.on ? null : (gemNear(world, wx, wy)?.id ?? null);
   }
 });
+surface.addEventListener('pointerleave',()=>{if(!drag.on&&world){world.hover=null;world.hoverGemId=null;}});
+surface.addEventListener('contextmenu',event=>{if(event.target===cv||event.target.closest?.('.build-cell'))event.preventDefault();});
 function focusPlayer(w) {
   w.cameraMode='fit';fitPlayerField(w);w.cameraFocused=true;
 }

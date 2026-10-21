@@ -84,6 +84,15 @@
         "w": 32,
         "h": 32
       }
+    },
+    "terrain:stone": {
+      "src": "sprites/tiles.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
     }
   },
   "aliases": {
