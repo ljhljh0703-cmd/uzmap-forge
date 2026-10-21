@@ -206,16 +206,29 @@ export function combatStep(ctx: CombatCtx): void {
     const attack=weaponFor(target,targetId===tower.entity.attackTargetId)!;
     const acquireU=Math.min(attack.rangeU,tower.entity.acquireRangeU??attack.acquireU);
     let roll = attack.dmgBase + rng.int(0, attack.dmgSpread); // existing base RNG
-    const effects=abilityEffects?.effects(tower.entity.abilities)??[];let criticalPm=1000,criticalTriggered=false;
-    for(const effect of effects)if(effect.kind==='critical'&&effect.chancePm>0&&(effect.chancePm===1000||rng.int(1,1000)<=effect.chancePm)){criticalTriggered=true;criticalPm=Math.max(criticalPm,effect.multiplierPm);}
+    const effects=abilityEffects?.effects(tower.entity.abilities)??[];let criticalPm=1000,criticalTriggered=false,bashPm=1000;
+    const bashDurations:number[]=[];
+    // Bounded compatibility: one existing RNG, current grant order and critical probability policy.
+    // The resolved Bash slice has equal hero/nonhero duration; native 1.28 proc parity is unknown.
+    for(const effect of effects){
+      if(effect.kind==='critical'&&effect.chancePm>0&&(effect.chancePm===1000||rng.int(1,1000)<=effect.chancePm)){criticalTriggered=true;criticalPm=Math.max(criticalPm,effect.multiplierPm);}
+      else if(effect.kind==='bash'&&target.entity.hp>0&&target.entity.owner!==tower.entity.owner&&!ctx.areAllied?.(tower.entity.owner,target.entity.owner)&&
+        (effect.targetsMask&target.targetsMask)&&effect.chancePm>0&&(effect.chancePm===1000||rng.int(1,1000)<=effect.chancePm)){
+        bashPm=Math.max(bashPm,effect.multiplierPm);if(effect.durationTicks>0)bashDurations.push(effect.durationTicks);
+      }
+    }
     let damageBonusPm=0,damageFlat=0;
     for(const source of ctx.abilitySources??towers)if(source.entity.alive)for(const effect of abilityEffects?.effects(source.entity.abilities)??[])if(effect.kind==='damageAura'&&(effect.selfOnly?source.entity.id===tower.entity.id:source.entity.owner===tower.entity.owner)&&dist2(source.entity,tower.entity)<=effect.radiusU**2){damageBonusPm=Math.max(damageBonusPm,effect.bonusPm);damageFlat=Math.max(damageFlat,effect.flatBonus);}
-    roll=mulPm(Math.max(0,mulPm(roll,1000+damageBonusPm)+damageFlat),criticalPm);
+    const auraRoll=Math.max(0,mulPm(roll,1000+damageBonusPm)+damageFlat);
+    roll=mulPm(auraRoll,criticalPm); // Preserve the old roll for barrage and splash.
+    const primaryRoll=mulPm(auraRoll,Math.max(criticalPm,bashPm));
     applyAttackArmorReduction(status,target.entity.id,target.targetsMask,effects);
-    const typed = mulPm(roll, typeBonusPm(gc, attack.attackType, target.def.armorType));
-    const dealt = damageAfterDefense(roll, attack.attackType, target.def.armorType, armorFor(target), gc);
+    const typed = mulPm(primaryRoll, typeBonusPm(gc, attack.attackType, target.def.armorType));
+    const dealt = damageAfterDefense(primaryRoll, attack.attackType, target.def.armorType, armorFor(target), gc);
     const final = applyMinDamage(dealt, typed > 0, minDamage);
     target.entity.hp -= final;
+    // Existing same-kind replacement policy: successful grants refresh in their original order.
+    if(status&&target.entity.hp>0)for(const remainingTicks of bashDurations)applyStatus(status,target.entity.id,{kind:'stun',remainingTicks});
     if(status&&target.entity.hp>0)for(const effect of effects)if(effect.kind==='poison'&&effect.durationTicks>0&&((effect.targetsMask??3)&target.targetsMask)){
       applyStatus(status,target.entity.id,{kind:'dot',perTick:0,perSecondPm:effect.damagePerSecondPm,remainder:0,remainingTicks:effect.durationTicks,sourceUnitId:tower.entity.id,sourceOwner:tower.entity.owner});
       if(effect.slowPm>0)applyStatus(status,target.entity.id,{kind:'slow',magnitudePm:effect.slowPm,remainingTicks:effect.durationTicks});

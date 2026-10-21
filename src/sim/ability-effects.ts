@@ -7,13 +7,14 @@ export type CombatAbilityEffect=
  | {kind:'selfArmor';flatBonus:number}
  | {kind:'armorAura';flatBonus:number;radiusU:number;targetsMask:number;buffId:string}
  | {kind:'critical';chancePm:number;multiplierPm:number}
+ | {kind:'bash';chancePm:number;multiplierPm:number;durationTicks:number;heroDurationTicks:number;targetsMask:number}
  | {kind:'immolation';damagePerSecondPm:number;radiusU:number;targetsMask:number;intervalTicks:number;pulseDamagePm:number}
  | {kind:'damageAura';bonusPm:number;flatBonus:number;radiusU:number;selfOnly:boolean}
  | {kind:'speedAura';bonusPm:number;radiusU:number;selfOnly:boolean}
  | {kind:'barrage';extraTargets:number;radiusU:number;targetsMask:number}
  | {kind:'frost';slowPm:number;durationTicks:number;targetsMask:number}
  | {kind:'poison';damagePerSecondPm:number;slowPm:number;durationTicks:number;targetsMask?:number};
-export interface CombatAbilityCatalog {readonly unresolved?:ReadonlySet<string>;effects(abilities:ReadonlyMap<number,number>):ReadonlyArray<CombatAbilityEffect>;}
+export interface CombatAbilityCatalog {readonly unresolved?:ReadonlySet<string>;unresolvedFor?(abilities:ReadonlyMap<number,number>):ReadonlyArray<string>;effects(abilities:ReadonlyMap<number,number>):ReadonlyArray<CombatAbilityEffect>;}
 
 /** Read current source grants and positions; base definitions are never mutated.
  * Flat enemy auras share one modifier per buff; separate buff groups remain independent.

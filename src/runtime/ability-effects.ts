@@ -8,10 +8,10 @@ export function createCombatAbilityCatalog(stock:ReadonlyArray<ObjectMod>,object
  const byId=new Map([...stock,...objects].filter(o=>o.kind==='ability').map(o=>[o.newId??o.baseId,o]));
  const unresolved=new Set<string>();
  const cache=new Map<string,ReadonlyArray<CombatAbilityEffect>>();
- function root(id:string):string{const seen=new Set<string>();while(!seen.has(id)){if(['ACct','AOcr','Aspo','ANpi','Aroc','Afra','ACat','ACac','SCae','AHad','AUau','AIcb'].includes(id))return id;seen.add(id);const o=byId.get(id);if(!o||o.baseId===id)break;id=o.baseId;}return id;}
+ function root(id:string):string{const seen=new Set<string>();while(!seen.has(id)){if(['ACct','AOcr','Aspo','ANpi','Aroc','Afra','ACat','ACac','SCae','AHad','AUau','AIcb','AHbh','AUts','Aven','Aliq'].includes(id))return id;seen.add(id);const o=byId.get(id);if(!o||o.baseId===id)break;id=o.baseId;}return id;}
  function resolve(id:string,requested:number):ReadonlyArray<CombatAbilityEffect>{
   const key=id+':'+requested;if(cache.has(key))return cache.get(key)!;
-  const family=root(id);if(!['ACct','AOcr','Aspo','ANpi','Aroc','Afra','ACat','ACac','SCae','AHad','AUau','AIcb'].includes(family)){cache.set(key,[]);return [];}
+  const family=root(id);if(!['ACct','AOcr','Aspo','ANpi','Aroc','Afra','ACat','ACac','SCae','AHad','AUau','AIcb','AHbh','AUts','Aven','Aliq'].includes(family)){cache.set(key,[]);return [];}
   let fields:ObjectMod['mods'];try{fields=resolveObjectFields('ability',id,stock,objects);}catch(error){if(error instanceof Error&&error.message.startsWith('missing stock object data ability:')){unresolved.add(id);cache.set(key,[]);return [];}throw error;}
   const value=(field:string,level:number)=>{
    const choices=fields.filter(m=>m.field===field&&(m.level??0)<=level&&typeof m.value==='number').sort((a,b)=>(a.level??0)-(b.level??0));return choices.at(-1)?.value as number|undefined;
@@ -19,7 +19,24 @@ export function createCombatAbilityCatalog(stock:ReadonlyArray<ObjectMod>,object
   const text=(field:string,level:number)=>fields.filter(m=>m.field===field&&(m.level??0)<=level&&typeof m.value==='string').sort((a,b)=>(a.level??0)-(b.level??0)).at(-1)?.value as string|undefined;
   const mask=(level:number)=>{const targets=text('atar',level)?.split(',');if(!targets)return undefined;const physical=(targets.includes('ground')?1:0)|(targets.includes('air')?2:0);return physical||3;};
   const level=family==='ANpi'?1:Math.min(requested,value('alev',0)??requested),effects:CombatAbilityEffect[]=[];
-  if(family==='ACct'||family==='AOcr'){
+  if(family==='AHbh'){
+   const chance=value('Hbh1',level),multiplier=value('Hbh2',level),bonus=value('Hbh3',level),miss=value('Hbh4',level),duration=value('adur',level),heroDuration=value('ahdu',level),targets=text('atar',level)?.split(',').map(t=>t.trim());
+   const targetMask=targets?((targets.includes('ground')?1:0)|(targets.includes('air')?2:0)):0;
+   // Verified GemTower slice: no flat bonus/miss, equal hero/nonhero durations.
+   // Hbh5 is intentionally not guessed; this landed-hit model has no evasion layer.
+   // Reuse deterministic critical probability/max-multiplier and latest-stun policies.
+   // Original-author Bash experiments are 1.36; exact native 1.28 proc parity is unknown.
+   if(chance!==undefined&&chance>=0&&chance<=100&&multiplier!==undefined&&(multiplier===0||multiplier>=1)&&bonus===0&&miss===0&&duration!==undefined&&Number.isFinite(duration)&&duration>=0&&heroDuration===duration&&targetMask&&targets?.every(t=>['ground','air','enemies','neutral'].includes(t)))
+    effects.push({kind:'bash',chancePm:Math.round(chance*10),multiplierPm:Math.round((multiplier===0?1:multiplier)*1000),durationTicks:secondsToTicks(duration),heroDurationTicks:secondsToTicks(heroDuration),targetsMask:targetMask});
+  }else if(family==='AUts'){
+   const returned=value('Uts1',level),received=value('Uts2',level),armor=value('Uts3',level);
+   // Source A02K disables reflection and keeps received damage neutral at every level.
+   // Higher-level numeric lookup is the existing latest-declared-field policy.
+   if(returned===0&&received===1&&armor!==undefined&&Number.isFinite(armor))effects.push({kind:'selfArmor',flatBonus:armor});
+  }else if(family==='Aven'||family==='Aliq'){
+   // Stock data is now available, but native pulse/stack/defense semantics are not
+   // implemented. Keep the current-level gap visible rather than misusing Aspo.
+  }else if(family==='ACct'||family==='AOcr'){
    const chance=value('Ocr1',level),multiplier=value('Ocr2',level);
    if(chance!==undefined&&multiplier!==undefined)effects.push({kind:'critical',chancePm:Math.max(0,Math.min(1000,Math.round(chance*10))),multiplierPm:Math.max(1000,Math.round(multiplier*1000))});
   }else if(family==='Aspo'){
@@ -66,7 +83,9 @@ export function createCombatAbilityCatalog(stock:ReadonlyArray<ObjectMod>,object
   }
   if(!effects.length)unresolved.add(id);cache.set(key,effects);return effects;
  }
- return {unresolved,effects(abilities){const result:CombatAbilityEffect[]=[];for(const [id,level] of abilities)if(level>0)result.push(...resolve(fourCC(id),level));return result;}};
+ return {unresolved,
+  unresolvedFor(abilities){const result:string[]=[];for(const [id,level] of abilities)if(level>0){const code=fourCC(id),family=root(code);const effects=resolve(code,level);if(['ACct','AOcr','Aspo','ANpi','Aroc','Afra','ACat','ACac','SCae','AHad','AUau','AIcb','AHbh','AUts','Aven','Aliq'].includes(family)&&!effects.length)result.push(code);}return result;},
+  effects(abilities){const result:CombatAbilityEffect[]=[];for(const [id,level] of abilities)if(level>0)result.push(...resolve(fourCC(id),level));return result;}};
 }
 
 /** General source range lookup for ordinary point-target orders, separate from passive effects. */

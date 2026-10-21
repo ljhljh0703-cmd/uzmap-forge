@@ -713,6 +713,10 @@ function render(w,preservePendingDialog=false) {
     const effects=combatEffectLabels(w.sim.abilityEffects?.effects(selected.abilities)??[],DT),effectText=$("gemEffects");
     if(d?.secondaryAttack){const a=d.secondaryAttack,t=attackDisplay(a,DT),band=attackTargetLabel({attack:a});effects.unshift(`${band} · ${t.damage} · 사거리 ${a.rangeU} · ${t.interval}`);}
     if(d?.attack?.splash?.quarterU>0)effects.unshift(`범위 공격 · 반경 ${d.attack.splash.quarterU}`);
+    for(const id of w.sim.abilityEffects?.unresolvedFor?.(selected.abilities)??[]){
+      const name=sourceText(w,w.sim.mapIr.objectMods.filter(o=>o.kind==="ability"&&(o.newId??o.baseId)===id).flatMap(o=>o.mods).findLast(m=>m.field==="anam")?.value);
+      effects.push("아직 지원하지 않는 효과"+(name&&name!==id&&!/^TRIGSTR_\d+$/.test(name)?" · "+name:""));
+    }
     effectText.hidden=!effects.length;effectText.textContent=effects.length?"보유 효과"+effects.map(text=>"\n• "+text).join(""):"";
     const upgrades=(d?.upgradesTo??[]).map(typeId=>({typeId,cost:w.sim.unitUpgradeCost(selected.id,typeId),reason:w.sim.validateUnitUpgrade(0,selected.id,typeId)}));
     const upgradeSignature=JSON.stringify([selected.id,selected.typeId,upgrades]);

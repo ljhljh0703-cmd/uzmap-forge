@@ -5,11 +5,15 @@ import {gemTowerPlayerState} from "./dist/runtime/maps/gemtower.js";
  * IDs are the existing map's trigger inputs; effects and grants remain in its JASS. */
 export const GEM_COMMAND_IDS = ["A009", "A007", "A00R", "A03M", "A02G", "A008", "A02J"];
 export function gemActions(w, unitId) {
+  const unit=w.sim.getUnit?.(unitId);
   return GEM_COMMAND_IDS.map(abilityId => {
     const object = w.sim.mapIr.objectMods.find(o => o.kind === "ability" && (o.newId ?? o.baseId) === abilityId);
     const name = object?.mods.findLast(m => m.field === "anam")?.value;
     const label = typeof name === "string" ? name.replace(/\|c[0-9a-fA-F]{8}|\|r/g, "") : abilityId;
     let reason = w.gameOver?'game-over':w.sim.validateAbilityOrder(0, unitId, abilityId);
+    // Source ownership/busy checks precede grants in the command validator. Keep
+    // unacquired auxiliary commands hidden without changing the actual validator.
+    if(['not-owner','busy','paused','stunned'].includes(reason)&&!['A009','A007','A00R'].includes(abilityId)&&typeof unit?.abilities?.get==='function'&&!(unit.abilities.get(rawCodeOf(abilityId))>0))reason='missing-ability';
     if(reason===null&&abilityId==='A02J'&&w.sim.abilityRange?.(abilityId,w.sim.getUnit(unitId)?.abilities?.get(rawCodeOf(abilityId))??1)===undefined)reason='missing-ability-data';
     return {abilityId, label, reason, disabled: reason !== null};
   });
