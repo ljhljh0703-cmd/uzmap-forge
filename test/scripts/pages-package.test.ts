@@ -18,3 +18,13 @@ it('a published runtime includes the automatic checkpoint dependency imported by
   assert.equal(existsSync(join(root,'.site/web/run-checkpoint.js')),true,'a local-only dependency would make the published module graph fail');
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('casino receipts and the runtime recipe guide ship with the imported module graph',()=>{
+ const root=fixture();try{
+  const modules=['casino-feedback.js','recipe-book.js','recipe-view.js'];
+  for(const name of modules)writeFileSync(join(root,'web',name),'export const viewOnly=true;');
+  writeFileSync(join(root,'web/main.js'),modules.map(name=>"import './"+name+"';").join('\n'));
+  packagePages(root,join(root,'.site'));
+  for(const name of modules)assert.equal(existsSync(join(root,'.site/web',name)),true,'missing public dependency '+name);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});

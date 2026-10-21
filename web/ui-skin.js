@@ -121,11 +121,17 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const casinoTrainingStatus=doc.createElement('p');casinoTrainingStatus.id='casinoTrainingStatus';casinoTrainingStatus.setAttribute('role','status');casinoUse.append(casinoUseTitle,casinoTraining,casinoTrainingStatus);
  const casinoList=doc.createElement('ul');casinoList.id='casinoStationList';
  const casinoHelp=doc.createElement('p');casinoHelp.className='casino-help';casinoHelp.textContent='입장하면 이곳에 코인 투입과 나가기가 표시됩니다.';
- casinoPanel.append(casinoHeading,casinoHint,casinoUse,casinoList,casinoHelp);doc.getElementById('rsR002Btn').closest('.research').after(casinoPanel);
+ const casinoResult=doc.createElement('section');casinoResult.id='casinoResult';casinoResult.className='casino-result';casinoResult.hidden=true;casinoResult.setAttribute('aria-label','최근 추첨 결과');
+ const resultLabel=doc.createElement('span');resultLabel.textContent='최근 추첨 결과';const resultText=doc.createElement('p');resultText.id='casinoResultText';resultText.setAttribute('role','status');resultText.setAttribute('aria-live','polite');
+ const recent=doc.createElement('details');recent.id='casinoRecent';const recentSummary=doc.createElement('summary');recentSummary.textContent='최근 결과';const recentList=doc.createElement('ol');recentList.id='casinoResultHistory';recent.append(recentSummary,recentList);casinoResult.append(resultLabel,resultText,recent);
+ casinoPanel.append(casinoHeading,casinoHint,casinoResult,casinoUse,casinoList,casinoHelp);doc.getElementById('rsR002Btn').closest('.research').after(casinoPanel);
  const training=doc.getElementById('trainingOptions'),trainingIntro=training.previousElementSibling;
  training.setAttribute('aria-label','구입 · 시설 이용');if(trainingIntro?.tagName==='P'){trainingIntro.textContent='수명 구입과 입장한 시설의 이용 버튼입니다.';if(trainingIntro.previousElementSibling?.tagName==='H2')trainingIntro.previousElementSibling.textContent='광산 · 시설 이용';}
- let casinoView=casinoViewModel(),casinoSignature='';const casinoRows=new Map();
+ let casinoView=casinoViewModel(),casinoSignature='',receiptSignature='';const casinoRows=new Map();
  function renderCasino(snapshot){
+  const receipt=snapshot?.feedback,last=receipt?.last??null,receiptKey=JSON.stringify(receipt??null);
+  if(receiptSignature!==receiptKey){receiptSignature=receiptKey;casinoResult.hidden=!last;resultText.textContent=last?.message??'';casinoResult.dataset.outcome=last?.outcome??'';recentList.replaceChildren();for(const result of receipt?.results??[]){const item=doc.createElement('li');item.textContent=result.message;recentList.append(item);}recentSummary.textContent=`최근 ${receipt?.results?.length??0}회 결과`;}
+
   casinoView=casinoViewModel(snapshot);const key=JSON.stringify(casinoView);if(casinoSignature===key)return;casinoSignature=key;casinoPanel.hidden=!casinoView.visible;if(!casinoView.visible)return;casinoHint.textContent=casinoView.hint;
   const keep=new Set();for(const model of casinoView.rows){
    const key=String(model.index)+':'+String(model.id);keep.add(key);let row=casinoRows.get(key);

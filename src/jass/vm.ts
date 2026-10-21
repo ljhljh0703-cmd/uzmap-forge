@@ -297,7 +297,7 @@ export type VmEvent =
   /** R-207: 등록된 트리거가 실제로 발화했다는 관측 가능 증거(스모크 done-gate ③). */
   | { kind: "ChatTriggerFired"; triggerId: number; playerId: number; text: string }
   /** Tier3 lite: DisplayTextToForce 등 UI 표시계를 헤드리스에서 관측 가능하게(로그만, no-op 아님). */
-  | { kind: "TextDisplayed"; text: string };
+  | { kind: "TextDisplayed"; text: string; playerIds?:number[]; sourceUnitId?:number };
 
 // =====================================================================================
 // 스레드 — 트리거 액션 실행 1건 = 스레드 1개. wake 큐 = (wakeTick, seq) strict.

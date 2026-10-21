@@ -6,6 +6,9 @@ import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible} 
 import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
 import {mountGemSkin} from "./ui-skin.js";
+import {createCasinoFeedback} from "./casino-feedback.js";
+import {extractRecipeBook} from "./recipe-book.js";
+import {mountRecipeBook} from "./recipe-view.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
@@ -36,6 +39,7 @@ const gemSkin=mountGemSkin({document,
  approachCasino:id=>{if(world)requestCasinoApproach(world,id);}
 });
 simplifyPlayShell(document);
+const recipeGuide=mountRecipeBook(document);
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
 const artManifestURL=new URL("./assets/manifest.json",import.meta.url);
 const contentBuild=new URL(import.meta.url).searchParams.get("build");
@@ -258,6 +262,7 @@ function boot(bytes, presentation, stockProfile, seed) {
     : null;
   const w = { mobileFields:mobile?.fields, seed, runId:createRunId(),runMode:null,vm, sim, registry, defStore, pm, roundTimer, modeDialog, defCache: new Map(), terrain: null, hover: null,
     // U-6c: 병합 이름 원장(fullName()이 조회). loadFromUrl()이 fetch해 넘긴다 — 실패 시 {} 폴백.
+    recipeBook:extractRecipeBook(loaded.ir,{strings:loaded.strings}),casinoFeedback:createCasinoFeedback(),
     strings:loaded.strings,sourceVersion:stockProfile?.sourceVersion,inputLog:[],runtimeCrashes:initialVmEvents.filter(event=>event.kind==='ThreadCrashed'),
     nameMap: presentation.names || {}, knownGemIds:presentation.gemIds || new Set(),
     viewPlayerId:0,cameraMode:"fit",routeSegments:new Map(), prepActive: true, cameraFocused: false, observedAttacks: 0,
@@ -953,7 +958,8 @@ function render(w,preservePendingDialog=false) {
    const logical=sprites.aliases[entity.typeId]??(role?.kind==='tower'?`gem:${role.line}:${role.tier}`:`special:${entity.typeId}`);
    return {slot,id:entity.id,name,alive:true,logical,tint:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
   };
-  gemSkin.render({casino:gemTowerCasinoState(w.vm,w.sim),round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,
+  recipeGuide.setBook(w.recipeBook);
+  gemSkin.render({casino:{...gemTowerCasinoState(w.vm,w.sim),feedback:w.casinoFeedback?.snapshot()},round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,
    targetActions:w.selectedGemId===null?[]:targetGemActions(w,w.selectedGemId),pendingTarget:w.pendingTargetAbility??null,
    selectedGem:skinGem(w.selectedGemId===null?null:w.sim.getUnit(w.selectedGemId),null),
    candidates:Array.from({length:5},(_,i)=>{
@@ -1154,7 +1160,9 @@ function stepN(w, n) {
         }
       }
     }
-    for(const event of w.vm.drainEvents())if(event.kind==='ThreadCrashed')w.runtimeCrashes.push(event);
+    const vmEvents=w.vm.drainEvents();
+    for(const event of vmEvents)if(event.kind==='ThreadCrashed')w.runtimeCrashes.push(event);
+    for(const result of w.casinoFeedback?.observe(gemTowerCasinoState(w.vm,w.sim),vmEvents,w.sim.tickCount)??[])if(!restoring)flash(result.message);
     flushModeChoice(w);
     if (!w.cameraFocused) focusPlayer(w);
     // A race wave is started by the actual gem choice/combine trigger, not the timer shim.

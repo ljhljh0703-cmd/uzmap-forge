@@ -76,7 +76,11 @@ export function registerMiscStubs(vm: JassVm): void {
   // (UnimplementedNative와 구분되는 전용 kind — 구현된 native를 미구현 카운트에 오염시키지 않는다).
   vm.registerNative("DisplayTextToForce", (ctx, args) => {
     const text = args[1]?.t === "string" ? args[1].v : "";
-    ctx.emit({ kind: "TextDisplayed", text });
+    const force=args[0]?.t==='handle'&&args[0].v!==null?ctx.handles.get(args[0].v):undefined;
+    const playerIds=force?.kind==='force'&&Array.isArray(force.data.players)?[...force.data.players] as number[]:undefined;
+    const unitMeta=ctx.threadMeta.unit,source=unitMeta?.t==='handle'&&unitMeta.v!==null?ctx.handles.get(unitMeta.v):undefined;
+    // Read-only observations: snapshot recipients before a source callback clears its force.
+    ctx.emit({ kind: "TextDisplayed", text,...(playerIds===undefined?{}:{playerIds}),...(source?.kind==='unit'?{sourceUnitId:source.id}:{}) });
     return vint(0);
   });
 
