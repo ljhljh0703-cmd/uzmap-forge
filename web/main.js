@@ -2,7 +2,7 @@ import {createBuildPreview} from './dist/runtime/build-preview.js';
 import {terrainPixel,drawFieldRim,drawBuildRoute} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
 import {createRunCheckpoint} from './run-checkpoint.js';
-import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible} from './run-storage.js';
+import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
 import {mountGemSkin} from "./ui-skin.js";
@@ -317,7 +317,7 @@ async function loadNameMap() {
 // 함수로 승격해도 표시 형식이 절대 나빠지지 않는다(name이 없을 때만 옛 표기 그대로 유지).
 function sourceText(w,text){return resolveWtsText(String(text??''),w.strings??new Map()).replace(/\|c[0-9a-fA-F]{8}|\|r/g,'').replace(/\|n/g,'\n');}
 function recordInput(w,input){(w.inputLog??=[]).push({tick:w.sim.tickCount,...input});}
-function runSnapshot(w){return {...(w.trainingInterrupted?{trainingInterrupted:{...w.trainingInterrupted}}:{}),format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,...(replayBuild?{replayBuild}:{}),seed:w.seed??sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
+function runSnapshot(w){return {...(w.migratedFrom?{migratedFrom:{...w.migratedFrom}}:{}),...(w.trainingInterrupted?{trainingInterrupted:{...w.trainingInterrupted}}:{}),format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,...(replayBuild?{replayBuild}:{}),seed:w.seed??sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
 // Save ordinary input only at settled browser boundaries. Never replace manual/legacy slots.
 function checkpointRun(w,force=false,now=Date.now()) {
  const status=$("automaticSaveStatus");
@@ -360,6 +360,7 @@ function renderControls(w) {
  $("saveRun").disabled=restoring||Boolean(w?.trainingBatch)||pendingMode;
  $("saveRun").title=pendingMode?'재개해서 게임 방식 선택을 처리한 뒤 저장하세요':'';
  $("resumeRun").disabled=restoring||!$("savedRuns").selectedOptions[0]?.record?.compatible;
+ const upgrade=$("upgradeRun");if(upgrade)upgrade.disabled=restoring||!$("savedRuns").selectedOptions[0]?.record?.upgradeable;
  const label=runtimeFailed?'오류로 정지':restoring?'복원 중…':ended?'게임 종료':w?.replayMismatch?'복원 실패':awaitingMode?'방식 선택':playing?'일시정지':'재개';
  if(play.textContent!==label)play.textContent=label;
  // The existing progress message and its ancestors stay outside the inert regions.
@@ -373,7 +374,7 @@ function refreshSavedRuns(selectedKey){
    const option=document.createElement('option');option.value=record.key;option.record=record;
    const date=record.trace?.savedAt?new Date(record.trace.savedAt).toLocaleString('ko-KR'):'이전 기록';
    const round=record.trace?.sourceState?.round;
-   option.textContent=`${record.legacy?'보호된 예전 저장 · ':record.automatic?'자동 저장 · ':'수동 저장 · '}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전'}`;
+   option.textContent=`${record.trace?.migratedFrom?'검사한 복사본 · ':''}${record.legacy?'보호된 예전 저장 · ':record.automatic?'자동 저장 · ':'수동 저장 · '}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.upgradeable?'검사하고 이어하기':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전'}`;
    list.append(option);
   }
   if(records.some(r=>r.key===selected))list.value=selected;
@@ -385,8 +386,9 @@ function showSavedRun(){
  const record=$("savedRuns").selectedOptions[0]?.record;
  $("savedRunRaw").value=record?.raw??'';
  $("resumeRun").disabled=restoring||!record?.compatible;
+ const upgrade=$("upgradeRun");if(upgrade){upgrade.hidden=!record?.upgradeable;upgrade.disabled=restoring||!record?.upgradeable;}
  $("exportRun").disabled=!record;
- $("savedRunHelp").textContent=!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?'원본을 내보낼 수 있습니다. 이어하기에는 같은 게임 로직이 필요합니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.';
+ $("savedRunHelp").textContent=!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?record.upgradeable?'예전 기록을 지금 버전에서 검사합니다. 진행 결과가 같으면 별도 저장을 만들어 이어가며 원본은 남습니다.':'원본을 내보낼 수 있습니다. 이 기록은 현재 검사할 수 없습니다.':record.trace?.migratedFrom?'예전 기록을 확인해 만든 새 저장입니다. 원래 기록은 별도로 남아 있습니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.';
 }
 $("savedRuns").onchange=showSavedRun;
 $("exportRun").onclick=()=>{
@@ -407,11 +409,14 @@ function restoreRunView(before){
 function cancelRestore(){
  if(!restoring)return;restoreCancelled=true;$("cancelRestore").disabled=true;$("restoreProgressText").textContent='복원 취소 중… 기존 진행으로 돌아갑니다';
 }
-async function restoreRun(raw){
+async function restoreRun(raw,{verifyUpgrade=false}={}){
  if(restoring||loadingRun)return;
- let trace;try{trace=validateInputReplay(raw);if(!isRunCompatible(trace,contentBuild,replayBuild))throw Error('저장 기록의 게임 버전이 다릅니다. 기록을 보관하고 같은 버전에서 이어하세요');}catch(error){flash(error.message);return;}
+ let trace,upgrading=false;try{trace=validateInputReplay(raw);if(!isRunCompatible(trace,contentBuild,replayBuild)){if(!verifyUpgrade)throw Error('저장 기록의 게임 버전이 다릅니다. 기록을 보관하고 같은 버전에서 이어하세요');if(!canVerifyRunUpgrade(trace,contentBuild,replayBuild))throw Error('원작 자료가 확인된 레이스 기록만 새 버전에서 검사할 수 있습니다');upgrading=true;}}catch(error){flash(error.message);return;}
+ if(upgrading&&(world?.trainingBatch||world?.modeDialog?.pendingButtonId!==undefined)){flash('현재 구입 예약이나 게임 방식 선택을 마친 뒤 예전 저장을 검사하세요');return;}
  const checkpoint=checkpointRun(world,true);if(checkpoint?.kind==='failed'){flash('현재 진행을 보관하지 못해 이어하기를 중단했습니다 · 현재 게임은 계속할 수 있습니다');return;}
- const before=captureRunView();restoring=true;restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent='저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
+ const before=captureRunView(),savedSelection=$("savedRuns")?.value;let savedCopy,completed=false;
+ const rollbackCopy=()=>{if(!savedCopy)return '';try{return savedCopy.rollback()?'':' · 새 복사본이 변경되어 그대로 남겨 두었습니다';}catch{return ' · 새 복사본 정리를 완료하지 못했습니다';}};
+ restoring=true;restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
   await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   if((world.sourceVersion??null)!==(trace.sourceVersion??null))throw Error('원작 자료 버전이 달라 이어할 수 없습니다');
@@ -420,20 +425,27 @@ async function restoreRun(raw){
    const started=performance.now();cursor=replayInputBatch(world,trace,cursor,n=>stepN(world,n),200,()=>performance.now()-started>=12);
    // Hidden replay effects have no presentation lifetime; retain at most one batch.
    textTags.length=0;goldTags.length=0;attackFx.length=0;
-   const percent=Math.floor(world.sim.tickCount/Math.max(1,trace.tick)*100);$("restoreProgressText").textContent=`저장한 게임을 이어오는 중… ${percent}% · ${world.sim.tickCount.toLocaleString()} / ${trace.tick.toLocaleString()}`;
+   const percent=Math.floor(world.sim.tickCount/Math.max(1,trace.tick)*100);$("restoreProgressText").textContent=`${upgrading?'예전 저장을 검사하는 중':'저장한 게임을 이어오는 중'}… ${percent}% · ${world.sim.tickCount.toLocaleString()} / ${trace.tick.toLocaleString()}`;
    await new Promise(resolve=>setTimeout(resolve,0));
   }
   if(restoreCancelled)throw Error('복원을 취소했습니다');
   if(world.sim.stateHash()!==trace.stateHash||trace.sourceState&&JSON.stringify(gemTowerPlayerState(world.vm))!==JSON.stringify(trace.sourceState)||world.runtimeCrashes.length)throw Error('저장 당시와 결과가 일치하지 않아 이어하기를 중단했습니다');
-  world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));if(trace.trainingInterrupted){world.trainingInterrupted={...trace.trainingInterrupted};world.trainingBatchNotice=trainingInterruptionText(world.trainingInterrupted);}world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
-  frameClock.reset();$("msg").style.display='none';render(world,true);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);commitSessionSeed(trace.seed);
- }catch(error){restoreRunView(before);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
- finally{restoring=false;playing=false;frameClock.reset();renderControls(world);$("researchToggle").focus();}
+  world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));if(trace.migratedFrom)world.migratedFrom={...trace.migratedFrom};if(trace.trainingInterrupted){world.trainingInterrupted={...trace.trainingInterrupted};world.trainingBatchNotice=trainingInterruptionText(world.trainingInterrupted);}world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
+  if(upgrading){savedCopy=saveVerifiedRunCopy(localStorage,trace,runSnapshot(world));world.runId=savedCopy.trace.runId;world.migratedFrom={...savedCopy.trace.migratedFrom};}
+  frameClock.reset();$("msg").style.display='none';render(world,true);if(savedCopy)refreshSavedRuns(savedCopy.key);flash(upgrading?'예전 진행을 확인해 새 저장을 만들었습니다 · 재개를 누르세요':'저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);if(!upgrading)commitSessionSeed(trace.seed);completed=true;
+ }catch(error){const cleanup=rollbackCopy();restoreRunView(before);if(savedCopy)refreshSavedRuns(savedSelection);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message}${cleanup} · 기존 진행을 유지했습니다`);}
+ finally{
+  restoring=false;playing=false;frameClock.reset();
+  try{renderControls(world);$("researchToggle").focus();if(upgrading&&completed)commitSessionSeed(trace.seed);}
+  catch(error){if(!savedCopy||!completed)throw error;completed=false;const cleanup=rollbackCopy();restoreRunView(before);refreshSavedRuns(savedSelection);renderControls(world);flash(`${error.message}${cleanup} · 기존 진행을 유지했습니다`);}
+  if(completed)savedCopy?.commit();
+ }
 }
 $("cancelRestore").onclick=cancelRestore;
 $("saveRun").onclick=()=>{if(!world||restoring)return;if(world.modeDialog?.pendingButtonId!==undefined){flash('재개해서 게임 방식 선택을 처리한 뒤 저장하세요');return;}if(world.trainingBatch){flash('묶음 구입을 마친 뒤 저장하세요');return;}try{const trace=validateInputReplay(runSnapshot(world));const saved=saveRunRecord(localStorage,trace);refreshReplayOutput(world,saved.trace);refreshSavedRuns(saved.key);flash('현재 진행을 이 브라우저에 저장했습니다');}catch(error){flash(error.message);}};
 $("resumeRun").onclick=()=>{const record=$("savedRuns").selectedOptions[0]?.record;if(!record?.compatible){flash('이어할 수 있는 저장을 선택하세요');return;}void restoreRun(record.raw);};
-$("importRun").onclick=()=>void restoreRun($("restoreInput").value);
+$("upgradeRun").onclick=()=>{const record=$("savedRuns").selectedOptions[0]?.record;if(record?.upgradeable)void restoreRun(record.raw,{verifyUpgrade:true});};
+$("importRun").onclick=()=>void restoreRun($("restoreInput").value,{verifyUpgrade:true});
 
 function trainingTechName(w,id,level=1){
  const object=w.sim.mapIr?.objectMods?.find(object=>object.kind==='upgrade'&&(object.newId??object.baseId)===id);
