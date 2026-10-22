@@ -9,6 +9,7 @@ import {mountGemSkin} from "./ui-skin.js";
 import {createCasinoFeedback} from "./casino-feedback.js";
 import {extractRecipeBook} from "./recipe-book.js";
 import {mountRecipeBook} from "./recipe-view.js";
+import {mountOverlapPicker} from "./overlap-picker.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
@@ -40,6 +41,7 @@ const gemSkin=mountGemSkin({document,
 });
 simplifyPlayShell(document);
 const recipeGuide=mountRecipeBook(document);
+const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
 const artManifestURL=new URL("./assets/manifest.json",import.meta.url);
 const contentBuild=new URL(import.meta.url).searchParams.get("build");
@@ -265,7 +267,7 @@ function boot(bytes, presentation, stockProfile, seed) {
     recipeBook:extractRecipeBook(loaded.ir,{strings:loaded.strings}),casinoFeedback:createCasinoFeedback(),
     strings:loaded.strings,sourceVersion:stockProfile?.sourceVersion,inputLog:[],runtimeCrashes:initialVmEvents.filter(event=>event.kind==='ThreadCrashed'),
     nameMap: presentation.names || {}, knownGemIds:presentation.gemIds || new Set(),
-    viewPlayerId:0,cameraMode:"fit",routeSegments:new Map(), prepActive: true, cameraFocused: false, observedAttacks: 0,
+    overlapPick:null,viewPlayerId:0,cameraMode:"fit",routeSegments:new Map(), prepActive: true, cameraFocused: false, observedAttacks: 0,
     pendingBuilds: [],
     // P-3(젬 UI, PLAYABLE §4): 선택 상태 + castAbility 큐 대응 기록(빌드와 동일 정신 — 값·판정 0, 좌표
     // 상관용 부기일 뿐). selectedGemId=null이면 패널 숨김.
@@ -812,6 +814,7 @@ function render(w,preservePendingDialog=false) {
   const retained=new Set(gemTowerPlayerGemIds(w.vm));
   const gems=[...w.sim.entities.values()].filter(e=>e.alive&&(e.owner===0||retained.has(e.id))&&e.typeId!=="h00G"&&(w.knownGemIds.has(e.typeId)||defOf(w,e.typeId)?.meta.role.kind==="tower"||defOf(w,e.typeId)?.meta.role.archetype==="specialGem"));
   w.gemTargetCandidateIds=new Set([...gems,...ownedRocks(w)].map(e=>e.id));
+  overlapPicker.render(overlapChoices(w).map(e=>({id:e.id,name:fullName(w,e.typeId)})),w.selectedGemId);
   const comboIds=availableGemCombinations(w,gems);w.availableComboIds=comboIds;
   $("findCombination").hidden=comboIds.length===0||Boolean(w.gameOver);
   $("findCombination").textContent=`조합 가능 ${comboIds.length}`;
@@ -1219,6 +1222,7 @@ function selectGemById(w,id){
  if((w.viewPlayerId??0)!==0)switchField(w,0);
  if(w.pendingTargetAbility){const accepted=requestGemTarget(w,id);render(w);return accepted;}
  const unit=w.sim.getUnit(id);if(!unit?.alive||unit.owner!==0&&!gemTowerPlayerGemIds(w.vm).includes(unit.id))return false;
+ if(w.overlapPick&&!w.overlapPick.ids.includes(unit.id))w.overlapPick=null;
  if(unit.typeId!=="h00G")w.showRocks=false;
  w.pendingPointAbility=null;w.pendingCombatFocus=false;w.selectedGemId=unit.id;
  const explorer=$("ownedExplorer");if(explorer)explorer.open=false;
@@ -1321,17 +1325,33 @@ $("buildCells").addEventListener('focusin',event=>{const button=event.target.clo
 $("buildCells").addEventListener('focusout',event=>{if(event.relatedTarget?.closest?.('.build-cell')||drag.on||!world)return;world.hover=null;render(world);});
 $("buildCells").addEventListener('click',event=>{const button=event.target.closest('.build-cell');if(event.detail===0&&button&&world){if(world.pendingTargetAbility)requestGemTarget(world,null);else if(world.pendingPointAbility)requestSlateDestination(world,Number(button.dataset.x),Number(button.dataset.y));else placeTower(world,Number(button.dataset.x),Number(button.dataset.y));render(world);}});
 
-function gemNear(w, worldX, worldY, candidateIds=null) {
-  let best = null, bestD2 = Infinity;
+function gemNear(w, worldX, worldY, candidateIds=null, all=false) {
+  let best = null, bestD2 = Infinity;const hits=all?[]:null;
   for (const e of w.sim.entities.values()) {
     if (!e.alive || e.typeId === "u000" || candidateIds&&!candidateIds.has(e.id)) continue;
     const d = defOf(w, e.typeId);
     if (!isGemSelectable(e, d)) continue;
     const d2 = (e.x - worldX) ** 2 + (e.y - worldY) ** 2;
-    const cell=w.pm?.cellSize??32,halfX=Math.max(24,(d.pathing?.width??buildGridCells(w))*cell/2),halfY=Math.max(24,(d.pathing?.height??buildGridCells(w))*cell/2);
-    if (Math.abs(e.x-worldX)<=halfX&&Math.abs(e.y-worldY)<=halfY&&d2<bestD2) { best = e; bestD2 = d2; }
+    const cell=w.pm?.cellSize??32,halfX=Math.max(24,(d?.pathing?.width??buildGridCells(w))*cell/2),halfY=Math.max(24,(d?.pathing?.height??buildGridCells(w))*cell/2);
+    if (Math.abs(e.x-worldX)<=halfX&&Math.abs(e.y-worldY)<=halfY) {
+      if(hits)hits.push({entity:e,d2,order:hits.length});
+      if(d2<bestD2){best=e;bestD2=d2;}
+    }
   }
-  return best;
+  return hits?hits.sort((a,b)=>a.d2-b.d2||a.order-b.order).map(hit=>hit.entity):best;
+}
+
+function overlapChoices(w){
+ if(!w?.overlapPick||(w.viewPlayerId??0)!==0||w.pendingTargetAbility||w.pendingPointAbility||w.gameOver||restoring||loadingRun)return [];
+ const point=w.overlapPick,ids=new Set(point.ids.filter(id=>w.gemTargetCandidateIds?.has(id)));
+ const hits=gemNear(w,point.x,point.y,ids,true);
+ if(hits.length<2){w.overlapPick=null;return [];}
+ return hits;
+}
+
+function selectOverlapGem(w,id){
+ if(!overlapChoices(w).some(unit=>unit.id===id)){if(w){w.overlapPick=null;render(w);}return false;}
+ const accepted=selectGemById(w,id);if(!accepted){w.overlapPick=null;render(w);}return accepted;
 }
 
 function requestSlateDestination(w,x,y){
@@ -1361,8 +1381,8 @@ surface.addEventListener("pointerup", (ev) => {
     const wx=S2WX((ev.clientX-r.left)*cv.width/r.width),wy=S2WY((ev.clientY-r.top)*cv.height/r.height);
     if(world.pendingTargetAbility)requestGemTarget(world,gemNear(world,wx,wy,world.gemTargetCandidateIds)?.id??null);
     else if(world.pendingPointAbility)requestSlateDestination(world,drag.cell?Number(drag.cell.dataset.x):wx,drag.cell?Number(drag.cell.dataset.y):wy);
-    else if(drag.cell)placeTower(world,Number(drag.cell.dataset.x),Number(drag.cell.dataset.y));
-    else{const gem=gemNear(world,wx,wy);if(gem)world.selectedGemId=gem.id;else placeTower(world,wx,wy);}
+    else if(drag.cell){world.overlapPick=null;placeTower(world,Number(drag.cell.dataset.x),Number(drag.cell.dataset.y));}
+    else{const choices=gemNear(world,wx,wy,world.gemTargetCandidateIds??new Set(),true);world.overlapPick=choices.length>1?{x:wx,y:wy,ids:choices.map(e=>e.id)}:null;const gem=gemNear(world,wx,wy);if(gem)world.selectedGemId=gem.id;else placeTower(world,wx,wy);}
     render(world);
   }
 });
@@ -1413,7 +1433,7 @@ for (const id of ["A009", "A007", "A00R", "A03M", "A02G", "A008", "A02J"]) {
   $("cast" + id).onclick = () => { if (world) castGem(world, id); };
 }
 $("cancelPoint").onclick=()=>{if(world){world.pendingPointAbility=null;world.buildCellsView=null;flash("이동을 취소했습니다");render(world);}};
-$("gemDeselect").onclick = () => { if (world){world.selectedGemId = null;world.pendingPointAbility=null;cancelGemTarget(world);} };
+$("gemDeselect").onclick = () => { if (world){world.selectedGemId = null;world.overlapPick=null;world.pendingPointAbility=null;cancelGemTarget(world);} };
 // One current-world handler; refresh immediately so consecutive UI actions read the selected gem.
 $("sourceDialogButtons").addEventListener('click',event=>{
  const button=event.target.closest('button[data-dialog-button]');if(!button||!world||world.nativeDialogPendingId!==null&&world.nativeDialogPendingId!==undefined)return;
@@ -1591,6 +1611,6 @@ $('fieldTabs').addEventListener('keydown',event=>{
 });
 $('returnToMine').onclick=()=>switchField(world,0);
 cv.addEventListener("keydown",e=>{
-  if(e.key==="Escape"&&world){if(cancelGemTarget(world))flash("교환을 취소했습니다");else{world.pendingPointAbility=null;world.selectedGemId=null;world.hover=null;}render(world);}
+  if(e.key==="Escape"&&world){if(cancelGemTarget(world))flash("교환을 취소했습니다");else{world.pendingPointAbility=null;world.selectedGemId=null;world.overlapPick=null;world.hover=null;}render(world);}
 });
 
