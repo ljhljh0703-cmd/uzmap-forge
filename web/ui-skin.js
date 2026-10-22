@@ -179,7 +179,9 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  function framePanel(element,kind='panel',corner=12){
   if(!element||panels.has(element))return;const canvas=doc.createElement('canvas');canvas.className='skin-material';canvas.setAttribute('aria-hidden','true');element.classList.add('skin-framed');element.prepend(canvas);panels.set(element,{canvas,kind,corner,w:0,h:0});
  }
- framePanel(roster,'panel',12);framePanel(doc.querySelector('.statusbar'),'hud',12);framePanel(tray,'tray',12);framePanel(doc.getElementById('gemPanel'),'panel',12);framePanel(doc.querySelector('footer'),'hud',8);
+ // One outer material per region. The roster and selected details share the
+ // walnut surface instead of stacking another heavy metal frame inside it.
+ framePanel(doc.querySelector('.statusbar'),'hud',12);framePanel(tray,'tray',12);framePanel(doc.querySelector('footer'),'hud',8);
  for(const e of doc.querySelectorAll('.mode-card,.game-over>div'))framePanel(e,'panel',16);
  framePanel(doc.querySelector('#restoreOverlay>div'),'panel',16);
  function addIcon(host,key,className=''){
@@ -199,13 +201,20 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
    if(!button.getClientRects().length)continue;
    const w=Math.round(button.clientWidth),h=Math.round(button.clientHeight);if(w<1||h<1)continue;
    const material=approvedButtonMaterial({id:button.id,primary:button.dataset.primary==='true',action:button.classList.contains('training-option')||button.hasAttribute('data-upgrade-target'),disabled:button.disabled,pressed:button.dataset.skinPressed==='true'});
-   const spec=MATERIALS[material??'hud'];if(!spec)continue;
-   const key=JSON.stringify([w,h,material??'hud',spec]);if(buttonPaints.get(button)===key)continue;
+   // A secondary tab, filter or menu button is a quiet solid surface. Only
+   // actions retain the approved gold/green/red raster. Clear prior primary
+   // art as well as its cache key when the source state changes its priority.
+   if(!material){
+    if(button.dataset.skinSurface!=='quiet'){button.style.backgroundImage='';button.style.backgroundSize='';button.style.backgroundRepeat='';delete button.dataset.skinMaterial;delete button.dataset.skinSource;button.dataset.skinSurface='quiet';buttonPaints.delete(button);}
+    continue;
+   }
+   const spec=MATERIALS[material];if(!spec)continue;
+   const key=JSON.stringify([w,h,material,spec]);if(buttonPaints.get(button)===key)continue;
    if(!buttonImages.has(key)){
     const canvas=doc.createElement('canvas');canvas.width=w;canvas.height=h;
     if(!rasterNineSlice(canvas.getContext('2d'),spec,w,h))continue;buttonImages.set(key,canvas.toDataURL());
    }
-   button.style.backgroundImage=`url("${buttonImages.get(key)}")`;button.style.backgroundSize='100% 100%';button.style.backgroundRepeat='no-repeat';button.dataset.skinMaterial=material??'hud';button.dataset.skinSource=spec.file;buttonPaints.set(button,key);
+   button.style.backgroundImage=`url("${buttonImages.get(key)}")`;button.style.backgroundSize='100% 100%';button.style.backgroundRepeat='no-repeat';button.dataset.skinMaterial=material;button.dataset.skinSource=spec.file;button.dataset.skinSurface='raster';buttonPaints.set(button,key);
   }
  }
  function setPressed(button,on){if(!button||button.disabled||button.classList.contains('round-slot')||button.classList.contains('build-cell'))return;button.dataset.skinPressed=String(on);paintButtons();}

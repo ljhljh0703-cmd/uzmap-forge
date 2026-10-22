@@ -1,5 +1,5 @@
 import {createBuildPreview} from './dist/runtime/build-preview.js';
-import {terrainPixel,drawFieldRim,drawBuildRoute} from './field-art.js';
+import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
 import {createRunCheckpoint} from './run-checkpoint.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
@@ -572,6 +572,7 @@ function render(w,preservePendingDialog=false) {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(w.terrain, leftX, topY, w.pm.width * w.pm.cellSize * z, w.pm.height * w.pm.cellSize * z);
   }
+  drawFieldGround(ctx,{grid:w.pm,bounds:fieldBounds,project:p=>({x:W2SX(p.x),y:W2SY(p.y)}),sprites});
   if(fieldBounds){
     ctx.save();ctx.lineWidth=2;ctx.strokeStyle="#e2c17e";ctx.setLineDash([]);
     ctx.strokeRect(W2SX(fieldBounds.minX)+1,W2SY(fieldBounds.maxY)+1,(fieldBounds.maxX-fieldBounds.minX)*z-2,(fieldBounds.maxY-fieldBounds.minY)*z-2);ctx.restore();

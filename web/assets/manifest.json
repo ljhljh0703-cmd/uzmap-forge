@@ -10,6 +10,12 @@
         "y": 0,
         "w": 32,
         "h": 32
+      },
+      "trim": {
+        "x": 8,
+        "y": 1,
+        "w": 17,
+        "h": 28
       }
     },
     "special:*": {
@@ -19,6 +25,12 @@
         "y": 0,
         "w": 128,
         "h": 128
+      },
+      "trim": {
+        "x": 22,
+        "y": 24,
+        "w": 84,
+        "h": 79
       }
     },
     "builder": {
@@ -41,7 +53,13 @@
         "h": 32
       },
       "frames": 4,
-      "fps": 8
+      "fps": 8,
+      "trim": {
+        "x": 2,
+        "y": 14,
+        "w": 28,
+        "h": 14
+      }
     },
     "creep:flying": {
       "src": "sprites/acolyte.png",
@@ -52,7 +70,20 @@
         "h": 256
       },
       "frames": 6,
-      "fps": 8
+      "fps": 8,
+      "trim": {
+        "x": 68,
+        "y": 24,
+        "w": 124,
+        "h": 208
+      },
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ]
     },
     "creep:hell": {
       "src": "sprites/shambler.png",
@@ -63,7 +94,13 @@
         "h": 256
       },
       "frames": 6,
-      "fps": 8
+      "fps": 8,
+      "trim": {
+        "x": 72,
+        "y": 24,
+        "w": 112,
+        "h": 208
+      }
     },
     "creep:boss": {
       "src": "sprites/widow.png",
@@ -74,7 +111,19 @@
         "h": 256
       },
       "frames": 6,
-      "fps": 6
+      "fps": 6,
+      "trim": {
+        "x": 68,
+        "y": 22,
+        "w": 134,
+        "h": 100
+      },
+      "frameOrder": [
+        0,
+        2,
+        4,
+        5
+      ]
     },
     "stone": {
       "src": "sprites/props.png",
@@ -83,6 +132,12 @@
         "y": 32,
         "w": 32,
         "h": 32
+      },
+      "trim": {
+        "x": 2,
+        "y": 8,
+        "w": 28,
+        "h": 20
       }
     },
     "terrain:stone": {
