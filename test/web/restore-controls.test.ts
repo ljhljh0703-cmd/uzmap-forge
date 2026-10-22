@@ -80,3 +80,5 @@ it('different cosmetic builds restore through a matching behavior identity and s
  }
  const f=fixture();f.context.replayBuild='bbbbbbbbbbbbbbbb';Object.assign(f.trace,{build:'cccccccccccccccc',replayBuild:'dddddddddddddddd'});await f.context.restoreRun(f.trace);assert.equal(f.context.world,f.originalWorld);assert.equal(f.chunks.length,0);assert.match(f.messages.at(-1)??'',/게임 버전/);
 });
+
+it('the drawer status does not offer resume in a terminal or restoring state',async()=>{const f=fixture({ended:true});f.nodes.drawerRunStatus={textContent:''};f.begin();assert.equal(f.nodes.drawerRunStatus.textContent,'복원 중…');await f.finish();assert.equal(f.nodes.drawerRunStatus.textContent,'게임 종료');});
