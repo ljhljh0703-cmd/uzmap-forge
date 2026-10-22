@@ -145,3 +145,5 @@ html,body{font:13px/1.4 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","
 
 .placement-confirm{padding:10px 12px;border:1px solid #9f8044;background:#2a2319}.placement-confirm[hidden]{display:none}.placement-confirm p{margin:0 0 8px;line-height:1.5}.placement-confirm>div{display:flex;gap:8px}.placement-confirm button{flex:1;min-height:44px}.training-option .training-label,.training-option .training-reason{display:block}.training-option .training-reason{font-size:12px;font-weight:400;line-height:1.6;margin-top:4px;color:#e5d1a9}.training-option:disabled .training-reason{color:#d6c5a3}#cv,.build-cell{-webkit-touch-callout:none}
 .precise-placement{display:flex;align-items:center;gap:8px;min-height:44px;margin:8px 0;line-height:1.5}.precise-placement input{width:22px;height:22px;margin:0}
+/* The reused green button surface needs dark secondary text as well as dark titles. */
+.training-option .training-reason{color:#1c2716}.training-option:disabled .training-reason{color:#26301d}
