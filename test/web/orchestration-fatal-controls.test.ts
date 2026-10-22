@@ -1,3 +1,4 @@
+import {trainingInterruptionText} from '../../web/play-ui.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -15,7 +16,7 @@ function fixture(){
  nodes.savedRuns.selectedOptions=[{record:{compatible:true}}];
  const callbacks:Record<string,()=>void>={};let steps=0;
  const context:any={world:{sim:{}},playing:true,restoring:false,restoreCancelled:false,runtimeFailed:false,loadingRun:false,checkpointRun(){},tps:1,frameClock:{reset(){},advance(){return 1;}},$:(id:string)=>nodes[id],document:{hidden:true,querySelectorAll:()=>[],addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn},window:{addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn,showErr(){}},requestAnimationFrame(){},render(){},stepN(){steps++;},performance:{now:()=>0}};
- context.drag={on:false};const interruption=['clearPlacement','interruptUiOrders'].map(name=>source.match(new RegExp('^function '+name+'\\([^\\n]*\\{[\\s\\S]*?\\n\\}','m'))?.[0]??'').join('\n');
+ context.trainingInterruptionText=trainingInterruptionText;context.drag={on:false};const interruption=['clearPlacement','interruptUiOrders'].map(name=>source.match(new RegExp('^function '+name+'\\([^\\n]*\\{[\\s\\S]*?\\n\\}','m'))?.[0]??'').join('\n');
  vm.runInNewContext(interruption+'\n'+controls+'\n'+visibility+'\n'+fatal+'\n'+loop,context);
  return {context,nodes,callbacks,steps:()=>steps};
 }

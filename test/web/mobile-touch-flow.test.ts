@@ -1,3 +1,4 @@
+import {trainingInterruptionText} from '../../web/play-ui.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -42,7 +43,7 @@ it('opening the solo menu pauses and checkpoints; closing never resumes without 
 });
 it('background interruption preserves issued purchases and cancels only the unissued remainder before saving',()=>{
  const events=new Map<string,Function>(),issued=[{kind:'train',typeId:'h01W'}],world:any={trainingBatch:{producerId:1,typeId:'h01W',remaining:7},inputLog:issued,pendingBuilds:[],hover:{},pendingPlacement:{x:1,y:2}};let saved:any;
- const c:any={document:{hidden:true,addEventListener:(k:string,f:Function)=>events.set(k,f)},window:{addEventListener:(k:string,f:Function)=>events.set(k,f)},world,playing:true,drag:{on:true},frameClock:{reset(){}},checkpointRun(w:any){saved={batch:w.trainingBatch,issued:[...w.inputLog]};},renderControls(){},interruptUiOrders:undefined};
+ const c:any={document:{hidden:true,addEventListener:(k:string,f:Function)=>events.set(k,f)},window:{addEventListener:(k:string,f:Function)=>events.set(k,f)},world,trainingInterruptionText,playing:true,drag:{on:true},frameClock:{reset(){}},checkpointRun(w:any){saved={batch:w.trainingBatch,issued:[...w.inputLog]};},renderControls(){},interruptUiOrders:undefined};
  vm.runInNewContext(fn('clearPlacement')+'\n'+fn('interruptUiOrders')+'\n'+source.slice(source.indexOf('document.addEventListener("visibilitychange"'),source.indexOf('resize(); requestAnimationFrame(loop);')),c);
  events.get('visibilitychange')!();assert.equal(c.playing,false);assert.equal(world.trainingBatch,null);assert.deepEqual(saved.issued,issued);assert.equal(saved.batch,null);assert.equal(world.pendingPlacement,null);assert.equal(c.drag.on,false);assert.match(world.trainingBatchNotice,/7/);
 });
@@ -70,4 +71,9 @@ it('a training prerequisite uses the original upgrade name and WTS rather than a
  const c:any={resolveWtsText:(s:string,strings:Map<number,string>)=>s.replace(/TRIGSTR_(\d+)/g,(_m,n)=>strings.get(Number(n))??_m),fullName:(_w:any,id:string)=>id};
  vm.runInNewContext(fn('sourceText')+'\n'+fn('trainingTechName'),c);
  const w={strings:new Map([[17,'|cffff0000보석 질 향상|r']]),sim:{mapIr:{objectMods:[{kind:'upgrade',newId:'R000',mods:[{field:'gnam',value:'TRIGSTR_17'}]}]}}};assert.equal(c.trainingTechName(w,'R000'),'보석 질 향상');assert.equal(c.trainingTechName(w,'NONE'),'필요 연구');
+});
+it('purchase interruption metadata is bounded and cannot restore unissued orders or arbitrary messages',async()=>{
+ const {validateInputReplay}=await import('../../web/gem-actions.js');const trace={format:'uzmap-ui-input-v1',seed:7,tick:0,stateHash:'abcdef01',actions:[]};
+ for(const trainingInterrupted of [{remaining:0,cause:'background'},{remaining:11,cause:'background'},{remaining:1,cause:'other'},'message'])assert.throws(()=>validateInputReplay({...trace,trainingInterrupted}));
+ const saved=validateInputReplay({...trace,trainingInterrupted:{remaining:1,cause:'background'}});assert.deepEqual(saved.actions,[]);assert.equal(saved.trainingInterrupted.remaining,1);
 });

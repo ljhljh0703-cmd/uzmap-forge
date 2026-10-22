@@ -91,6 +91,7 @@ export function validateInputReplay(input){
  const trace=typeof input==='string'?JSON.parse(input):input;
  const int=n=>Number.isSafeInteger(n)&&n>=0,code=s=>typeof s==='string'&&/^[\x00-\xff]{4}$/.test(s);
  if(!trace||trace.format!=='uzmap-ui-input-v1'||!int(trace.seed)||trace.seed>0xffffffff||!int(trace.tick)||trace.tick>1_000_000||!/^[a-f0-9]{8}$/i.test(trace.stateHash)||!Array.isArray(trace.actions)||trace.actions.length>50_000)throw Error('지원하지 않는 저장 기록입니다');
+ if(trace.trainingInterrupted!==undefined){const n=trace.trainingInterrupted;if(!n||typeof n!=='object'||!int(n.remaining)||n.remaining<1||n.remaining>10||!['background','manual'].includes(n.cause))throw Error('구입 예약 안내 기록 오류');}
  let previous=0;
  for(const a of trace.actions){
   if(!a||!int(a.tick)||a.tick<previous||a.tick>trace.tick||a.playerId!==0)throw Error('조작 순서나 플레이어가 올바르지 않습니다');previous=a.tick;

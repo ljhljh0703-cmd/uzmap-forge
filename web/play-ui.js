@@ -150,3 +150,7 @@ export function trainingOptionView(row,{name,count=1,life,gold,ready,paused,batc
  else reason=paused?'구입 예약 가능 · 재개 후 진행됩니다':`${((row.durationTicks??0)*.05*count).toFixed(1)}초 동안 순서대로 구입`;
  return {label,reason,disabled:Boolean(row.reason)||capped||!ready||Boolean(batch)||gold<total||spinning};
 }
+export function trainingInterruptionText(notice){
+ if(!notice||!Number.isInteger(notice.remaining)||notice.remaining<1||notice.remaining>10||!['background','manual'].includes(notice.cause))return '';
+ return `${notice.cause==='background'?'앱을 벗어나 ':''}남은 ${notice.remaining}회 예약을 취소했습니다 · 이미 시작한 구입은 유지됩니다`;
+}

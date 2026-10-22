@@ -13,7 +13,7 @@ import {mountOverlapPicker} from "./overlap-picker.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
-import {visibleGemChoices,classifyMapGesture,trainingOptionView,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels} from "./play-ui.js";
+import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels} from "./play-ui.js";
 import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, freshSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
 import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
@@ -317,7 +317,7 @@ async function loadNameMap() {
 // 함수로 승격해도 표시 형식이 절대 나빠지지 않는다(name이 없을 때만 옛 표기 그대로 유지).
 function sourceText(w,text){return resolveWtsText(String(text??''),w.strings??new Map()).replace(/\|c[0-9a-fA-F]{8}|\|r/g,'').replace(/\|n/g,'\n');}
 function recordInput(w,input){(w.inputLog??=[]).push({tick:w.sim.tickCount,...input});}
-function runSnapshot(w){return {format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,...(replayBuild?{replayBuild}:{}),seed:w.seed??sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
+function runSnapshot(w){return {...(w.trainingInterrupted?{trainingInterrupted:{...w.trainingInterrupted}}:{}),format:'uzmap-ui-input-v1',runId:w.runId,mode:w.runMode??null,build:contentBuild,...(replayBuild?{replayBuild}:{}),seed:w.seed??sessionSeed,sourceVersion:w.sourceVersion??null,sourceState:gemTowerPlayerState(w.vm),tick:w.sim.tickCount,stateHash:w.sim.stateHash(),runtimeCrashes:w.runtimeCrashes,actions:w.inputLog,camera:{...cam},selectedGemId:w.selectedGemId};}
 // Save ordinary input only at settled browser boundaries. Never replace manual/legacy slots.
 function checkpointRun(w,force=false,now=Date.now()) {
  const status=$("automaticSaveStatus");
@@ -425,7 +425,7 @@ async function restoreRun(raw){
   }
   if(restoreCancelled)throw Error('복원을 취소했습니다');
   if(world.sim.stateHash()!==trace.stateHash||trace.sourceState&&JSON.stringify(gemTowerPlayerState(world.vm))!==JSON.stringify(trace.sourceState)||world.runtimeCrashes.length)throw Error('저장 당시와 결과가 일치하지 않아 이어하기를 중단했습니다');
-  world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
+  world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));if(trace.trainingInterrupted){world.trainingInterrupted={...trace.trainingInterrupted};world.trainingBatchNotice=trainingInterruptionText(world.trainingInterrupted);}world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
   frameClock.reset();$("msg").style.display='none';render(world,true);flash('저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);commitSessionSeed(trace.seed);
  }catch(error){restoreRunView(before);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message} · 기존 진행을 유지했습니다`);}
  finally{restoring=false;playing=false;frameClock.reset();renderControls(world);$("researchToggle").focus();}
@@ -1055,7 +1055,7 @@ function renderTraining(w){
   :current?`${fullName(w,current.typeId)} · 처리 중 · 게임 시간 ${(current.remainingTicks*DT).toFixed(1)}초 남음${current.typeId==='h01W'?' · 완료 후 반영':''}`:queued?'구입 예약 중 · 재개하면 진행됩니다':life>=100?'최대 수명에 도달했습니다':'';
  if(!playing&&(batch||current))$("trainingStatus").textContent='일시정지 · 상단 재개를 누르면 구입이 진행됩니다 · '+$("trainingStatus").textContent;
  if(w.trainingBatchNotice)$("trainingStatus").textContent=w.trainingBatchNotice+' · '+$("trainingStatus").textContent;
- $("cancelTrainingBatch").hidden=!batch;if(batch)$("cancelTrainingBatch").textContent=`남은 ${batch.remaining}회 예약 취소`;
+ $("cancelTrainingBatch").hidden=!batch||batch.remaining===0;if(batch)$("cancelTrainingBatch").textContent=`남은 ${batch.remaining}회 예약 취소`;
  const casinoCurrent=pending.find(q=>sourceOwned.has(q.producerId));
  $("casinoUse").hidden=sourceOwned.size===0;
  $("casinoTrainingStatus").textContent=sourceOwned.size===0?'':w.gameOver?'게임 종료 · 시설 이용 중단':!playing?'일시정지 · 상단 재개를 누르면 구입과 추첨이 진행됩니다':batch?$("trainingStatus").textContent:casinoCurrent?`${fullName(w,casinoCurrent.typeId)} · 처리 중 · 게임 시간 ${(casinoCurrent.remainingTicks*DT).toFixed(1)}초 남음`:[...sourceOwned].some(id=>sourceSpinning.has(id))?'추첨 중입니다 · 완료 후 다시 이용할 수 있어요':'코인 투입이나 나가기를 선택하세요';
@@ -1488,9 +1488,9 @@ $("sourceDialog").addEventListener('keydown',e=>{
 function handleTrainingClick(event){
  const button=event.target.closest('button[data-train-type]');if(!button||!world)return;
  const count=Number(button.dataset.trainCount??1);if(count>1&&!world.trainingBatch){const saved=checkpointRun(world,true);if(saved.kind==='failed'){flash('진행을 보관하지 못해 묶음 구입을 중단했습니다 · 한 번씩 구입할 수 있습니다');render(world);return;}}
- if(requestTrainingBatch(world,Number(button.dataset.producerId),button.dataset.trainType,count)){world.trainingBatchNotice='';flash(playing?'구입을 시작했습니다':'구입을 예약했습니다 · 상단 재개를 누르면 진행됩니다');}else flash('지금은 구입할 수 없습니다');render(world);
+ if(requestTrainingBatch(world,Number(button.dataset.producerId),button.dataset.trainType,count)){world.trainingBatchNotice='';world.trainingInterrupted=null;flash(playing?'구입을 시작했습니다':'구입을 예약했습니다 · 상단 재개를 누르면 진행됩니다');}else flash('지금은 구입할 수 없습니다');render(world);
 }
-$("cancelTrainingBatch").onclick=()=>{if(world?.trainingBatch){const remaining=world.trainingBatch.remaining;world.trainingBatch=null;world.trainingBatchNotice=`남은 ${remaining}회 예약을 취소했습니다 · 이미 시작한 구입은 유지됩니다`;checkpointRun(world,true);render(world);}};
+$("cancelTrainingBatch").onclick=()=>{if(world?.trainingBatch){const remaining=world.trainingBatch.remaining;world.trainingBatch=null;if(remaining>0){world.trainingInterrupted={remaining,cause:'manual'};world.trainingBatchNotice=trainingInterruptionText(world.trainingInterrupted);}checkpointRun(world,true);render(world);}};
 for(const id of ["trainingOptions","casinoTrainingOptions"])$(id).addEventListener('click',handleTrainingClick);
 $("gemUpgrades").addEventListener('click',event=>{
  const button=event.target.closest('button[data-upgrade-target]');if(!button||!world||world.selectedGemId===null||(world.viewPlayerId??0)!==0)return;
@@ -1611,7 +1611,7 @@ $("openSourceFiles").addEventListener('click',async()=>{
 
 function interruptUiOrders(w){
  drag.on=false;if(!w)return;clearPlacement(w);
- if(w.trainingBatch){const remaining=w.trainingBatch.remaining;w.trainingBatch=null;w.trainingBatchNotice=`앱을 벗어나 남은 ${remaining}회 예약을 취소했습니다 · 이미 시작한 구입은 유지됩니다`;}
+ if(w.trainingBatch){const remaining=w.trainingBatch.remaining;w.trainingBatch=null;if(remaining>0){w.trainingInterrupted={remaining,cause:'background'};w.trainingBatchNotice=trainingInterruptionText(w.trainingInterrupted);}}
 }
 document.addEventListener("visibilitychange", () => {
   frameClock.reset();
