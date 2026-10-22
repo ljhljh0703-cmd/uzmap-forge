@@ -242,3 +242,20 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .exit-marker svg{box-shadow:inset 0 0 0 1px #b58375}.exit-marker[data-hit=true] svg{background:#7b3429;box-shadow:inset 0 0 0 1px #ffe0d7}
 .exit-marker[data-hit=true] path{fill:#fff0e9;stroke:#5b1d16}.exit-legend{color:#edbdb1}
 @media(prefers-reduced-motion:reduce){.hud-pill[data-life-hit=true],.exit-marker[data-hit=true]{animation:none;transition:none}}
+
+
+/* Selection details float above their unchanged card. The body is fixed to the
+ * measured card edge, escaping the existing scroll clip without resizing the
+ * battlefield host or changing the approved fit/canvas resolution. */
+#gemPanel[data-selection-sheet=true]{position:relative}
+.app[data-simple-ui=true] #gemPanel[data-selection-sheet=true] .bp-name>.gem-meta,
+.app[data-simple-ui=true] #gemPanel[data-selection-sheet=true] .bp-name>.gem-meta[open]{position:static;flex:0 0 auto;width:auto;max-height:none;margin:0 0 0 auto}
+.app[data-simple-ui=true] #gemPanel[data-selection-sheet=true][data-combat-card=true] .bp-name>.gem-meta[open]{order:1;flex:0 0 auto;width:auto}
+#gemPanel[data-selection-sheet=true] .gem-detail-body{position:fixed;left:var(--selection-sheet-left,0px);width:var(--selection-sheet-width,min(480px,100vw));right:auto;bottom:var(--selection-sheet-bottom,58px);z-index:12;max-height:min(56dvh,440px,calc(100dvh - var(--selection-sheet-bottom,58px) - var(--ui-header-height) - 80px));min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;scroll-padding:52px 0 16px;gap:10px;padding:12px 14px 16px;border:1px solid #9a7946;border-radius:12px 12px 0 0;background:#2b2117;box-shadow:0 -12px 24px #0006}
+#gemPanel[data-selection-sheet=true] .gem-detail-body>*{flex-shrink:0}
+#gemPanel[data-selection-sheet=true] .gem-detail-body .bp-actions{max-width:none;width:100%}
+#gemPanel[data-selection-sheet=true] .gem-meta>summary{position:relative;touch-action:none;user-select:none;-webkit-user-select:none;padding-top:13px}
+#gemPanel[data-selection-sheet=true] .gem-meta>summary::before{content:'';position:absolute;top:4px;left:50%;width:24px;height:3px;transform:translateX(-50%);border-radius:2px;background:#b9a16c;pointer-events:none}
+#selectionSheetHandle{position:sticky;top:-12px;z-index:3;order:-4;align-self:stretch;flex:none;width:calc(100% + 28px);min-height:44px;margin:-12px -14px 0;padding:14px 12px 7px;border:0;border-bottom:1px solid #705735;border-radius:10px 10px 0 0;background:#32271b;color:#d8c499;font-size:12px;font-weight:400;touch-action:none;user-select:none;-webkit-user-select:none}
+#selectionSheetHandle::before{content:'';position:absolute;top:6px;left:50%;width:30px;height:3px;transform:translateX(-50%);border-radius:2px;background:#b9a16c;pointer-events:none}
+#gemPanel[data-selection-sheet=true] .gem-detail-body button,#gemPanel[data-selection-sheet=true] .gem-detail-body summary{scroll-margin-top:52px;scroll-margin-bottom:16px}

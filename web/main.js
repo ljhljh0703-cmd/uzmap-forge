@@ -368,6 +368,8 @@ function renderControls(w) {
  const upgrade=$("upgradeRun");if(upgrade)upgrade.disabled=restoring||!$("savedRuns").selectedOptions[0]?.record?.upgradeable;
  const label=runtimeFailed?'오류로 정지':restoring?'복원 중…':ended?'게임 종료':w?.replayMismatch?'복원 실패':awaitingMode?'방식 선택':playing?'일시정지':'재개';
  if(play.textContent!==label)play.textContent=label;
+ const drawerStatus=$("drawerRunStatus"),drawerLabel=play.disabled?label:playing?"진행 중 · 상단 일시정지로 멈출 수 있어요":"일시정지 · 상단 재개로 계속할 수 있어요";
+ if(drawerStatus&&drawerStatus.textContent!==drawerLabel)drawerStatus.textContent=drawerLabel;
  // The existing progress message and its ancestors stay outside the inert regions.
  for(const area of document.querySelectorAll('.header-actions,footer,#gameDrawer,#drawerScrim,#bottomPanel,#battlefield > :not(#msg):not(#restoreOverlay)'))if(area.inert!==restoring)area.inert=restoring;
 }
@@ -436,6 +438,9 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
   if(restoreCancelled)throw Error('복원을 취소했습니다');
   if(world.sim.stateHash()!==trace.stateHash||trace.sourceState&&JSON.stringify(gemTowerPlayerState(world.vm))!==JSON.stringify(trace.sourceState)||world.runtimeCrashes.length)throw Error('저장 당시와 결과가 일치하지 않아 이어하기를 중단했습니다');
   world.runId=restoredRunId(trace);world.runMode=trace.actions.some(a=>a.kind==='dialog'&&a.dialogId===world.modeDialog?.dialogId&&a.buttonId===world.modeDialog?.raceButtonId)?'race':null;world.inputLog=trace.actions.map(a=>({...a}));if(trace.migratedFrom)world.migratedFrom={...trace.migratedFrom};if(trace.trainingInterrupted){world.trainingInterrupted={...trace.trainingInterrupted};world.trainingBatchNotice=trainingInterruptionText(world.trainingInterrupted);}world.selectedGemId=world.sim.getUnit(trace.selectedGemId)?.alive?trace.selectedGemId:null;
+  // Restore only the presentation lock; final-tick orders are already in the exact replayed source queue.
+  {const pending=world.inputLog.filter(a=>a.tick===world.sim.tickCount&&a.kind==='research'&&a.playerId===0&&a.accepted).at(-1);world.pendingResearch=pending?{techId:pending.techId}:null;}
+  // End research presentation restore
   if(upgrading){savedCopy=saveVerifiedRunCopy(localStorage,trace,runSnapshot(world));world.runId=savedCopy.trace.runId;world.migratedFrom={...savedCopy.trace.migratedFrom};}
   frameClock.reset();$("msg").style.display='none';render(world,true);if(savedCopy)refreshSavedRuns(savedCopy.key);flash(upgrading?'예전 진행을 확인해 새 저장을 만들었습니다 · 재개를 누르세요':'저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);if(!upgrading)commitSessionSeed(trace.seed);completed=true;
  }catch(error){const cleanup=rollbackCopy();restoreRunView(before);if(savedCopy)refreshSavedRuns(savedSelection);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message}${cleanup} · 기존 진행을 유지했습니다`);}
@@ -780,10 +785,10 @@ function render(w,preservePendingDialog=false) {
       // 실제 청구액과 어긋난다. *다음 레벨* 비용을 표시한다(엔진과 동일한 researchCostForLevel 재사용 —
       // 화면에서 수식을 재구현하지 않는다). 최대 레벨이면 "연구 완료".
       if (costEl) {
-        const complete=lv >= spec.maxLevel;
+        const complete=lv >= spec.maxLevel,pending=w.pendingResearch?.techId===techId;
         costEl.textContent = complete ? "" : researchCostForLevel(spec, lv + 1);
         costEl.hidden=complete;
-        if(costEl.previousSibling)costEl.previousSibling.textContent=complete?"연구 완료":"연구 · ";
+        if(costEl.previousSibling)costEl.previousSibling.textContent=complete?"연구 완료":pending?"연구 처리 중 · ":"연구 · ";
         if(costEl.nextSibling)costEl.nextSibling.textContent=complete?"":" 골드";
       }
       // R-1 C-2 반영: 선행조건(R001 ← R000 8레벨) 미충족이면 버튼도 잠근다(엔진이 거부하는 것을 UI가 미리 반영).
@@ -792,11 +797,14 @@ function render(w,preservePendingDialog=false) {
         const cost = researchCostForLevel(spec, lv + 1);
         btn.setAttribute("aria-label",`${({R000:"보석 질",R001:"찬스 확률",R002:"천국의 보석"})[techId]} 연구${lv >= spec.maxLevel ? " 완료" : ` · ${cost} 골드`}`);
         const affordable = w.sim.ledger.gold(0) >= cost;
-        btn.disabled = Boolean(w.gameOver) || lv >= spec.maxLevel || !prereqOk || !affordable;
-        btn.title = lv >= spec.maxLevel ? "연구 완료" : !prereqOk ? "선행: " + spec.requires.techId + " " + spec.requires.count + "레벨 필요" : !affordable ? "골드가 부족합니다" : "";
+        btn.disabled = Boolean(w.gameOver) || Boolean(w.pendingResearch) || lv >= spec.maxLevel || !prereqOk || !affordable;
+        btn.setAttribute("aria-busy",String(w.pendingResearch?.techId===techId));
+        btn.title = w.pendingResearch ? "연구 처리 중입니다" : lv >= spec.maxLevel ? "연구 완료" : !prereqOk ? "선행: " + spec.requires.techId + " " + spec.requires.count + "레벨 필요" : !affordable ? "골드가 부족합니다" : "";
       }
     } else if (lvEl) lvEl.textContent = "—";
   }
+  {const researchStatus=$("researchStatus"),researchMessage=w.pendingResearch?(playing?"연구 처리 중…":"일시정지 · 상단 재개를 누르면 연구가 진행됩니다"):w.researchNotice??"연구 완료 후 다음 가격으로 계속 구입할 수 있어요";
+  if(researchStatus&&researchStatus.textContent!==researchMessage)researchStatus.textContent=researchMessage;}
   // G-6(DISPATCH_SONNET_G3_G6 §2 G-6, GEM_IDENTITY_MINE_DESIGN §5.1) — 멀티보드: 실측 CreateMultiboardBJ
   // (6,L,"보석타워 맥스") 타이틀·6열 그대로. 열 내용(hud_quests.json 콜사이트60 미확보 — A-G10 자체 선택)은
   // "natives 상태 미러"만: 플레이어/골드/라이프/타워/웨이브/상태 — 전부 이미 노출된 값의 재표시(재구현 0).
@@ -1031,7 +1039,7 @@ function gemLabel(typeId) {
 const BUILD_REJECT_LABEL = { "inactive-player":"참가하지 않은 플레이어", "game-over":"게임 종료", "missing-builder": "원작 건설 요청 만료", "insufficient-gold": "골드 부족", "missing-def-store": "정의 누락" };
 // G-2c: research() 3종(A-G1 실측 techId) — 뷰포트 패널·버튼 id는 이 목록 순회로 생성.
 const RESEARCH_IDS = ["R000", "R001", "R002"];
-const RESEARCH_REJECT_LABEL = { "unknown-tech": "미지 연구", "max-level": "만렙", "insufficient-gold": "골드 부족" };
+const RESEARCH_REJECT_LABEL = { "unknown-tech": "미지 연구", "max-level": "만렙", "insufficient-gold": "골드 부족", "prereq-unmet":"선행 연구가 필요합니다" };
 
 function renderTraining(w){
  const rows=trainingActions(w).map(row=>({...row,requirements:(w.sim.defStore?.getDef(row.typeId)?.techRequirements??[]).map(r=>({...r,name:trainingTechName(w,r.techId,r.count),current:w.sim.getPlayerTechCount?.(0,r.techId)??0})).filter(r=>r.current<r.count)})).sort((a,b)=>(a.cost??Infinity)-(b.cost??Infinity)),life=gemTowerPlayerState(w.vm).life,ready=w.modeDialog?.clicked&&gemTowerPlayerState(w.vm).difficulty;
@@ -1166,11 +1174,8 @@ function stepN(w, n) {
       } else if (ev.kind === "SpellCast") {
         const req = w.pendingCasts.find(request => request.unitId === ev.unitId && request.abilityId === ev.abilityId);
         if (req) req.spellTick = w.sim.tickCount;
-      } else if (ev.kind === "ResearchFinished") {
-        // G-2c: 값 판정(0) — 사실만 표면화. 효과(nL/QM/tM)는 스크립트 소관이라 뷰포트가 흉내내지 않는다.
-        flash("연구 완료: " + ev.techId + " Lv" + ev.level);
-      } else if (ev.kind === "ResearchRejected") {
-        flash("연구 거부: " + (RESEARCH_REJECT_LABEL[ev.reason] || ev.reason));
+      } else if (ev.kind === "ResearchFinished" || ev.kind === "ResearchRejected") {
+        observeResearchResult(w,ev);
       } else if (ev.kind === "Attacked") {
         if (w.sim.getUnit(ev.attackerUnitId)?.owner === 0) w.observedAttacks++;
         // U-2e: 발사 성공마다(사망 무관, world_api.ts 주석 "G-1") 발화 — 좌표는 lastPos 스냅샷에서
@@ -1522,11 +1527,25 @@ $("gemRoster").addEventListener("click",event=>{
 // 새 입력경로 0). Be 값 자체는 대입하지 않는다 — 원작 yc/Sc/uc가 세팅(발명 경계 준수).
 $("modeClassic").onclick = () => chooseMode("classic");
 $("modeRace").onclick = () => chooseMode("race");
+// Research remains an enqueue-only source order. The view locks stale prices until its result.
+function requestResearch(w,techId) {
+ if(!w||restoring||loadingRun||runtimeFailed||w.gameOver||w.replayMismatch||(w.viewPlayerId??0)!==0||w.pendingResearch||!RESEARCH_IDS.includes(techId)||$("rs"+techId+"Btn")?.disabled)return false;
+ const accepted=w.sim.research(0,techId);
+ recordInput(w,{kind:"research",playerId:0,techId,accepted});
+ if(accepted){w.pendingResearch={techId};w.researchNotice='';}else w.researchNotice='지금은 연구할 수 없습니다';
+ render(w);return accepted;
+}
+function observeResearchResult(w,ev) {
+ if(ev.playerId!==0||!['ResearchFinished','ResearchRejected'].includes(ev.kind))return;
+ if(w.pendingResearch?.techId===ev.techId)w.pendingResearch=null;
+ w.researchNotice=ev.kind==='ResearchFinished'?`${trainingTechName(w,ev.techId,ev.level)} 연구 완료 · ${ev.level}레벨`:`연구 취소 · ${RESEARCH_REJECT_LABEL[ev.reason]??'연구 조건을 확인하세요'}`;
+ flash(w.researchNotice);
+}
 // G-2c(DISPATCH_SONNET_G2_CORE §2 G-2d) — 연구 버튼: IWorld.research(0, techId) 왕복 데모.
 // 값 판정(비용/만렙/골드부족) 전부 엔진 소유(sim.researchConfig+researchLevels) — 여기는 요청만.
 for (const techId of RESEARCH_IDS) {
   const btn = $("rs" + techId + "Btn");
-  if (btn) btn.onclick = () => { if (world) { const accepted=world.sim.research(0,techId);recordInput(world,{kind:"research",playerId:0,techId,accepted});if(!accepted)flash("연구 요청 거부됨");else flash("연구 대기 중… ("+techId+")"); } };
+  if (btn) btn.onclick = () => requestResearch(world,techId);
 }
 const goRestart = $("goRestart");
 if (goRestart) goRestart.onclick = () => loadFromUrl(freshSessionSeed(sessionSeed,crypto));
@@ -1643,7 +1662,7 @@ function chooseMode(mode) {
   cv.focus();
 }
 function setDrawer(open) {
-  if(open&&playing){playing=false;frameClock.reset();clearPlacement(world);checkpointRun(world,true);renderControls(world);if(world)render(world,true);flash("메뉴를 열어 일시정지했습니다 · 재개해서 계속하기");}
+  if(open&&playing&&$("gameDrawer").hidden){clearPlacement(world);checkpointRun(world,true);if(world)render(world,true);}
   $("gameDrawer").hidden = !open; $("drawerScrim").hidden = !open;
   $("researchToggle").setAttribute("aria-expanded", String(open));
   if(open){refreshSavedRuns();$("drawerClose").focus();} else $("researchToggle").focus();

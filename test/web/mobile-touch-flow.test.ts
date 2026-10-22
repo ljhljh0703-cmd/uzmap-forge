@@ -36,10 +36,12 @@ it('actual pointer handler still builds in the adjacent cell beyond the rendered
 it('a small finger wobble stays a tap in the actual pointer-move path',()=>{const f=pointer();f.send('pointerdown',{clientX:95});f.send('pointermove',{clientX:102});f.send('pointerup',{clientX:102,timeStamp:180});assert.deepEqual(f.placed,[[96,96]]);});
 it('actual held touch previews an empty cell, and cancel/capture loss never builds',()=>{const f=pointer();f.send('pointerdown',{clientX:95});f.send('pointerup',{clientX:95,timeStamp:600});assert.deepEqual(f.placed,[]);assert.deepEqual(f.previews,[[96,96]]);for(const kind of ['pointercancel','lostpointercapture']){const g=pointer();g.send('pointerdown',{clientX:95});g.send(kind);g.send('pointerup',{clientX:95,timeStamp:600});assert.deepEqual(g.placed,[]);assert.deepEqual(g.previews,[]);}});
 it('optional precision mode previews an ordinary empty-cell tap before confirmation',()=>{const f=pointer();f.world.precisePlacement=true;f.send('pointerdown',{clientX:95});f.send('pointerup',{clientX:95,timeStamp:180});assert.deepEqual(f.placed,[]);assert.deepEqual(f.previews,[[96,96]]);});
-it('opening the solo menu pauses and checkpoints; closing never resumes without the player',()=>{
+it('opening and closing the solo menu checkpoints without changing explicit pause state',()=>{
+ for(const playing of [true,false]){
  const nodes:any={gameDrawer:{hidden:true},drawerScrim:{hidden:true},researchToggle:{setAttribute(){},focus(){}},drawerClose:{focus(){}}};let saves=0,resets=0;
- const c:any={world:{},playing:true,$:(id:string)=>nodes[id],frameClock:{reset(){resets++;}},checkpointRun(){saves++;},renderControls(){},render(){},refreshSavedRuns(){},flash(){},clearPlacement(){}};
- vm.runInNewContext(fn('setDrawer'),c);c.setDrawer(true);assert.equal(c.playing,false);assert.equal(nodes.gameDrawer.hidden,false);assert.equal(saves,1);assert.equal(resets,1);c.setDrawer(false);assert.equal(c.playing,false);assert.equal(saves,1);
+ const c:any={world:{},playing,$:(id:string)=>nodes[id],frameClock:{reset(){resets++;}},checkpointRun(){saves++;},renderControls(){},render(){},refreshSavedRuns(){},flash(){},clearPlacement(){}};
+ vm.runInNewContext(fn('setDrawer'),c);c.setDrawer(true);assert.equal(c.playing,playing);assert.equal(nodes.gameDrawer.hidden,false);assert.equal(saves,Number(playing));assert.equal(resets,0);c.setDrawer(false);assert.equal(c.playing,playing);assert.equal(saves,Number(playing));
+ }
 });
 it('background interruption preserves issued purchases and cancels only the unissued remainder before saving',()=>{
  const events=new Map<string,Function>(),issued=[{kind:'train',typeId:'h01W'}],world:any={trainingBatch:{producerId:1,typeId:'h01W',remaining:7},inputLog:issued,pendingBuilds:[],hover:{},pendingPlacement:{x:1,y:2}};let saved:any;

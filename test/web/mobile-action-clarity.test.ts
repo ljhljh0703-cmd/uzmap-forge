@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import * as skin from '../../web/ui-skin.js';
 
 function fixture(){
- const doc:any={activeElement:null};
+ const doc:any={activeElement:null,defaultView:{innerHeight:844}};
  class Element{
-  id='';tagName:string;parentNode:Element|null=null;children:Element[]=[];dataset:any={};attributes=new Map();hidden=false;disabled=false;open=false;textContent='';title='';focuses=0;
+  id='';tagName:string;parentNode:Element|null=null;children:Element[]=[];dataset:any={};attributes=new Map();hidden=false;disabled=false;open=false;textContent='';title='';focuses=0;listeners=new Map<string,Set<Function>>();style:any={setProperty(){}};
   constructor(tag='div',id=''){this.tagName=tag.toUpperCase();this.id=id;}
   get nextSibling(){const list=this.parentNode?.children??[],index=list.indexOf(this);return list[index+1]??null;}
   get isConnected(){return true;}
@@ -16,6 +16,7 @@ function fixture(){
   contains(node:any):boolean{return node===this||this.children.some(child=>child.contains(node));}
   querySelector(selector:string):Element|null{const hit=(e:Element)=>selector==='summary'?e.tagName==='SUMMARY':selector.startsWith('.')?e.attributes.get('class')===selector.slice(1):false;for(const child of this.children){if(hit(child))return child;const found=child.querySelector(selector);if(found)return found;}return null;}
   setAttribute(k:string,v:string){this.attributes.set(k,v);}getAttribute(k:string){return this.attributes.get(k)??null;}
+  addEventListener(k:string,f:Function){if(!this.listeners.has(k))this.listeners.set(k,new Set());this.listeners.get(k)!.add(f);}removeEventListener(k:string,f:Function){this.listeners.get(k)?.delete(f);}
   focus(){doc.activeElement=this;this.focuses++;}
  }
  const nodes:any={};const el=(tag:string,id='')=>{const node=new Element(tag,id);if(id)nodes[id]=node;return node;};

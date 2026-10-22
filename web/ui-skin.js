@@ -108,11 +108,70 @@ export function selectionStageHint(snapshot={}){
  const count=Math.max(0,Math.min(5,Number(snapshot.buildCount)||0));
  return snapshot.chosen===true?'보석을 눌러 능력과 강화를 확인하세요':count<5?`빈칸을 눌러 보석 ${5-count}개 더 건설 · 길게 눌러 지상 길 확인`:'다섯 보석 중 하나를 고르고 ‘이 보석 남기기’를 누르세요';
 }
+/** Local disclosure gestures and fixed overlay anchors only. The battlefield
+ * remains the same DOM host; no game input, command or camera is dispatched. */
+export function createSelectionSheet(doc,{panel,meta,body,summary}){
+ let selected=false,interacting=false,gesture=null,blockedClick=null,position='';
+ const listeners=[];
+ const on=(node,type,handler)=>{node.addEventListener(type,handler);listeners.push(()=>node.removeEventListener(type,handler));};
+ const grip=doc.createElement('button');grip.type='button';grip.id='selectionSheetHandle';grip.className='selection-sheet-handle';grip.textContent='정보 접기';grip.setAttribute('aria-label','선택 정보 접기 · 아래로 밀어 접을 수 있습니다');body.prepend(grip);
+ body.id=body.id||'selectionSheetBody';body.setAttribute('role','region');body.setAttribute('aria-label','선택한 개체의 정보와 강화');summary.setAttribute('aria-controls',body.id);summary.dataset.sheetHandle='true';
+ const measure=()=>{
+  if(!selected||!meta.open||!panel.getBoundingClientRect)return;
+  const r=panel.getBoundingClientRect(),height=doc.defaultView?.innerHeight;
+  if(!Number.isFinite(height)||!Number.isFinite(r.left)||!Number.isFinite(r.top)||!(r.width>0))return;
+  const bottom=Math.max(0,height-r.top),key=JSON.stringify([r.left,r.width,bottom]);if(key===position)return;position=key;
+  body.style.setProperty('--selection-sheet-left',r.left+'px');body.style.setProperty('--selection-sheet-width',r.width+'px');body.style.setProperty('--selection-sheet-bottom',bottom+'px');
+ };
+ const sync=()=>{if(selected&&interacting&&!meta.open)meta.open=true;panel.dataset.sheetOpen=String(selected&&meta.open);measure();};
+ const release=()=>{const g=gesture;gesture=null;if(g)try{if(g.node.hasPointerCapture?.(g.id))g.node.releasePointerCapture(g.id);}catch{ /* A cancelled/removed handle already lost capture. */ }};
+ const collapse=()=>{if(interacting)return false;summary.focus({preventScroll:true});meta.open=false;sync();return true;};
+ const stop=event=>event.stopPropagation();
+ // Stop only propagation. Native scrolling and each existing button's own
+ // listener remain intact; the scroll body is deliberately not a drag handle.
+ for(const type of ['pointerdown','pointerup','click'])on(body,type,stop);
+ for(const node of [summary,grip]){
+  on(node,'pointerdown',event=>{
+   event.stopPropagation();if(!selected||event.isPrimary===false||event.button!==0)return;
+   release();blockedClick=null;gesture={node,id:event.pointerId,x:event.clientX,y:event.clientY,cancelled:false};
+   try{node.setPointerCapture?.(event.pointerId);}catch{ /* Pointer may already have ended. */ }
+  });
+  on(node,'pointermove',event=>{
+   const g=gesture;if(!g||g.node!==node||event.pointerId!==g.id)return;
+   const dx=event.clientX-g.x,dy=event.clientY-g.y;
+   if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy))g.cancelled=true;
+   if(!g.cancelled&&Math.abs(dy)>8){event.preventDefault();event.stopPropagation();}
+  });
+  on(node,'pointerup',event=>{
+   event.stopPropagation();const g=gesture;if(!g||g.node!==node||event.pointerId!==g.id)return;
+   const dx=event.clientX-g.x,dy=event.clientY-g.y;release();
+   if(g.cancelled||Math.abs(dy)<28||Math.abs(dy)<=Math.abs(dx)*1.25){
+    if(Math.max(Math.abs(dx),Math.abs(dy))>=12){event.preventDefault();blockedClick={id:event.pointerId,at:Number(event.timeStamp)||0};}
+    return;
+   }
+   event.preventDefault();blockedClick={id:event.pointerId,at:Number(event.timeStamp)||0};
+   if(dy<0){meta.open=true;sync();}else collapse();
+  });
+  for(const type of ['pointercancel','lostpointercapture'])on(node,type,event=>{if(gesture?.node===node&&event.pointerId===gesture.id)release();});
+  on(node,'click',event=>{
+   event.stopPropagation();const stamp=Number(event.timeStamp)||0;
+   const matching=blockedClick&&event.detail!==0&&stamp>=blockedClick.at&&stamp-blockedClick.at<=160&&(event.pointerId===undefined||event.pointerId===blockedClick.id);
+   if(matching){blockedClick=null;event.preventDefault();return;}
+   if(node===grip){event.preventDefault();collapse();}
+   else if(interacting&&meta.open)event.preventDefault();
+  });
+ }
+ on(meta,'toggle',sync);
+ return {
+  update(state={}){selected=state.selected===true;interacting=state.interacting===true;panel.dataset.selectionSheet=String(selected);if(!selected){release();blockedClick=null;meta.open=false;}sync();},
+  destroy(){release();for(const remove of listeners)remove();grip.remove();delete summary.dataset.sheetHandle;delete panel.dataset.selectionSheet;delete panel.dataset.sheetOpen;}
+ };
+}
 /** View-only reuse of the selected card. Source buttons keep their identities,
  * handlers, disabled reasons and ordering; combat merely moves them into the
  * already existing information/upgrade disclosure. No command is dispatched. */
 export function createSelectionCard(doc){
- let homes=null,lastCombat=false,lastSelected=null,unitArt=null,unitRole=null;
+ let homes=null,lastCombat=false,lastSelected=null,unitArt=null,unitRole=null,sheet=null;
  const putBack=(node,home)=>{if(node.parentNode!==home.parent)home.parent.insertBefore(node,home.next?.parentNode===home.parent?home.next:null);};
  const remember=node=>({parent:node.parentNode,next:node.nextSibling});
  return {render(snapshot={}){
@@ -127,6 +186,7 @@ export function createSelectionCard(doc){
   const panel=doc.getElementById('gemPanel'),name=doc.querySelector('.bp-name'),meta=doc.querySelector('.gem-meta'),body=meta?.querySelector('.gem-detail-body'),actions=doc.querySelector('.bp-actions'),summary=meta?.querySelector('summary'),badge=doc.getElementById('gemSpecialBadge');
   if(!panel||!name||!meta||!body||!actions||!summary||!close)return;
   if(!homes)homes={actions:remember(actions),close:remember(close),badge:badge?remember(badge):null,summary:summary.textContent};
+  if(!sheet)sheet=createSelectionSheet(doc,{panel,meta,body,summary});
   const portrait=doc.getElementById('selectedGemPortrait');
   if(portrait){
    if(!unitArt){
@@ -159,12 +219,13 @@ export function createSelectionCard(doc){
    putBack(actions,homes.actions);putBack(close,homes.close);if(badge&&homes.badge)putBack(badge,homes.badge);
    if(summary.textContent!==homes.summary)summary.textContent=homes.summary;
   }
+  sheet.update({selected:Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem),interacting});
   // A completed keep command becomes disabled at the source transition. Its
   // focus belongs on the visible disclosure, rather than in a closed body.
   const focusTarget=compact&&!meta.open&&active&&body.contains(active)?summary:active;
   if(focusTarget&&doc.activeElement!==focusTarget&&focusTarget.isConnected!==false)focusTarget.focus({preventScroll:true});
   lastCombat=compact;lastSelected=snapshot.selectedId??null;
- }};
+ },destroy(){sheet?.destroy();}};
 }
 export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTarget,approachCasino}){
  const app=doc.getElementById('gameApp');if(!app)return {render(){},notify(){}};
@@ -327,5 +388,5 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const resizeObserver=new ResizeObserver(queueRepaint);resizeObserver.observe(bottom);resizeObserver.observe(app);
  void materialsReady().then(()=>{for(const spec of Object.values(MATERIALS)){const im=imageAt(spec.file);if(!im.complete)im.addEventListener('load',repaint,{once:true});}repaint();}).catch(error=>{app.dataset.skinError='materials';console.warn('[UI material]',error.message);});
  app.dataset.uiSkin='walnut-brass';app.dataset.uiAssets='claude-approved-23';
- return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){resizeObserver.disconnect();queueRepaint.destroy();}};
+ return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
 }
