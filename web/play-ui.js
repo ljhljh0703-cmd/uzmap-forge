@@ -154,3 +154,21 @@ export function trainingInterruptionText(notice){
  if(!notice||!Number.isInteger(notice.remaining)||notice.remaining<1||notice.remaining>10||!['background','manual'].includes(notice.cause))return '';
  return `${notice.cause==='background'?'앱을 벗어나 ':''}남은 ${notice.remaining}회 예약을 취소했습니다 · 이미 시작한 구입은 유지됩니다`;
 }
+
+/** Stable view identity: source A02J marks slates even after its one-use live
+ * entity ability is consumed. Definitions and aliases are never modified here. */
+export function gemObjectPresentation(typeId,definition,family,alias){
+ if(typeId==='h00G')return {kind:'stone',label:'돌 블록',logical:'stone'};
+ if(Array.isArray(definition?.abilities)&&definition.abilities.includes('A02J'))return {kind:'slate',label:'슬레이트',logical:'slate:'+typeId};
+ const role=definition?.meta?.role;
+ const logical=alias??(role?.kind==='tower'?`gem:${role.line}:${role.tier}`:family?`gem:${family.line}:*`:role?.archetype==='specialGem'?`special:${typeId}`:'gem:unknown:0');
+ const kind=family||role?.kind==='tower'||logical.startsWith('gem:')&&logical!=='gem:unknown:0'?'gem':role?.archetype==='specialGem'||logical.startsWith('special:')?'special':'unknown';
+ return {kind,label:kind==='gem'?'보석':kind==='special'?'특수 보석':'종류 확인 중',logical};
+}
+
+/** Authored movement identity, not the parameterised combat band, identifies flight. */
+export function creepVisualPresentation(role,definition={}){
+ const prior=role?.kind==='creep'?role.band:role?.archetype==='eventBoss'||role?.archetype==='tester'?'boss':'ground';
+ const airborne=typeof definition?.movementType==='string'?definition.movementType==='fly':prior==='flying';
+ return {band:prior==='ground'||prior==='flying'?(airborne?'flying':'ground'):prior,airborne};
+}

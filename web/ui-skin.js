@@ -64,7 +64,7 @@ export function dispatchCasinoApproach(view,id,approach){
 }
 const QUALITY_MATERIALS=['slot-grey','slot-green','slot-blue','slot-purple','slot-gold'];
 export function qualityMaterialForFrame(frame){return QUALITY_MATERIALS[frame]??QUALITY_MATERIALS[0];}
-const NEGATIVE_BUTTONS=new Set(['cancelPoint','castA008','castA02G','reset','gemDeselect','drawerClose','cancelGemTarget','cancelRestore']);
+const NEGATIVE_BUTTONS=new Set(['cancelPoint','castA008','castA02G','reset','drawerClose','cancelGemTarget','cancelRestore']);
 export function approvedButtonMaterial({id='',primary=false,action=false,disabled=false,pressed=false}={}){
  const color=primary?'gold':NEGATIVE_BUTTONS.has(id)?'red':action||id.startsWith('cast')?'green':null;
  return color?`button-${color}-${disabled?'disabled':pressed?'pressed':'normal'}`:null;
@@ -103,8 +103,72 @@ function rasterNineSlice(ctx,spec,width,height){
  for(let row=0;row<3;row++)for(let col=0;col<3;col++)ctx.drawImage(im,sx[col],sy[row],sw[col],sh[row],dx[col],dy[row],dw[col],dh[row]);
  return true;
 }
+/** Shared wording only; pending build/placement prompts keep priority at the caller. */
+export function selectionStageHint(snapshot={}){
+ const count=Math.max(0,Math.min(5,Number(snapshot.buildCount)||0));
+ return snapshot.chosen===true?'보석을 눌러 능력과 강화를 확인하세요':count<5?`빈칸을 눌러 보석 ${5-count}개 더 건설 · 길게 눌러 지상 길 확인`:'다섯 보석 중 하나를 고르고 ‘이 보석 남기기’를 누르세요';
+}
+/** View-only reuse of the selected card. Source buttons keep their identities,
+ * handlers, disabled reasons and ordering; combat merely moves them into the
+ * already existing information/upgrade disclosure. No command is dispatched. */
+export function createSelectionCard(doc){
+ let homes=null,lastCombat=false,lastSelected=null,unitArt=null,unitRole=null;
+ const putBack=(node,home)=>{if(node.parentNode!==home.parent)home.parent.insertBefore(node,home.next?.parentNode===home.parent?home.next:null);};
+ const remember=node=>({parent:node.parentNode,next:node.nextSibling});
+ return {render(snapshot={}){
+  const keep=doc.getElementById('castA009'),close=doc.getElementById('gemDeselect');
+  if(keep&&keep.textContent!=='이 보석 남기기')keep.textContent='이 보석 남기기';
+  if(close&&close.textContent!=='×'){
+   const label=close.getAttribute('aria-label')||close.textContent||'선택 닫기';
+   close.setAttribute('aria-label',label);close.title=label;close.textContent='×';
+  }
+  const hint=doc.querySelector('#gemNone span'),text=selectionStageHint(snapshot);
+  if(hint&&hint.textContent!==text)hint.textContent=text;
+  const panel=doc.getElementById('gemPanel'),name=doc.querySelector('.bp-name'),meta=doc.querySelector('.gem-meta'),body=meta?.querySelector('.gem-detail-body'),actions=doc.querySelector('.bp-actions'),summary=meta?.querySelector('summary'),badge=doc.getElementById('gemSpecialBadge');
+  if(!panel||!name||!meta||!body||!actions||!summary||!close)return;
+  if(!homes)homes={actions:remember(actions),close:remember(close),badge:badge?remember(badge):null,summary:summary.textContent};
+  const portrait=doc.getElementById('selectedGemPortrait');
+  if(portrait){
+   if(!unitArt){
+    unitArt=doc.createElement('div');unitArt.id='selectedUnitArt';unitArt.className='selected-unit-art';unitArt.hidden=true;
+    unitRole=doc.createElement('p');unitRole.id='selectedUnitRole';unitRole.className='selected-unit-role';
+    unitArt.append(portrait,unitRole);body.prepend(unitArt);
+   }
+   const selected=snapshot.selectedGem,kind=typeof selected?.kind==='string'?selected.kind.trim():'',role=typeof selected?.roleLabel==='string'?selected.roleLabel.trim():'';
+   unitArt.hidden=!kind||!role;
+   if(!unitArt.hidden){unitArt.dataset.kind=kind;unitRole.textContent=role;unitRole.title=role;}
+   else{delete unitArt.dataset.kind;unitRole.textContent='';unitRole.title='';}
+  }
+  const compact=snapshot.combatActive===true&&Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem);
+  const active=doc.activeElement,focusInBody=active&&active!==close&&!active.disabled&&!active.hidden&&(body.contains(active)||actions.contains(active)),interacting=Boolean(snapshot.pendingTarget||snapshot.pendingPoint);
+  panel.dataset.combatCard=String(compact);
+  if(compact){
+   if(actions.parentNode!==body)body.append(actions);
+   if(close.parentNode!==name)name.append(close);
+   if(badge&&badge.parentNode!==body)body.prepend(badge);
+   // Entry and fresh field selections begin as one line. Explicit expansion
+   // survives every frame; active targeting and focused controls stay visible.
+   if(interacting||focusInBody)meta.open=true;
+   else if(!lastCombat||lastSelected!==snapshot.selectedId)meta.open=false;
+   const upgrades=doc.getElementById('gemUpgrades'),targetPanel=doc.getElementById('gemTargetAbilities'),targetButton=doc.getElementById('castA05L');
+   const ready=Array.from(actions.children).filter(button=>button.tagName==='BUTTON'&&button!==close&&!button.hidden&&!button.disabled).length
+    +(!upgrades?.hidden?Array.from(upgrades?.children??[]).filter(button=>button.tagName==='BUTTON'&&!button.hidden&&!button.disabled).length:0)
+    +(targetPanel&&!targetPanel.hidden&&targetButton&&!targetButton.hidden&&!targetButton.disabled?1:0);
+   const label='능력·강화'+(ready?` ${ready}개`:'');if(summary.textContent!==label)summary.textContent=label;
+  }else{
+   putBack(actions,homes.actions);putBack(close,homes.close);if(badge&&homes.badge)putBack(badge,homes.badge);
+   if(summary.textContent!==homes.summary)summary.textContent=homes.summary;
+  }
+  // A completed keep command becomes disabled at the source transition. Its
+  // focus belongs on the visible disclosure, rather than in a closed body.
+  const focusTarget=compact&&!meta.open&&active&&body.contains(active)?summary:active;
+  if(focusTarget&&doc.activeElement!==focusTarget&&focusTarget.isConnected!==false)focusTarget.focus({preventScroll:true});
+  lastCombat=compact;lastSelected=snapshot.selectedId??null;
+ }};
+}
 export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTarget,approachCasino}){
  const app=doc.getElementById('gameApp');if(!app)return {render(){},notify(){}};
+ const selectionCard=createSelectionCard(doc);
  const notices=createNoticeState();const panels=new Map(),buttonPaints=new WeakMap(),buttonImages=new Map(),icons=[];let latest=null,signature='';
  const tray=doc.createElement('section');tray.id='roundTray';tray.setAttribute('aria-label','이번 라운드 보석 다섯 개');
  const heading=doc.createElement('div');heading.className='round-heading';
@@ -179,7 +243,9 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  function framePanel(element,kind='panel',corner=12){
   if(!element||panels.has(element))return;const canvas=doc.createElement('canvas');canvas.className='skin-material';canvas.setAttribute('aria-hidden','true');element.classList.add('skin-framed');element.prepend(canvas);panels.set(element,{canvas,kind,corner,w:0,h:0});
  }
- framePanel(roster,'panel',12);framePanel(doc.querySelector('.statusbar'),'hud',12);framePanel(tray,'tray',12);framePanel(doc.getElementById('gemPanel'),'panel',12);framePanel(doc.querySelector('footer'),'hud',8);
+ // One outer material per region. The roster and selected details share the
+ // walnut surface instead of stacking another heavy metal frame inside it.
+ framePanel(doc.querySelector('.statusbar'),'hud',12);framePanel(tray,'tray',12);framePanel(doc.querySelector('footer'),'hud',8);
  for(const e of doc.querySelectorAll('.mode-card,.game-over>div'))framePanel(e,'panel',16);
  framePanel(doc.querySelector('#restoreOverlay>div'),'panel',16);
  function addIcon(host,key,className=''){
@@ -199,13 +265,20 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
    if(!button.getClientRects().length)continue;
    const w=Math.round(button.clientWidth),h=Math.round(button.clientHeight);if(w<1||h<1)continue;
    const material=approvedButtonMaterial({id:button.id,primary:button.dataset.primary==='true',action:button.classList.contains('training-option')||button.hasAttribute('data-upgrade-target'),disabled:button.disabled,pressed:button.dataset.skinPressed==='true'});
-   const spec=MATERIALS[material??'hud'];if(!spec)continue;
-   const key=JSON.stringify([w,h,material??'hud',spec]);if(buttonPaints.get(button)===key)continue;
+   // A secondary tab, filter or menu button is a quiet solid surface. Only
+   // actions retain the approved gold/green/red raster. Clear prior primary
+   // art as well as its cache key when the source state changes its priority.
+   if(!material){
+    if(button.dataset.skinSurface!=='quiet'){button.style.backgroundImage='';button.style.backgroundSize='';button.style.backgroundRepeat='';delete button.dataset.skinMaterial;delete button.dataset.skinSource;button.dataset.skinSurface='quiet';buttonPaints.delete(button);}
+    continue;
+   }
+   const spec=MATERIALS[material];if(!spec)continue;
+   const key=JSON.stringify([w,h,material,spec]);if(buttonPaints.get(button)===key)continue;
    if(!buttonImages.has(key)){
     const canvas=doc.createElement('canvas');canvas.width=w;canvas.height=h;
     if(!rasterNineSlice(canvas.getContext('2d'),spec,w,h))continue;buttonImages.set(key,canvas.toDataURL());
    }
-   button.style.backgroundImage=`url("${buttonImages.get(key)}")`;button.style.backgroundSize='100% 100%';button.style.backgroundRepeat='no-repeat';button.dataset.skinMaterial=material??'hud';button.dataset.skinSource=spec.file;buttonPaints.set(button,key);
+   button.style.backgroundImage=`url("${buttonImages.get(key)}")`;button.style.backgroundSize='100% 100%';button.style.backgroundRepeat='no-repeat';button.dataset.skinMaterial=material;button.dataset.skinSource=spec.file;button.dataset.skinSurface='raster';buttonPaints.set(button,key);
   }
  }
  function setPressed(button,on){if(!button||button.disabled||button.classList.contains('round-slot')||button.classList.contains('build-cell'))return;button.dataset.skinPressed=String(on);paintButtons();}
@@ -243,6 +316,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const targetNote=targeted?.reason==='not-owner'?'보석을 남긴 뒤 전투 중 사용':targeted?.reason==='game-over'?'게임 종료':'';
   const rangeNote=Number.isFinite(targeted?.rangeU)?`시전 사거리 ${targeted.rangeU}`:'';
   cancelButton.hidden=!selecting;targetHint.textContent=(selecting?['교환할 보석을 누르세요 · 보유 목록에서도 선택',rangeNote]:[targeted?.description.split(/\r?\n/)[0],rangeNote,targetNote]).filter(Boolean).join(' · ');
+  selectionCard.render(snapshot);
   const keep=doc.getElementById('castA009'),start=doc.getElementById('skip'),play=doc.getElementById('play');
   for(const b of doc.querySelectorAll('button[data-primary]'))delete b.dataset.primary;
   const primary=keep&&!keep.disabled&&keep.getClientRects().length?keep:start&&!start.disabled&&start.getClientRects().length?start:play;

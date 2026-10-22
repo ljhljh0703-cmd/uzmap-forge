@@ -1,11 +1,11 @@
 import {createBuildPreview} from './dist/runtime/build-preview.js';
-import {terrainPixel,drawFieldRim,drawBuildRoute} from './field-art.js';
+import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
 import {createRunCheckpoint} from './run-checkpoint.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
-import {mountGemSkin} from "./ui-skin.js";
+import {mountGemSkin,selectionStageHint} from "./ui-skin.js";
 import {createCasinoFeedback} from "./casino-feedback.js";
 import {extractRecipeBook} from "./recipe-book.js";
 import {mountRecipeBook} from "./recipe-view.js";
@@ -13,7 +13,7 @@ import {mountOverlapPicker} from "./overlap-picker.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
-import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels} from "./play-ui.js";
+import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels,gemObjectPresentation,creepVisualPresentation} from "./play-ui.js";
 import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, freshSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
 import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
@@ -144,11 +144,16 @@ function renderFieldView(w){
  if(other)$('chatSend').disabled=true;
  const state=gemTowerPlayerState(w.vm,player),now=performance.now();w.displayedLife??=[];w.lifeHitUntil??=[];w.lifeHitMessage??=[];
  const loss=lifeLossFeedback(w.displayedLife[player],state.life);
- if(loss&&!restoring&&w.modeDialog?.clicked&&(state.round??0)>0){w.lifeHitUntil[player]=now+1800;w.lifeHitMessage[player]=loss;}
+ const lifeStatus=$('lifeLossStatus');
+ if((restoring||w.displayedLife[player]===undefined)&&lifeStatus?.textContent)lifeStatus.textContent='';
+ if(loss&&!restoring&&w.modeDialog?.clicked&&(state.round??0)>0){
+  w.lifeHitUntil[player]=now+1800;w.lifeHitMessage[player]=loss;
+  if(lifeStatus)lifeStatus.textContent=(other?'상대 전장 · ':'')+loss+` · 남은 생명 ${state.life}`;
+ }
  w.displayedLife[player]=state.life;const hit=now<(w.lifeHitUntil[player]??0);
  $('hudLife').closest('.hud-pill').dataset.lifeHit=String(hit);$('exitMarker').dataset.hit=String(hit);
- $('exitLegendLabel').textContent=hit?w.lifeHitMessage[player]:'광산 도달 시 생명 감소';
- const hint=$('gemNone').querySelector('span');hint.textContent=w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개${playing?' · 완성 중':' · 재개해서 완성하기'}`:w.precisePlacement?'정밀 배치 · 빈칸을 고르고 아래 건설로 확정':'빈칸 탭: 건설 · 길게 눌러 위치 확인';
+ $('exitLegendLabel').textContent=hit?w.lifeHitMessage[player]:'광산으로 · 도착 시 생명 감소';
+ const hint=$('gemNone').querySelector('span');hint.textContent=w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개${playing?' · 완성 중':' · 재개해서 완성하기'}`:w.precisePlacement?'정밀 배치 · 빈칸을 고르고 아래 건설로 확정':selectionStageHint(state);
  if(other){
   $('hudGold').textContent=connected?Math.floor(w.sim.ledger.gold(player)):'—';
   $('hudLife').textContent=connected?(state.life??'—'):'—';
@@ -528,26 +533,18 @@ function renderCreeps(w,footprintPx,z) {
     // boss/hell을 teardown의 "검정=최고위협" 취지를 확장해 배정한다(문자 그대로 복사가 아니라 지형 색과의
     // 대비를 우선한 적응, §3 규율 8 전제 반증).
     const role = GEMTOWER_BALANCE.roleTable[e.typeId];
-    const band = role?.kind === "creep" ? role.band : role?.archetype==="eventBoss" || role?.archetype==="tester" ? "boss" : "ground";
+    const visual=creepVisualPresentation(role,defOf(w,e.typeId)),band=visual.band;
     const col = band === "flying" ? "#4fc3f7" : band === "boss" ? "#1a1a1a" : band === "hell" ? "#c026d3" : band === "ground" ? "#ff9f43" : "#a89980";
     ctx.fillStyle = col; ctx.strokeStyle = band === "boss" ? "#ff3b3b" : "#170f0b"; ctx.lineWidth = band === "boss" ? 2 : 1;
     const spriteSize=clamp(footprintPx*(band==="boss"?1.7:1.15),band==="boss"?44:30,band==="boss"?84:56);
-    const hover=band==="flying"&&!reducedMotion.matches?Math.sin(w.sim.tickCount*.2)*3:0;
+    const hover=visual.airborne&&!reducedMotion.matches?Math.sin(w.sim.tickCount*.2)*3:0;
     if(!sprites.draw(ctx,"creep:"+band,px,py-hover,spriteSize,{tick:reducedMotion.matches?0:w.sim.tickCount,anchor:.8,flip:e.orderX<e.x})){
       ctx.beginPath(); ctx.arc(px, py, creepR, 0, 7); ctx.fill(); ctx.stroke();
     }
     // U-2d: 세그먼트 HP바(teardown "개체별 플로팅 HP바" — 연속 채움바가 아니라 이산 세그먼트로 교체,
     // 호드 가독성). 임계값 색상(>.5/>.25 초록·주황·빨강)은 기존 로직 그대로 재사용(재발명 0). 만피 시
     // 미표시는 기존 조건 유지(P-3/기존 "화면 소음 감소" 관례 — 항상 표시로 바꾸지 않음, 전제 반증 참조).
-    if (e.hpMax > 0 && e.hp < e.hpMax) {
-      const SEGS = 5, gap = 1, bw = Math.max(20,spriteSize*.7), frac = Math.max(0, e.hp / e.hpMax);
-      const segW = (bw - gap * (SEGS - 1)) / SEGS, barColor = frac > .5 ? "#53a64f" : frac > .25 ? "#c18b30" : "#d74e3c";
-      for (let s = 0; s < SEGS; s++) {
-        const sx = px - bw / 2 + s * (segW + gap), segFill = clamp(frac * SEGS - s, 0, 1);
-        ctx.fillStyle = "#332218"; ctx.fillRect(sx, py - spriteSize*.8 - 4, segW, 2);
-        if (segFill > 0) { ctx.fillStyle = barColor; ctx.fillRect(sx, py - spriteSize*.8 - 4, segW * segFill, 2); }
-      }
-    }
+    drawCreepHealth(ctx,{x:px,y:py-hover,size:spriteSize,hp:e.hp,maxHp:e.hpMax});
   }
   return creeps;
 }
@@ -572,6 +569,7 @@ function render(w,preservePendingDialog=false) {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(w.terrain, leftX, topY, w.pm.width * w.pm.cellSize * z, w.pm.height * w.pm.cellSize * z);
   }
+  drawFieldGround(ctx,{grid:w.pm,bounds:fieldBounds,project:p=>({x:W2SX(p.x),y:W2SY(p.y)}),sprites});
   if(fieldBounds){
     ctx.save();ctx.lineWidth=2;ctx.strokeStyle="#e2c17e";ctx.setLineDash([]);
     ctx.strokeRect(W2SX(fieldBounds.minX)+1,W2SY(fieldBounds.maxY)+1,(fieldBounds.maxX-fieldBounds.minX)*z-2,(fieldBounds.maxY-fieldBounds.minY)*z-2);ctx.restore();
@@ -617,11 +615,12 @@ function render(w,preservePendingDialog=false) {
     // 재사용(추가 조회 0, roleTable 단일 lookup).
     const role = GEMTOWER_BALANCE.roleTable[e.typeId];
     const normalFamily=gemTowerGemFamily(fullName(w,e.typeId));
-    const special=!normalFamily&&role?.kind==="static"&&role.archetype==="specialGem";
-    const logical=sprites.aliases[e.typeId]??(role?.kind==="tower"?`gem:${role.line}:${role.tier}`:role?.archetype==="specialGem"?`special:${e.typeId}`:"gem:unknown:0");
+    const visual=gemObjectPresentation(e.typeId,d,normalFamily,sprites.aliases[e.typeId]);
+    const special=visual.kind==='special';
+    const logical=visual.logical;
     const line=logical.startsWith("gem:")?logical.split(":")[1]:null;
     const colour=LINE_COLORS[line]??vis.color;
-    if(!sprites.draw(ctx,logical,px,py,gemSpriteSize(footprintPx),{tick:reducedMotion.matches?0:w.sim.tickCount,tint:colour})){
+    if(!sprites.draw(ctx,logical,px,py,gemSpriteSize(footprintPx),{tick:reducedMotion.matches?0:w.sim.tickCount,tint:logical.startsWith('slate:')?undefined:colour})){
     ctx.beginPath();
     for (let k = 0; k < vis.vertices; k++) {
       const ang = -Math.PI / 2 + (k * 2 * Math.PI) / vis.vertices;
@@ -723,13 +722,13 @@ function render(w,preservePendingDialog=false) {
     $("gemPanel").style.display = "flex";
     // U-6a(DISPATCH_SONNET_U6_INFOARCH §2 U-6a) — 이름(병합 nameMap, 없으면 기존 gemLabel() 폴백) +
     // 특별보석 여부 배지. gemLabel(라인·티어 필드)는 기존 그대로(무변경, 아래).
-    const selRole = GEMTOWER_BALANCE.roleTable[selected.typeId];
     const family=gemTowerGemFamily(fullName(w,selected.typeId));
+    const selectedVisual=gemObjectPresentation(selected.typeId,d,family,sprites.aliases[selected.typeId]);
     $("gemName").textContent = fullName(w, selected.typeId);
     $("gemCombatTarget").textContent = attackTargetLabel(d);
     const specialBadge = $("gemSpecialBadge");
-    if (specialBadge) specialBadge.style.display = (!family && selRole && selRole.kind === "static" && selRole.archetype === "specialGem") ? "inline-block" : "none";
-    $("gemLabel").textContent = family ? family.lineLabel+" · "+family.grade : gemLabel(selected.typeId);
+    if (specialBadge) specialBadge.style.display = (selectedVisual.kind === "special") ? "inline-block" : "none";
+    $("gemLabel").textContent = family ? family.lineLabel+" · "+family.grade : selectedVisual.label;
     const gemType = $("gemType");
     if (gemType) gemType.textContent = d && d.attack ? d.attack.attackType : "—";
     const attackText=attackDisplay(d?.attack??d?.secondaryAttack,DT);
@@ -977,13 +976,13 @@ function render(w,preservePendingDialog=false) {
   const sourceHand=gemTowerPlayerState(w.vm);
   const skinGem=(entity,slot)=>{
    if(!entity?.alive)return null;
-   const name=fullName(w,entity.typeId),family=gemTowerGemFamily(name),role=GEMTOWER_BALANCE.roleTable[entity.typeId];
-   const logical=sprites.aliases[entity.typeId]??(role?.kind==='tower'?`gem:${role.line}:${role.tier}`:`special:${entity.typeId}`);
-   return {slot,id:entity.id,name,alive:true,logical,tint:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
+   const name=fullName(w,entity.typeId),family=gemTowerGemFamily(name),visual=gemObjectPresentation(entity.typeId,defOf(w,entity.typeId),family,sprites.aliases[entity.typeId]);
+   return {slot,id:entity.id,name,alive:true,logical:visual.logical,kind:visual.kind,roleLabel:visual.label,tint:visual.kind==='stone'||visual.kind==='slate'?undefined:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
   };
   recipeGuide.setBook(w.recipeBook);
   gemSkin.render({casino:{...gemTowerCasinoState(w.vm,w.sim),feedback:w.casinoFeedback?.snapshot()},round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,
    targetActions:w.selectedGemId===null?[]:targetGemActions(w,w.selectedGemId),pendingTarget:w.pendingTargetAbility??null,
+   combatActive:sourceHand.chosen===true&&!w.prepActive&&!w.gameOver,pendingPoint:Boolean(w.pendingPointAbility),
    selectedGem:skinGem(w.selectedGemId===null?null:w.sim.getUnit(w.selectedGemId),null),
    candidates:Array.from({length:5},(_,i)=>{
     const slot=i+1;if(slot>(sourceHand.buildCount??0))return null;
