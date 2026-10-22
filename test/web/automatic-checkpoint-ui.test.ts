@@ -40,7 +40,7 @@ it('storage failure preserves the last automatic bytes, stays nonfatal and repor
 });
 it('actual visibility and page lifecycle hooks pause, save once and never resume on return',async()=>{
  const f=await fixture(),visibility=f.code.match(/document[.]addEventListener\("visibilitychange",[\s\S]*?\n\}\);/)?.[0],pagehide=f.code.match(/window[.]addEventListener\("pagehide",[\s\S]*?\n\}\);/)?.[0],pageshow=f.code.match(/window[.]addEventListener\("pageshow",[\s\S]*?\n\}\);/)?.[0];assert.ok(visibility&&pagehide&&pageshow);
- vm.runInNewContext(visibility+'\n'+pagehide+'\n'+pageshow,f.context);f.callbacks.visibilitychange();assert.equal(f.context.playing,false);assert.equal(f.writes(),1);f.callbacks.pagehide();assert.equal(f.writes(),1);f.context.document.hidden=false;f.callbacks.pageshow();assert.equal(f.context.playing,false);assert.ok(f.paints()>0);
+ f.context.drag={on:false};const clear=f.code.match(/^function clearPlacement\([^\n]*\{[\s\S]*?^\}/m)?.[0],interrupt=f.code.match(/^function interruptUiOrders\([^\n]*\{[\s\S]*?^\}/m)?.[0];assert.ok(clear&&interrupt);vm.runInNewContext(clear+'\n'+interrupt+'\n'+visibility+'\n'+pagehide+'\n'+pageshow,f.context);f.callbacks.visibilitychange();assert.equal(f.context.playing,false);assert.equal(f.writes(),1);f.callbacks.pagehide();assert.equal(f.writes(),1);f.context.document.hidden=false;f.callbacks.pageshow();assert.equal(f.context.playing,false);assert.ok(f.paints()>0);
 });
 it('new load checkpoints the healthy old world before clearing its failure flag and never checkpoints a restoring world',async()=>{
  for(const restoring of [false,true]){

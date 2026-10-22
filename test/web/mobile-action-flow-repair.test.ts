@@ -13,7 +13,7 @@ function selectionFixture(){
  const nodes:any={pathWarning:{},findCombination:{},gameDrawer:{hidden:true},drawerScrim:{hidden:true},researchToggle:{setAttribute(){}},drawerClose:{focus(){}},ownedExplorer:{open:false},gemRoster:{querySelector:()=>({focus(){}})}};
  const world:any={selectedGemId:11,availableComboIds:[22],pendingPointAbility:{unitId:11,abilityId:'A02J'},pendingCombatFocus:true,showRocks:false,sim:{getUnit:(id:number)=>id===22?rock:null},vm:{}};
  const calls:any={renders:0,targets:0};
- const context:any={world,$:(id:string)=>nodes[id],refreshSavedRuns(){},render(){calls.renders++;},cancelGemTarget,gemTowerPlayerGemIds:()=>[],requestGemTarget:()=>{calls.targets++;return true;},availableGemCombinations:()=>[22]};
+ const context:any={world,playing:false,$:(id:string)=>nodes[id],refreshSavedRuns(){},render(){calls.renders++;},cancelGemTarget,gemTowerPlayerGemIds:()=>[],requestGemTarget:()=>{calls.targets++;return true;},availableGemCombinations:()=>[22]};
  vm.runInNewContext(fn('setDrawer')+'\n'+fn('selectGemById'),context);
  return {world,nodes,calls,context};
 }

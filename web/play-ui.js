@@ -79,7 +79,7 @@ export function simplifyPlayShell(doc){
   return group;
  };
  const controls=doc.createElement('section');controls.className='menu-controls';controls.setAttribute('aria-label','게임 조작');
- const title=doc.createElement('h3');title.textContent='게임 조작';controls.append(title,byId('reset'),doc.querySelector('.speed-control'));
+ const title=doc.createElement('h3');title.textContent='게임 조작';controls.append(title,byId('reset'),doc.querySelector('.speed-control'));const precision=doc.querySelector('.precise-placement');if(precision)controls.append(precision);
  drawer.querySelector('.drawer-head').after(controls);
  doc.querySelector('.header-actions').prepend(byId('play'));
  controls.after(byId('ownedExplorer'));
@@ -122,4 +122,31 @@ export function lifeLossFeedback(previous,current){
 export function pointInBattlefield(point,bounds){
  if(!point||!bounds||![point.x,point.y,bounds.minX,bounds.minY,bounds.maxX,bounds.maxY].every(Number.isFinite))return false;
  return point.x>=bounds.minX&&point.x<=bounds.maxX&&point.y>=bounds.minY&&point.y<=bounds.maxY;
+}
+
+/** Match the actual centered sprite, not its wider pathing footprint. */
+export function visibleGemChoices(units,x,y,{zoom,footprintPixels}){
+ return units.filter(unit=>{const half=gemSpriteSize(footprintPixels,unit.typeId==='h00G')/2;return Math.abs((unit.x-x)*zoom)<=half&&Math.abs((unit.y-y)*zoom)<=half;});
+}
+/** View input only. Holding a finger previews without issuing a game command. */
+export function classifyMapGesture(start,event){
+ const touch=start.pointerType==='touch'||start.pointerType==='pen',distance=Math.hypot(event.clientX-start.sx,event.clientY-start.sy);
+ if(distance>(touch?12:6))return 'cancel';
+ return touch&&Number.isFinite(event.timeStamp)&&Number.isFinite(start.startedAt)&&event.timeStamp-start.startedAt>=350?'preview':'tap';
+}
+export const TRAIN_REASON={busy:'구입 중', 'insufficient-gold':'골드가 부족합니다', 'prereq-unmet':'선행 연구가 필요합니다', 'missing-data':'원작 자료가 필요합니다','unsupported-cost':'아직 지원하지 않는 자원 조건입니다','game-over':'게임이 끝났습니다','not-owner':'조종할 수 없는 시설입니다','not-trainable':'구입할 수 없는 항목입니다','missing-unit':'시설이 없습니다'};
+export function trainingOptionView(row,{name,count=1,life,gold,ready,paused,batch,spinning}){
+ const total=(row.cost??0)*count,capped=row.typeId==='h01W'&&life>=100;
+ const label=count>1?`수명 ${count}회 순차 구입 · ${total} 골드`:`${name} · ${row.cost??'?'} 골드`;
+ let reason;
+ if(!ready)reason='게임 방식과 난이도를 먼저 선택하세요';
+ else if(spinning)reason='추첨 완료 후 이용할 수 있습니다';
+ else if(capped)reason='최대 수명 100';
+ else if(batch)reason=paused?'구입 예약 중 · 재개하면 진행됩니다':'구입을 마친 뒤 이용할 수 있습니다';
+ else if(row.reason==='prereq-unmet')reason=row.requirements?.length?'먼저 필요: '+row.requirements.map(r=>`${r.name} ${r.count}단계 (현재 ${r.current})`).join(' · '):TRAIN_REASON[row.reason];
+ else if(row.reason==='insufficient-gold'||!row.reason&&gold<total)reason=`골드 부족 · ${Math.max(0,total-gold)} 골드 더 필요`;
+ else if(row.reason==='busy')reason=paused?'구입 예약 중 · 재개하면 진행됩니다':TRAIN_REASON.busy;
+ else if(row.reason)reason=TRAIN_REASON[row.reason]??'지금은 이용할 수 없습니다';
+ else reason=paused?'구입 예약 가능 · 재개 후 진행됩니다':`${((row.durationTicks??0)*.05*count).toFixed(1)}초 동안 순서대로 구입`;
+ return {label,reason,disabled:Boolean(row.reason)||capped||!ready||Boolean(batch)||gold<total||spinning};
 }
