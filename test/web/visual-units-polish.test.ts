@@ -56,7 +56,7 @@ it('invalid picture size and an unavailable tint surface keep the existing shape
 
 it('all reused PNG bytes still match their credited sources and manifest crops exist for phone silhouettes',()=>{
  for(const credit of manifest.credits){const bytes=readFileSync(new URL('../../web/assets/'+credit.file,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),credit.sha256,credit.file);}
- for(const key of ['gem:*','special:*','stone','creep:ground','creep:flying','creep:hell','creep:boss'])assert.ok(manifest.entries[key].trim,key+' should exclude measured transparent padding');
+ for(const key of ['gem:*','special:*','creep:ground','creep:flying','creep:hell','creep:boss'])assert.ok(manifest.entries[key].trim,key+' should exclude measured transparent padding');
  assert.notDeepEqual(manifest.entries['gem:*'].frame,manifest.entries['stone'].frame);
  assert.notEqual(manifest.entries['gem:*'].src,manifest.entries['special:*'].src);
 });

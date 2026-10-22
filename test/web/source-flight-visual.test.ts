@@ -1,0 +1,9 @@
+import {it} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import * as ui from '../../web/play-ui.js';import {readScriptMap} from '../../src/runtime/session.ts';import {parseUnitAbilityProfile} from '../../src/formats/stock-unit-abilities.ts';import {createUnitIdentityProvider} from '../../src/runtime/unit-identity.ts';import {GEMTOWER_BALANCE} from '../../src/sim/balance/configs/gemtower.ts';
+it('the first original wave is shown as flying despite its old balance-role band',()=>{
+ assert.equal(typeof (ui as any).creepVisualPresentation,'function');const {ir}=readScriptMap(new Uint8Array(fs.readFileSync('fixtures/maps/GemTower_Max_7C.w3x')),'map'),p=parseUnitAbilityProfile(JSON.parse(fs.readFileSync('fixtures/stock/unit-abilities.json','utf8'))),identity=createUnitIdentityProvider(p.units,ir.objectMods),before=JSON.stringify(ir.objectMods);
+ for(const [id,expected]of [['h00D','flying'],['h00Z','ground'],['h011','flying']]){const d=identity.resolve(id);assert.equal((ui as any).creepVisualPresentation(GEMTOWER_BALANCE.roleTable[id],d).band,expected,id);}
+ assert.equal(identity.resolve('h00D').movementType,'fly');assert.equal(JSON.stringify(ir.objectMods),before);
+});
+it('boss and hell artwork keeps its priority while source airborne state drives hover; absent source identity preserves prior fallback',()=>{
+ const view=(ui as any).creepVisualPresentation;assert.equal(typeof view,'function');assert.deepEqual(view({kind:'creep',band:'boss'},{movementType:'fly'}),{band:'boss',airborne:true});assert.deepEqual(view({kind:'creep',band:'hell'},{movementType:'foot'}),{band:'hell',airborne:false});assert.deepEqual(view({kind:'creep',band:'flying'},{}),{band:'flying',airborne:true});assert.deepEqual(view({kind:'creep',band:'flying'},null),{band:'flying',airborne:true});assert.deepEqual(view({kind:'creep',band:'flying'},{movementType:'foot'}),{band:'ground',airborne:false});
+});

@@ -93,3 +93,17 @@ export function drawFieldGround(ctx,{grid,bounds,project,sprites}={}){
  ctx.save();ctx.beginPath();ctx.rect(clipTop.x,clipTop.y,clipBottom.x-clipTop.x,clipBottom.y-clipTop.y);ctx.clip();ctx.imageSmoothingEnabled=false;
  ctx.drawImage(cached.image,top.x,top.y,bottom.x-top.x,bottom.y-top.y);ctx.restore();
 }
+
+/** Same observed HP thresholds; integer raster pixels sit above the existing sprite. */
+export function drawCreepHealth(ctx,{x,y,size,hp,maxHp}={}){
+ if(![x,y,size,hp,maxHp].every(Number.isFinite)||size<=0||maxHp<=0||hp>=maxHp)return false;
+ const width=Math.max(24,Math.round(size*.75)),left=Math.round(x-width/2),top=Math.round(y-size*.8-6),fraction=Math.max(0,Math.min(1,hp/maxHp)),pixels=width-4;
+ const colour=fraction>.5?'#53a64f':fraction>.25?'#c18b30':'#d74e3c';
+ ctx.save();ctx.imageSmoothingEnabled=false;ctx.fillStyle='#170f0b';ctx.fillRect(left-1,top-1,width+2,5);
+ for(let index=0;index<5;index++){
+  const start=Math.floor(index*pixels/5)+index,end=Math.floor((index+1)*pixels/5)+index,segment=end-start,part=Math.max(0,Math.min(1,fraction*5-index));
+  ctx.fillStyle='#332218';ctx.fillRect(left+start,top,segment,3);
+  if(part>0){ctx.fillStyle=colour;ctx.fillRect(left+start,top,Math.max(1,Math.round(segment*part)),3);}
+ }
+ ctx.restore();return true;
+}

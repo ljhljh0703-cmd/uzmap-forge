@@ -210,3 +210,35 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 @media(max-width:380px){header{padding-left:8px;padding-right:8px;gap:6px}.app[data-simple-ui=true] #resourceHud{gap:12px}.app[data-simple-ui=true] .statusbar{padding-left:14px;padding-right:14px}.route-legend{font-size:11px;gap:6px}.round-slots{gap:6px}.app[data-simple-ui=true] .bp-actions button{flex-basis:88px}}
 @media(max-height:600px){:root{--ui-header-height:44px}.app[data-simple-ui=true],.app[data-simple-ui=true][data-mode=classic]{grid-template-rows:44px 48px 28px minmax(0,1fr)}.app[data-simple-ui=true][data-mode=classic]{grid-template-rows:44px 48px 44px minmax(0,1fr)}.app[data-simple-ui=true] .statusbar{padding-top:4px;padding-bottom:4px}.round-slot{height:44px}#roundTray{padding-top:4px;padding-bottom:6px}.app[data-simple-ui=true] #gemPanel{padding-top:8px;padding-bottom:8px}}
 @media(prefers-reduced-motion:reduce){button:active:not(:disabled){transform:none}.round-slot[aria-pressed=true]{transform:none}}
+
+
+/* The source keep command names its result; combat reuses the existing details
+ * disclosure for the exact same action/upgrade nodes, with a neutral close. */
+#gemDeselect{min-width:44px;min-height:44px;max-width:44px;padding:0;font:24px/1 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#dbcba9;border:1px solid #756044;background-color:#34281d;border-radius:4px}
+.app[data-simple-ui=true] .bp-actions #gemDeselect{flex:0 0 44px;min-width:44px;min-height:44px;padding:0;align-self:center;font-size:24px}
+.app[data-simple-ui=true] #gemPanel[data-combat-card=true]{padding:6px 10px;gap:0}
+.app[data-simple-ui=true] #gemPanel[data-combat-card=true] .bp-name{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0;width:100%}
+#gemPanel[data-combat-card=true] .bp-name>#gemName{order:0;flex:1 1 100px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;line-height:1.5}
+.app[data-simple-ui=true] #gemPanel[data-combat-card=true] .bp-name>.gem-meta{order:1;flex:0 0 auto;width:auto;max-width:none;margin:0}
+.app[data-simple-ui=true] #gemPanel[data-combat-card=true] .bp-name>.gem-meta>summary{min-height:44px;padding:10px;font-size:12px;line-height:1.5;white-space:nowrap}
+#gemPanel[data-combat-card=true] .bp-name>#gemDeselect{order:2;flex:0 0 44px;min-width:44px;min-height:44px}
+.app[data-simple-ui=true] #gemPanel[data-combat-card=true] .bp-name>.gem-meta[open]{order:3;flex:1 0 100%;width:100%}
+#gemPanel[data-combat-card=true] .gem-detail-body>.bp-special{order:-2;align-self:flex-start}
+#gemPanel[data-combat-card=true] .gem-detail-body>.bp-actions{order:-1;width:100%;max-width:none}
+#gemPanel[data-combat-card=true] .gem-detail-body{padding-bottom:4px}
+
+
+/* Selection identity reuses the already painted 64px portrait. It is inside the
+ * existing disclosure, so the compact combat line gains no permanent content. */
+.selected-unit-art{display:flex;align-items:center;gap:12px;min-width:0;min-height:72px;padding:4px 0 8px;border-bottom:1px solid #604b30;order:-3}
+.selected-unit-art[hidden]{display:none}
+#selectedUnitArt>#selectedGemPortrait{display:block;position:static;flex:none;width:64px;height:64px;image-rendering:pixelated}
+.selected-unit-role{min-width:0;margin:0;color:#e7d7ad;font-size:13px;line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Source-observed life loss stays in the HUD/gutter, never over a monster. */
+.statusbar>#lifeLossStatus{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;pointer-events:none}
+.hud-pill[data-life-hit=true]{background:#562d24;box-shadow:inset 0 0 0 1px #f2a28f;border-radius:3px}
+.hud-pill[data-life-hit=true] b{color:#ffe0d7}.hud-pill[data-life-hit=true]>span{color:#f4c7bd}
+.exit-marker svg{box-shadow:inset 0 0 0 1px #b58375}.exit-marker[data-hit=true] svg{background:#7b3429;box-shadow:inset 0 0 0 1px #ffe0d7}
+.exit-marker[data-hit=true] path{fill:#fff0e9;stroke:#5b1d16}.exit-legend{color:#edbdb1}
+@media(prefers-reduced-motion:reduce){.hud-pill[data-life-hit=true],.exit-marker[data-hit=true]{animation:none;transition:none}}

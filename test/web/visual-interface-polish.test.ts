@@ -27,5 +27,5 @@ it('returning to primary after a quiet state repaints cached art and keeps sourc
  const f=fixture();f.paint();delete f.button.dataset.primary;f.paint();f.button.dataset.primary='true';f.paint();
  assert.equal(f.button.dataset.skinMaterial,'button-gold-normal');assert.match(f.button.style.backgroundImage,/data:image\/png/);assert.equal(f.draws(),1,'approved cached PNG is reused');
  delete f.button.dataset.primary;f.button.id='castA007';f.button.disabled=true;f.paint();assert.equal(f.button.dataset.skinMaterial,'button-green-disabled');
- f.button.id='gemDeselect';f.button.disabled=false;f.paint();assert.equal(f.button.dataset.skinMaterial,'button-red-normal');
+ f.button.id='castA008';f.button.disabled=false;f.paint();assert.equal(f.button.dataset.skinMaterial,'button-red-normal');
 });

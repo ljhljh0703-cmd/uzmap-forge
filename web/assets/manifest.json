@@ -126,18 +126,18 @@
       ]
     },
     "stone": {
-      "src": "sprites/props.png",
+      "src": "sprites/tiles.png",
       "frame": {
         "x": 0,
-        "y": 32,
-        "w": 32,
-        "h": 32
+        "y": 16,
+        "w": 16,
+        "h": 16
       },
-      "trim": {
-        "x": 2,
-        "y": 8,
-        "w": 28,
-        "h": 20
+      "frameProvenance": {
+        "metadata": "codex-asset-forge/examples/agentforge-starter/atlas/tileset.json",
+        "sourceId": "tile_wall_block",
+        "use": "길을 막는 돌 블록의 대체 표현",
+        "limit": "벽 타일 재사용이며 고립된 자연 바위 그림이 아님"
       }
     },
     "terrain:stone": {
@@ -145,8 +145,29 @@
       "frame": {
         "x": 0,
         "y": 0,
-        "w": 32,
-        "h": 32
+        "w": 16,
+        "h": 16
+      },
+      "frameProvenance": {
+        "metadata": "codex-asset-forge/examples/agentforge-starter/atlas/tileset.json",
+        "sourceId": "tile_floor_stone",
+        "use": "전장 석재 바닥 재질",
+        "limit": "원래 2×2 atlas 중 바닥 한 프레임만 사용"
+      }
+    },
+    "slate:*": {
+      "src": "sprites/tiles.png",
+      "frame": {
+        "x": 16,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "frameProvenance": {
+        "metadata": "codex-asset-forge/examples/agentforge-starter/atlas/tileset.json",
+        "sourceId": "tile_floor_cracked",
+        "use": "평판 슬레이트의 대체 표현",
+        "limit": "균열 바닥 타일 재사용이며 원작 슬레이트 형태나 조각 문양 재현이 아님"
       }
     }
   },
