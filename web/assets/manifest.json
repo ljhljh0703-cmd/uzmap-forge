@@ -290,6 +290,24 @@
       "source": "ClaudeCraft/derived-source/world-of-claudecraft-renewed/public/sprites/item/mire_lock_pearl/idle.png",
       "sha256": "eef5c2f44f506729962cc35b01e5738c2a7623623872607759322e8312480d28",
       "use": "existing user generated art, provisional reuse; no Blizzard assets"
+    },
+    {
+      "file": "audio/place.wav",
+      "source": "hwigi-tower/Assets/_Project/Audio/SFX/UI/sfx_ui_tap.wav",
+      "sha256": "184da0406c812073003c093bc0a34bbfdf8ed40eb28096888c9891eff779dfae",
+      "use": "existing user project prototype cue reused for this provisional UI; original bytes unchanged"
+    },
+    {
+      "file": "audio/combine.wav",
+      "source": "hwigi-tower/Assets/_Project/Audio/SFX/UI/sfx_ui_confirm.wav",
+      "sha256": "b14e990c1f06d5ebf3d4b180bbc05e5021d826cc0554b907d54e55bd889b8166",
+      "use": "existing user project prototype cue reused for this provisional UI; original bytes unchanged"
+    },
+    {
+      "file": "audio/upgrade.wav",
+      "source": "hwigi-tower/Assets/_Project/Audio/SFX/Shop/sfx_shop_purchase.wav",
+      "sha256": "256d3cd4022915469d8323968981ced7681d9aa431275a6de86c63d9b1cb2847",
+      "use": "existing user project prototype cue reused for this provisional UI; original bytes unchanged"
     }
   ],
   "palette": {

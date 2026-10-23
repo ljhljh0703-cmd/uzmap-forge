@@ -242,7 +242,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const buttons=Array.from({length:5},(_,index)=>{
   const button=doc.createElement('button');button.type='button';button.className='round-slot';button.dataset.slot=String(index+1);button.setAttribute('aria-pressed','false');
   const frame=doc.createElement('canvas');frame.className='slot-material';frame.setAttribute('aria-hidden','true');const art=doc.createElement('canvas');art.className='slot-gem';art.width=64;art.height=64;art.setAttribute('aria-hidden','true');
-  const number=doc.createElement('span');number.className='slot-number';number.textContent=String(index+1);button.append(frame,art,number);slots.append(button);
+  const number=doc.createElement('span');number.className='slot-number';number.textContent=String(index+1);const grade=doc.createElement('span');grade.className='slot-grade';grade.setAttribute('aria-hidden','true');grade.hidden=true;button.append(frame,art,number,grade);slots.append(button);
   button.addEventListener('click',()=>{const id=Number(button.dataset.unitId);if(Number.isSafeInteger(id)&&id>0)selectUnit(id);});return button;
  });
  const targetPanel=doc.createElement('section');targetPanel.id='gemTargetAbilities';targetPanel.hidden=true;targetPanel.setAttribute('aria-label','보조 능력');
@@ -350,6 +350,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  doc.addEventListener('keydown',event=>{if(!event.repeat&&(event.key===' '||event.key==='Enter')&&event.target.matches('button')){pressed.add(event.target);setPressed(event.target,true);}});
  doc.addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter')releasePressed();});
  function paintSlot(button,item){
+  const grade=button.querySelector('.slot-grade');if(grade){grade.hidden=!item.grade;grade.textContent=item.grade?String(item.grade.rank):'';button.dataset.sourceGrade=item.grade?String(item.grade.rank):'';}
   const frame=button.querySelector('.slot-material'),art=button.querySelector('.slot-gem'),w=Math.round(button.clientWidth),h=Math.round(button.clientHeight);
   if(frame.width!==w||frame.height!==h){frame.width=w;frame.height=h;}
   const ctx=frame.getContext('2d');const key=qualityMaterialForFrame(item.frame);rasterNineSlice(ctx,MATERIALS[key],w,h);button.dataset.qualityMaterial=key;

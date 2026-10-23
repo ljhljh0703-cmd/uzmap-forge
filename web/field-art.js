@@ -107,3 +107,27 @@ export function drawCreepHealth(ctx,{x,y,size,hp,maxHp}={}){
  }
  ctx.restore();return true;
 }
+
+/** Small static source-grade rail, contained in the existing sprite box. */
+export function drawGemGrade(ctx,{x,y,size,rank}={}){
+ if(![x,y,size].every(Number.isFinite)||size<12||!Number.isInteger(rank)||rank<1||rank>6)return false;
+ const left=Math.round(x-6),top=Math.round(y+size/2-3);
+ ctx.save();ctx.fillStyle='#170f0b';ctx.fillRect(left,top,12,3);
+ for(let i=0;i<6;i++){ctx.fillStyle=i<rank?'#f0dfb2':'#655b47';ctx.fillRect(left+i*2,top+1,1,1);}
+ ctx.restore();return true;
+}
+/** Static identity accent only; original replacement pixels and picking size stay intact. */
+export function drawObjectKindMark(ctx,{x,y,size,kind}={}){
+ if(![x,y,size].every(Number.isFinite)||size<6||!['stone','slate'].includes(kind))return false;
+ const left=Math.round(x-size/2),top=Math.round(y-size/2),width=Math.round(size);
+ ctx.save();ctx.strokeStyle=kind==='stone'?'#1a211d':'#e0c998';ctx.lineWidth=1;ctx.strokeRect(left+.5,top+.5,width-1,width-1);
+ if(kind==='slate'){ctx.fillStyle='#e0c998';ctx.fillRect(left+2,top+width-4,Math.max(1,width-4),1);}
+ ctx.restore();return true;
+}
+/** A wing mark below the picture remains readable with reduced motion. */
+export function drawAirborneMark(ctx,{x,y,size,airborne}={}){
+ if(airborne!==true||![x,y,size].every(Number.isFinite)||size<=0)return false;
+ const cy=Math.round(y+size*.2+6),half=Math.min(7,Math.max(3,size*.18));
+ ctx.save();ctx.beginPath();ctx.moveTo(x-half,cy+2);ctx.lineTo(x-half/2,cy);ctx.lineTo(x,cy+2);ctx.lineTo(x+half/2,cy);ctx.lineTo(x+half,cy+2);
+ ctx.lineWidth=3;ctx.strokeStyle='#17241f';ctx.stroke();ctx.lineWidth=1;ctx.strokeStyle='#8ad8ef';ctx.stroke();ctx.restore();return true;
+}

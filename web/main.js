@@ -1,5 +1,6 @@
+import {createActionFeedback,createCueAudio} from './action-feedback.js';
 import {createBuildPreview} from './dist/runtime/build-preview.js';
-import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth} from './field-art.js';
+import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth,drawGemGrade,drawObjectKindMark,drawAirborneMark} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
 import {createRunCheckpoint} from './run-checkpoint.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
@@ -13,7 +14,7 @@ import {mountOverlapPicker} from "./overlap-picker.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
-import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels,gemObjectPresentation,creepVisualPresentation} from "./play-ui.js";
+import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels,gemObjectPresentation,creepVisualPresentation,gemGradePresentation,attackTypeLabel} from "./play-ui.js";
 import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, freshSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
 import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
@@ -43,6 +44,20 @@ simplifyPlayShell(document);
 const recipeGuide=mountRecipeBook(document);
 const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
+const actionAudio=createCueAudio({onState:state=>{
+ const button=$('feedbackSound'),label=$('feedbackSoundStatus');if(!button||!label)return;
+ button.textContent=state.enabled?'효과음 켜짐':'효과음 꺼짐';button.setAttribute('aria-pressed',String(state.enabled));button.dataset.soundState=state.status;button.dataset.played=String(state.played);
+ const text=({idle:'첫 터치 후 소리가 준비됩니다',loading:'효과음 준비 중…',ready:'효과음 준비됨',muted:'효과음이 꺼져 있습니다',paused:'다음 터치부터 소리가 재개됩니다',blocked:'소리를 준비하지 못했습니다 · 다시 켜서 시도하세요',unsupported:'이 브라우저는 효과음을 지원하지 않습니다'})[state.status];if(label.textContent!==text)label.textContent=text;
+}});
+const actionFeedback=createActionFeedback({document,play:kind=>actionAudio.play(kind),reducedMotion:()=>reducedMotion.matches});
+$('feedbackSound').onclick=()=>{actionAudio.setEnabled(!actionAudio.snapshot().enabled);if(actionAudio.snapshot().enabled)void actionAudio.unlock();};
+const unlockActionAudio=event=>{if(event.isTrusted===false)return;void actionAudio.unlock();};
+document.addEventListener('pointerdown',unlockActionAudio,{capture:true,passive:true});
+document.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')unlockActionAudio(event);},true);
+const quietActionFeedback=()=>{actionFeedback.clear();void actionAudio.suspend();};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)quietActionFeedback();});
+window.addEventListener('pagehide',quietActionFeedback);
+
 const artManifestURL=new URL("./assets/manifest.json",import.meta.url);
 const contentBuild=new URL(import.meta.url).searchParams.get("build");
 const replayBuild=/^[a-f0-9]{16}$/.test(window.UZMAP_REPLAY_BUILD??'')?window.UZMAP_REPLAY_BUILD:null;
@@ -65,7 +80,7 @@ const frameClock = createFrameClock();
 let restoring=false,restoreCancelled=false;
 let runtimeFailed=false,loadingRun=false;
 let world = null, playing = false, tps = 1, rectEntered = 0, deaths = 0, gatePassed = 0;
-window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;frameClock.reset();$("play").disabled=true;$("runState").textContent='오류로 정지';});
+window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;world?.viewFeedback?.clear();void world?.cueAudio?.suspend();frameClock.reset();$("play").disabled=true;$("runState").textContent='오류로 정지';});
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6, GEM_IDENTITY_MINE_DESIGN §6) — TextTag(피격/획득 부유 숫자).
 // Attacked 이벤트엔 대미지 수치 필드가 없어(world_api.ts SimEvent — attackerUnitId/targetUnitId만) 값
 // 재구현 없이 "매 스텝 전/후 hp 스냅샷 차이"로 대미지량을 관측한다(엔진 hp mutation을 그대로 읽을 뿐 —
@@ -297,6 +312,7 @@ function boot(bytes, presentation, stockProfile, seed) {
   rectEntered = 0; deaths = 0; gatePassed = 0;
   w.recordInput=input=>recordInput(w,input);
   focusPlayer(w);
+  w.viewFeedback=actionFeedback;w.cueAudio=actionAudio;
   return w;
 }
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -423,7 +439,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
  const checkpoint=checkpointRun(world,true);if(checkpoint?.kind==='failed'){flash('현재 진행을 보관하지 못해 이어하기를 중단했습니다 · 현재 게임은 계속할 수 있습니다');return;}
  const before=captureRunView(),savedSelection=$("savedRuns")?.value;let savedCopy,completed=false;
  const rollbackCopy=()=>{if(!savedCopy)return '';try{return savedCopy.rollback()?'':' · 새 복사본이 변경되어 그대로 남겨 두었습니다';}catch{return ' · 새 복사본 정리를 완료하지 못했습니다';}};
- restoring=true;restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
+ restoring=true;world?.viewFeedback?.clear();world?.cueAudio?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
   await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   if((world.sourceVersion??null)!==(trace.sourceVersion??null))throw Error('원작 자료 버전이 달라 이어할 수 없습니다');
@@ -549,6 +565,7 @@ function renderCreeps(w,footprintPx,z) {
     // U-2d: 세그먼트 HP바(teardown "개체별 플로팅 HP바" — 연속 채움바가 아니라 이산 세그먼트로 교체,
     // 호드 가독성). 임계값 색상(>.5/>.25 초록·주황·빨강)은 기존 로직 그대로 재사용(재발명 0). 만피 시
     // 미표시는 기존 조건 유지(P-3/기존 "화면 소음 감소" 관례 — 항상 표시로 바꾸지 않음, 전제 반증 참조).
+    drawAirborneMark(ctx,{x:px,y:py,size:spriteSize,airborne:visual.airborne});
     drawCreepHealth(ctx,{x:px,y:py-hover,size:spriteSize,hp:e.hp,maxHp:e.hpMax});
   }
   return creeps;
@@ -651,17 +668,10 @@ function render(w,preservePendingDialog=false) {
       ctx.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,rad=k%2?2:4;const x=px+Math.cos(a)*rad,y=py-r-8+Math.sin(a)*rad;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.closePath();ctx.fill();
     }
     if (selected) { ctx.strokeStyle = "#f0dfb2"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, r + 4, 0, 7); ctx.stroke(); }
-    // U-1c: 라벨 — 티어 숫자(도형 중심 오버레이) + 라인 이름(하단), roleTable 파생만(발명 0). 미분류
-    // (예: 라운드 시작 돌변환 h00G)는 role.kind !== "tower"라 라벨 생략(데이터 없으면 표시 안 함).
-    if (role && role.kind === "tower" && (selected || e.id===w.hoverGemId || footprintPx>=60)) {
-      ctx.textAlign = "center";
-      ctx.font = `bold ${(r>=24?24:12)}px system-ui`;
-      ctx.lineWidth = 2; ctx.strokeStyle = "#170f0b"; ctx.strokeText(String(role.tier), px, py + r * 0.35);
-      ctx.fillStyle = "#f0dfb2"; ctx.fillText(String(role.tier), px, py + r * 0.35);
-      ctx.font = "12px system-ui"; ctx.fillStyle = "#f0dfb2";
-      ctx.fillText(gemTowerGemFamily(fullName(w,e.typeId))?.lineLabel??fullName(w,e.typeId), px, py + r + 11);
-      ctx.textAlign = "left";
-    } else if (special && (selected || e.id===w.hoverGemId || footprintPx>=60)) {
+    drawObjectKindMark(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx),kind:visual.kind});
+    const grade=gemGradePresentation(normalFamily?.grade);
+    if(visual.kind==='gem'&&grade)drawGemGrade(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx),rank:grade.rank});
+    if (special && (selected || e.id===w.hoverGemId || footprintPx>=60)) {
       // U-6c(DISPATCH_SONNET_U6_INFOARCH §2 U-6c, U-5 흡수) — specialGem 종류명 라벨. 병합 nameMap(81/81
       // 커버, 위 loadNameMap() 참조)에서 그대로 읽는다 — 이전엔 SPECIALGEM_NAMES(28/45)만 커버해 17종이
       // 라벨 생략이었으나, 이제 45종 전원이 이름을 갖는다(원장 그대로, 발명 0).
@@ -678,7 +688,7 @@ function render(w,preservePendingDialog=false) {
   for(const e of w.sim.entities.values()) {
     if(!e.alive || e.typeId!=="h00G")continue;
     const px=W2SX(e.x),py=W2SY(e.y),r=Math.max(5,footprintPx*.27);
-    if(sprites.draw(ctx,"stone",px,py,gemSpriteSize(footprintPx,true)))continue;
+    if(sprites.draw(ctx,"stone",px,py,gemSpriteSize(footprintPx,true))){drawObjectKindMark(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx,true),kind:'stone'});continue;}
     ctx.fillStyle="#778078";ctx.strokeStyle="#354539";ctx.lineWidth=1;
     ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;const x=px+Math.cos(a)*r,y=py+Math.sin(a)*r*.8;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.closePath();ctx.fill();ctx.stroke();
   }
@@ -735,7 +745,7 @@ function render(w,preservePendingDialog=false) {
     if (specialBadge) specialBadge.style.display = (selectedVisual.kind === "special") ? "inline-block" : "none";
     $("gemLabel").textContent = family ? family.lineLabel+" · "+family.grade : selectedVisual.label;
     const gemType = $("gemType");
-    if (gemType) gemType.textContent = d && d.attack ? d.attack.attackType : "—";
+    if (gemType) gemType.textContent = attackTypeLabel(d?.attack?.attackType);
     const attackText=attackDisplay(d?.attack??d?.secondaryAttack,DT);
     $("gemDmg").textContent = attackText.damage;
     $("gemRange").textContent = d?.secondaryAttack?`${d.attack?.rangeU??"—"} / ${d.secondaryAttack.rangeU}`:d?.attack?.rangeU??"—";
@@ -985,7 +995,7 @@ function render(w,preservePendingDialog=false) {
   const skinGem=(entity,slot)=>{
    if(!entity?.alive)return null;
    const name=fullName(w,entity.typeId),family=gemTowerGemFamily(name),visual=gemObjectPresentation(entity.typeId,defOf(w,entity.typeId),family,sprites.aliases[entity.typeId]);
-   return {slot,id:entity.id,name,alive:true,logical:visual.logical,kind:visual.kind,roleLabel:visual.label,tint:visual.kind==='stone'||visual.kind==='slate'?undefined:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
+   return {slot,id:entity.id,name,alive:true,logical:visual.logical,kind:visual.kind,grade:gemGradePresentation(family?.grade),roleLabel:visual.label+(family?' · '+family.grade:''),tint:visual.kind==='stone'||visual.kind==='slate'?undefined:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
   };
   recipeGuide.setBook(w.recipeBook);
   gemSkin.render({casino:{...gemTowerCasinoState(w.vm,w.sim),feedback:w.casinoFeedback?.snapshot()},round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,
@@ -1156,15 +1166,18 @@ function stepN(w, n) {
         w.pendingBuilds.shift(); // D5: 조용한 실패 금지 — 큐 적재순 그대로 소비, 사유 표면화
         flash("건설 거부: " + (BUILD_REJECT_LABEL[ev.reason] || ev.reason));
       } else if (ev.kind === "ConstructFinished") {
+        if(ev.playerId!==undefined&&ev.playerId!==0)continue;
         // ReplaceUnitBJ는 위치·소유를 승계하되 id를 새로 발급한다(unit-entity.ts replaceEntity 계약) —
         // 원 unitId는 이미 제거돼 있으므로 우리가 큐잉 시 기록해둔 좌표로 결과 엔티티를 찾는다.
         const spot = w.pendingBuilds.shift();
         if (spot) {
           const rolled = [...w.sim.entities.values()].find((e) => e.alive && e.x === spot.x && e.y === spot.y && e.typeId !== "h006" && e.typeId !== "u000");
-          flash(rolled ? "젬 확정: " + fullName(w, rolled.typeId) : "건설 완료(조건 대기 — 관측)");
+          flash(rolled ? "설치 완료: " + fullName(w, rolled.typeId) : "건설 완료 · 결과 확인 중");
+          if(rolled)showActionSuccess(w,'place',rolled);
         }
       } else if (ev.kind === "UpgradeFinished") {
         flash("강화 완료: " + fullName(w,ev.targetTypeId));
+        if(ev.owner===0)showActionSuccess(w,'upgrade',{id:ev.unitId,typeId:ev.targetTypeId});
       } else if(ev.kind === "UpgradeRejected") {
         flash(ev.reason==='not-owner'?'라운드가 바뀌어 강화를 취소했습니다 · 전투 중 다시 선택하세요':ev.reason==='insufficient-gold'?'강화할 골드가 부족합니다':ev.reason==='busy'?'이미 강화 중입니다':'강화 조건이 바뀌어 요청을 취소했습니다');
       } else if (ev.kind === "AbilityOrderRejected") {
@@ -1200,7 +1213,9 @@ function stepN(w, n) {
       if (observed.result) {
         w.knownGemIds.add(observed.result.typeId);
         if (w.selectedGemId === req.unitId || w.selectedGemId === null) w.selectedGemId = observed.result.id;
-        flash("시전 결과: " + fullName(w, observed.result.typeId));
+        const combined=["A007","A00R","A03M"].includes(req.abilityId);
+        flash((combined?"조합 완료: ":"시전 결과: ") + fullName(w, observed.result.typeId));
+        if(combined)showActionSuccess(w,'combine',observed.result);
       } else flash("능력 사용됨");
       w.pendingCasts.splice(i, 1);
     }
@@ -1261,6 +1276,11 @@ function requestGemTarget(w,targetUnitId){
  const accepted=issueGemTarget(w,targetUnitId);flash(accepted?'교환 명령을 전달했습니다':'지금은 교환 명령을 전달할 수 없습니다');return accepted;
 }
 
+function showActionSuccess(w,kind,unit) {
+ if(!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||w.gameOver||!unit?.id)return null;
+ return actionFeedback.confirm({key:`${w.runId}:${w.sim.tickCount}:${kind}:${unit.id}`,kind,unitId:unit.id,name:fullName(w,unit.typeId)});
+}
+
 function flash(t) { flashMsg = ""; flashUntil = performance.now() + 1800;gemSkin.notify(t); }
 
 function loop(now = performance.now()) {
@@ -1268,7 +1288,7 @@ function loop(now = performance.now()) {
   if(runtimeFailed||loadingRun)return;
   try{
     const ticks=frameClock.advance(now,Boolean(world&&playing&&!restoring),tps);
-    if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);checkpointRun(world);}
+    if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);world.viewFeedback?.render(world.selectedGemId);checkpointRun(world);}
   }catch(error){runtimeFailed=true;playing=false;frameClock.reset();window.showErr('게임 화면 오류',error);}
 }
 
@@ -1593,7 +1613,7 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true}={}) {
   if(loadingRun)return false;
   checkpointRun(world,true);
   const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
-  loadingRun=true;playing=false;frameClock.reset();
+  loadingRun=true;world?.viewFeedback?.clear();world?.cueAudio?.stop();playing=false;frameClock.reset();
   runtimeFailed=false;document.documentElement.dataset.gameReady='false';
   try {
     setMsg("맵 로딩 중…");

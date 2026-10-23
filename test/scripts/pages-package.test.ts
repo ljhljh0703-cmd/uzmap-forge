@@ -28,3 +28,6 @@ it('casino receipts and the runtime recipe guide ship with the imported module g
   for(const name of modules)assert.equal(existsSync(join(root,'.site/web',name)),true,'missing public dependency '+name);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('source-success feedback module and only the three pinned own-project wav names ship',()=>{const root=fixture();try{mkdirSync(join(root,'web/assets/audio'));for(const name of ['place','combine','upgrade'])writeFileSync(join(root,'web/assets/audio',name+'.wav'),'RIFF prototype cue');writeFileSync(join(root,'web/action-feedback.js'),'export const viewOnly=true;');packagePages(root,join(root,'.site'));assert.ok(existsSync(join(root,'.site/web/action-feedback.js')));for(const name of ['place','combine','upgrade'])assert.ok(existsSync(join(root,'.site/web/assets/audio',name+'.wav')));}finally{rmSync(root,{recursive:true,force:true});}});
+it('an arbitrary wav cannot be smuggled through the own-cue allowlist',()=>{const root=fixture();try{mkdirSync(join(root,'web/assets/audio'));writeFileSync(join(root,'web/assets/audio/private.wav'),'private');assert.throws(()=>packagePages(root,join(root,'.site')),/not publishable/);}finally{rmSync(root,{recursive:true,force:true});}});
