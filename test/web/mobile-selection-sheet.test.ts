@@ -15,7 +15,7 @@ function fixture(){
   focus(){doc.activeElement=this;this.focuses++;}
  }
  const panel:any=new Element(),meta:any=new Element(),summary:any=new Element(),body:any=new Element(),ability:any=new Element();let rect={left:12,top:786,width:390,height:58};let reads=0;
- panel.getBoundingClientRect=()=>{reads++;return {...rect};};body.append(ability);meta.append(summary,body);panel.append(meta);doc.createElement=()=>new Element();
+ panel.getBoundingClientRect=()=>{reads++;return {...rect};};body.append(ability);meta.append(summary,body);panel.append(meta);doc.createElement=()=>new Element();doc.getElementById=(id)=>id==='battlefield'?{getBoundingClientRect:()=>({height:640})}:null;
  assert.equal(typeof (skin as any).createSelectionSheet,'function','actual DOM overlay helper exists');const sheet=(skin as any).createSelectionSheet(doc,{panel,meta,summary,body});sheet.update({selected:true,interacting:false});
  const grip=body.children.find(n=>n.id==='selectionSheetHandle');
  const nativeClick=(handle=summary,extra:any={})=>{const event=handle.emit('click',extra);if(handle===summary&&!event.defaultPrevented){meta.open=!meta.open;meta.emit('toggle');}return event;};
@@ -48,4 +48,8 @@ it('resize updates overlay anchors without changing host dimensions; clearing se
 it('a cancelled-direction or incomplete drag consumes its compatibility click, while a fresh tap remains native',()=>{
  for(const delta of [{x:80,y:-60},{x:0,y:-20}]){const f=fixture();f.summary.emit('pointerdown');f.summary.emit('pointermove',{clientX:100+delta.x,clientY:400+delta.y,timeStamp:170});f.summary.emit('pointerup',{clientX:100+delta.x,clientY:400+delta.y,timeStamp:200});assert.equal(f.meta.open,false);assert.equal(f.nativeClick(f.summary,{timeStamp:201}).defaultPrevented,true);assert.equal(f.meta.open,false);}
  const f=fixture();f.swipe();assert.equal(f.meta.open,true);f.summary.emit('pointerdown',{timeStamp:210});f.summary.emit('pointerup',{timeStamp:215,clientY:401});assert.equal(f.nativeClick(f.summary,{timeStamp:216}).defaultPrevented,false);assert.equal(f.meta.open,false);
+});
+
+it('the opened sheet uses at most half the real battlefield height and recalculates after resize',()=>{
+ const f=fixture();f.nativeClick();assert.equal(f.body.style.values['--selection-sheet-max-height'],'320px');f.doc.getElementById=()=>({getBoundingClientRect:()=>({height:400})});f.sheet.update({selected:true,interacting:false});assert.equal(f.body.style.values['--selection-sheet-max-height'],'200px');
 });

@@ -6,7 +6,7 @@ import {resolve,join,relative,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {MAP_SHA256,PROFILE_SHA256} from '../web/source-input.js';
-const TOP_FILES=new Set(['index.html','main.js','play.css','build-info.json','gem-actions.js','gem-targeting.js','local-stock.js','play-ui.js','run-storage.js','run-checkpoint.js','ui-skin.js','visual-assets.js','source-input.js','browser-runtime.js','field-art.js','casino-feedback.js','recipe-book.js','recipe-view.js','overlap-picker.js','action-feedback.js']);
+const TOP_FILES=new Set(['first-minute.js','index.html','main.js','play.css','build-info.json','gem-actions.js','gem-targeting.js','local-stock.js','play-ui.js','run-storage.js','run-checkpoint.js','ui-skin.js','visual-assets.js','source-input.js','browser-runtime.js','field-art.js','casino-feedback.js','recipe-book.js','recipe-view.js','overlap-picker.js','action-feedback.js']);
 function assetAllowed(p){return /^audio\/(?:place|combine|upgrade)\.wav$/.test(p)||p==='manifest.json'||p==='ui/materials.json'||p==='fonts/OFL.txt'||/^fonts\/[A-Za-z0-9_-]+\.woff2$/.test(p)||/^(?:sprites|ui\/approved)\/[A-Za-z0-9_-]+\.png$/.test(p);}
 export function packagePages(root,output=join(root,'.site'),{withSourceInputs=false}={}){
  root=resolve(root);output=resolve(output);

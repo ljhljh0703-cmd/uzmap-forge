@@ -35,7 +35,7 @@ function fixture(){
 }
 it('the existing keep button states its result without changing identity, title conditions or acquired commands',()=>{
  const f=fixture(),before=[...f.actions.children];f.render();assert.equal(f.keep.textContent,'이 보석 남기기');assert.equal(f.keep.title,'보석 한 개를 남깁니다');assert.equal(f.keep.id,'castA009');assert.deepEqual(f.actions.children,before);assert.equal(f.keep.disabled,false);
- assert.equal(f.close.textContent,'×');assert.equal(f.close.getAttribute('aria-label'),'선택 닫기');assert.equal(skin.approvedButtonMaterial({id:'gemDeselect'}),null);assert.equal(skin.approvedButtonMaterial({id:'castA008'}),'button-red-normal');
+ assert.equal(f.close.textContent,'×');assert.equal(f.close.getAttribute('aria-label'),'선택 닫기');assert.equal(skin.approvedButtonMaterial({id:'gemDeselect'}),null);assert.equal(skin.approvedButtonMaterial({id:'castA008'}),'button-green-normal');
  assert.match(f.hint.textContent,/남기/);f.render({buildCount:3});assert.match(f.hint.textContent,/2개/);f.render({chosen:true});assert.match(f.hint.textContent,/능력.*강화/);
 });
 it('combat compacts to a named disclosure and close, retaining the same ability and upgrade controls',()=>{
@@ -73,4 +73,8 @@ it('selection details reuse the original portrait canvas and expose only supplie
 it('missing source identity hides the art header and clears old labels instead of inventing a unit classification',()=>{
  const f=fixture();f.render({selectedGem:{id:7,kind:'gem',roleLabel:'보석 · 공격 타워'}});const header=f.doc.getElementById('selectedUnitArt'),role=f.doc.getElementById('selectedUnitRole');assert.equal(header.hidden,false);
  for(const selectedGem of [null,{id:8},{id:8,kind:'slate'},{id:8,roleLabel:'분류'},{id:8,kind:'stone',roleLabel:'  '},{id:8,kind:4,roleLabel:'분류'}]){f.render({selectedId:selectedGem?.id??null,selectedGem});assert.equal(header.hidden,true);assert.equal(role.textContent,'');assert.equal(header.dataset.kind,undefined);}
+});
+
+it('ordinary keep focus collapses on combat entry even while the source button is still enabled',()=>{
+ const f=fixture();f.render();f.keep.focus();assert.equal(f.keep.disabled,false);f.render({chosen:true,combatActive:true});assert.equal(f.meta.open,false);assert.equal(f.doc.activeElement,f.summary);f.meta.open=true;f.ability.focus();f.render({chosen:true,combatActive:true});assert.equal(f.meta.open,true);assert.equal(f.doc.activeElement,f.ability);
 });

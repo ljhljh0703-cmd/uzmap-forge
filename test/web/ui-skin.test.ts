@@ -24,13 +24,17 @@ it('one notice merges repeated identical events and starts a fresh count after e
 
 it('approved button artwork uses all three colors and source disabled overrides a held press',()=>{
  const states=[{}, {pressed:true}, {disabled:true,pressed:true}];
- assert.deepEqual(states.map(state=>approvedButtonMaterial({id:'play',primary:true,...state})),['button-gold-normal','button-gold-pressed','button-gold-disabled']);
+ assert.deepEqual(states.map(state=>approvedButtonMaterial({id:'startGame',primary:true,...state})),['button-gold-normal','button-gold-pressed','button-gold-disabled']);
  assert.deepEqual(states.map(state=>approvedButtonMaterial({id:'castA007',...state})),['button-green-normal','button-green-pressed','button-green-disabled']);
- assert.deepEqual(states.map(state=>approvedButtonMaterial({id:'castA008',...state})),['button-red-normal','button-red-pressed','button-red-disabled']);
+ assert.deepEqual(states.map(state=>approvedButtonMaterial({id:'castA008',...state})),['button-green-normal','button-green-pressed','button-green-disabled']);
  assert.equal(approvedButtonMaterial({id:'researchToggle'}),null);
 });
 it('the five quality frames use five approved source PNGs without replacing the six source grades',()=>{
  assert.deepEqual([0,1,2,3,4].map(qualityMaterialForFrame),['slot-grey','slot-green','slot-blue','slot-purple','slot-gold']);
  assert.equal(qualityMaterialForFrame(qualityFrameForName('퍼펙트 루비')),'slot-gold');
  assert.equal(qualityMaterialForFrame(qualityFrameForName('최상급 루비')),'slot-gold');
+});
+
+it('only one meaningful current action gets gold while pause and close remain neutral',async()=>{
+ const skin=await import('../../web/ui-skin.js');assert.equal(skin.primaryActionId({chosen:true,combatActive:true},['castA009','speedCycle']),'speedCycle');assert.equal(skin.primaryActionId({chosen:false},['castA009','speedCycle']),'castA009');assert.equal(skin.primaryActionId({},['startGame','castA009']),'startGame');assert.equal(skin.approvedButtonMaterial({id:'play',primary:true}),null);for(const id of ['drawerClose','cancelPoint','cancelRestore'])assert.equal(skin.approvedButtonMaterial({id}),null);assert.equal(skin.approvedButtonMaterial({id:'reset'}),'button-red-normal');
 });
