@@ -13,7 +13,8 @@ export function restoreFixture({ended=false,mismatch=false}={}){
  const restore=source.match(/^async function restoreRun\([^\n]*\{[\s\S]*?\n\}/m)?.[0];
  const controls=source.match(/^function renderControls\([^\n]*\{[\s\S]*?\n\}/m)?.[0]??'';
  const renderEnd=source.indexOf('  const over = $("gameOver");');assert.ok(renderEnd>0&&restore);
- const renderStatement=source.slice(0,renderEnd).trimEnd().split('\n').at(-1)!;
+ // Select the actual control call by identity; later visual updates may follow it.
+ const renderStatement=source.match(/^  renderControls\(w\);$/m)?.[0];assert.ok(renderStatement);
  const nodes:any={};for(const id of [...controlIds,'gameApp','battlefield','msg','restoreOverlay','restoreProgressText','cancelRestore','runState'])nodes[id]={disabled:false,textContent:id==='play'?'재개':'',inert:false,dataset:{mode:'race'},focus:()=>{},style:{display:'none'},hidden:true};
  // Existing input-region roots, supplied as native inert targets. #msg and its
  // ancestors are separate observations; actual browser/AT behavior is not mocked.

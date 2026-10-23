@@ -304,12 +304,19 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const selectedPortrait=doc.createElement('canvas');selectedPortrait.id='selectedGemPortrait';selectedPortrait.width=64;selectedPortrait.height=64;selectedPortrait.setAttribute('aria-hidden','true');doc.querySelector('.bp-info').prepend(selectedPortrait);
  function framePanel(element,kind='panel',corner=12){
   if(!element||panels.has(element))return;const canvas=doc.createElement('canvas');canvas.className='skin-material';canvas.setAttribute('aria-hidden','true');element.classList.add('skin-framed');element.prepend(canvas);panels.set(element,{canvas,kind,corner,w:0,h:0});
+  const pinFrame=()=>{canvas.style.transform=`translate(${element.scrollLeft||0}px, ${element.scrollTop||0}px)`;};
+  element.addEventListener('scroll',pinFrame,{passive:true});pinFrame();
  }
  // One outer material per region. The roster and selected details share the
  // walnut surface instead of stacking another heavy metal frame inside it.
  framePanel(doc.querySelector('.statusbar'),'hud',12);framePanel(tray,'tray',12);framePanel(doc.querySelector('footer'),'hud',8);
  for(const e of doc.querySelectorAll('.mode-card,.game-over>div'))framePanel(e,'panel',16);
  framePanel(doc.querySelector('#restoreOverlay>div'),'panel',16);
+ function frameInteractivePanels(){
+  framePanel(doc.querySelector('#gameDrawer'),'panel',16);
+  framePanel(doc.querySelector('.gem-detail-body'),'panel',16);
+ }
+ frameInteractivePanels();
  function addIcon(host,key,className=''){
   if(!host)return;const canvas=doc.createElement('canvas');canvas.width=32;canvas.height=32;canvas.className='ui-pixel-icon '+className;canvas.setAttribute('aria-hidden','true');canvas.dataset.icon=key;host.prepend(canvas);icons.push({canvas,key});
  }
@@ -360,6 +367,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const painted=!item.id||drawGem(a,item,32,34,64);button.dataset.artReady=String(Boolean(painted));button.dataset.empty=String(!item.id);
  }
  function render(snapshot){
+  frameInteractivePanels();
   renderCasino(snapshot.casino);
   const models=roundSlotModels(snapshot);
   tray.dataset.committed=String(snapshot.chosen===true);
