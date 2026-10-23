@@ -21,9 +21,45 @@ export function groundPathPlan(points=[]){
  });
 }
 
+/** A wider presentation corridor follows the observed screen-space polyline.
+ * The B1 straight tile has green shoulders; sample its middle 40% so requested
+ * widthPixels means dirt width, not a mostly-green tile's bounding square.
+ * Projection, source points and navigation are never rounded or modified. */
+function drawWideGroundRoute(ctx,{preview,project,widthPixels,sprites}){
+ if(!Number.isFinite(widthPixels)||widthPixels<=0||!Array.isArray(preview.points)||preview.points.length<2||preview.points.some(p=>![p?.x,p?.y].every(Number.isFinite)))return 0;
+ const sprite=sprites.get('ground:path:horizontal');if(!sprite)return 0;
+ const points=preview.points.map(project);if(points.some(p=>![p?.x,p?.y].every(Number.isFinite)))return 0;
+ const segments=[];
+ for(let i=1;i<points.length;i++){
+  const a=points[i-1],b=points[i],dx=b.x-a.x,dy=b.y-a.y;if(!dx&&!dy)continue;
+  const last=segments.at(-1);
+  // Joining collinear neighbours changes no point on their observed segment.
+  if(last&&Math.abs(last.dx*dy-last.dy*dx)<1e-9&&last.dx*dx+last.dy*dy>0){last.b=b;last.dx=b.x-last.a.x;last.dy=b.y-last.a.y;}
+  else segments.push({a,b,dx,dy});
+ }
+ if(!segments.length)return 0;
+ const radius=widthPixels/2,frame=spriteFrame(sprite.spec,0),sourceHeight=Math.max(1,Math.floor(frame.h*.4)),sourceY=frame.y+Math.floor((frame.h-sourceHeight)/2),scale=widthPixels/sourceHeight,tileLength=frame.w*scale;
+ ctx.save();ctx.imageSmoothingEnabled=false;ctx.beginPath();
+ // A union of segment quads and endpoint discs gives round, gap-free corners.
+ // This mask is a view corridor only; it never becomes a pathing footprint.
+ for(const segment of segments){
+  const {a,b,dx,dy}=segment,length=Math.hypot(dx,dy),nx=-dy/length*radius,ny=dx/length*radius;
+  ctx.moveTo(a.x-nx,a.y-ny);ctx.lineTo(b.x-nx,b.y-ny);ctx.lineTo(b.x+nx,b.y+ny);ctx.lineTo(a.x+nx,a.y+ny);ctx.closePath();
+  for(const p of [a,b]){ctx.moveTo(p.x+radius,p.y);ctx.arc(p.x,p.y,radius,0,Math.PI*2);}
+ }
+ ctx.clip();
+ for(const {a,dx,dy} of segments){
+  const length=Math.hypot(dx,dy);ctx.save();ctx.translate(a.x,a.y);ctx.rotate(Math.atan2(dy,dx));
+  for(let offset=-radius;offset<length+radius;offset+=tileLength){const width=Math.min(tileLength,length+radius-offset);ctx.drawImage(sprite.image,frame.x,sourceY,width/scale,sourceHeight,offset,-radius,width,widthPixels);}
+  ctx.restore();
+ }
+ ctx.restore();return segments.length;
+}
+
 /** Opaque tile geometry comes from the existing navigation cell, not a new grid. */
-export function drawGroundRoute(ctx,{preview,project,cellSize,sprites}={}){
+export function drawGroundRoute(ctx,{preview,project,cellSize,sprites,widthPixels}={}){
  if(!preview||preview.status==='invalid'||preview.flightPredicted===true||!Number.isFinite(cellSize)||cellSize<=0||typeof project!=='function'||!sprites?.get)return 0;
+ if(widthPixels!==undefined)return drawWideGroundRoute(ctx,{preview,project,widthPixels,sprites});
  const origin=project({x:0,y:0}),end=project({x:cellSize,y:0}),size=Math.abs(end.x-origin.x);if(!(size>0))return 0;
  let painted=0;
  for(const item of groundPathPlan(preview.points)){

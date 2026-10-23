@@ -1,5 +1,7 @@
 import {drawFieldGem,drawFieldStone,drawFieldSlate,drawFieldPlacement,drawMineCreep} from './field-units.js';
 import {drawGroundRoute,drawFieldLandmarks} from './field-ground.js';
+import {createPrecisionCamera} from './precision-camera.js';
+import {mountGameMenu} from './game-menu.js';
 import {mountEffectIcons,drawFieldEffectMarks,createFieldFeedback} from './field-effects.js';
 import {keepResultNotice,completedKeepNotice,sourceDifficultyChoices,sourceDifficultyLabel,requestStartupChoice,advanceStartupChoice} from './first-minute.js';
 import {createActionFeedback,createCueAudio} from './action-feedback.js';
@@ -47,6 +49,7 @@ const gemSkin=mountGemSkin({document,
 });
 simplifyPlayShell(document);
 const recipeGuide=mountRecipeBook(document);
+const gameMenu=mountGameMenu(document);
 const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
 const actionAudio=createCueAudio({onState:state=>{
@@ -143,6 +146,7 @@ function fitPlayerField(w){
 function switchField(w,playerId){
  if(!w||!Number.isInteger(playerId)||playerId<0||playerId>=MAX_FIELD_PLAYERS)return;
  if(playerId!==0&&w.sim.playerState?.getSlotState(playerId)!==1&&w.sim.playerState)return;
+ w.precisionCamera?.reset();drag.on=false;drag.cell=null;
  w.fieldFeedback?.clear();w.viewPlayerId=playerId;w.cameraMode='fit';w.hover=null;w.hoverGemId=null;w.buildCellsView=null;
  fitPlayerField(w);render(w);
 }
@@ -537,10 +541,10 @@ function renderBuildPreview(w){
  const preview=w.previewSearch.evaluate(input),project=p=>({x:W2SX(p.x),y:W2SY(p.y)});
  let current=preview;
  if(ready){w.baseRouteSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});current=w.baseRouteSearch.evaluate({...input,entities:w.sim.entities.values(),candidate:null});}
- drawGroundRoute(ctx,{preview:current,project,cellSize:w.pm.cellSize,sprites});
+ const roadPainted=drawGroundRoute(ctx,{preview:current,project,cellSize:w.pm.cellSize,widthPixels:Math.max(30,Math.min(56,w.pm.cellSize*buildGridCells(w)*cam.zoom*1.15)),sprites});
  drawFieldLandmarks(ctx,{field,project,span:w.pm.cellSize*buildGridCells(w),sprites});
  w.buildPreviewResult=ready?preview:null;w.groundRoute=preview;
- if(!ready){drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}),{alpha:.3,dashed:false});return;}
+ if(!ready){if(!roadPainted)drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}),{alpha:.3,dashed:false});return;}
  if(target){target.dataset.state=preview.status;target.textContent=preview.status==='open'?'배치 후 지상 예상 길':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침';}
  drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}));
  const ok=canPlaceBlock(w,w.hover.blockCol,w.hover.blockRow,buildGridCells(w)),size=w.pm.cellSize*buildGridCells(w)*cam.zoom;
@@ -585,8 +589,31 @@ function renderCreeps(w,footprintPx,z) {
   return creeps;
 }
 
+function precisionViewActive(w){
+ if(!w?.precisePlacement||!w.pm||(w.viewPlayerId??0)!==0||!w.modeDialog?.clicked||w.gameOver||w.pendingTargetAbility||w.pendingPointAbility||restoring||loadingRun||runtimeFailed)return false;
+ const state=gemTowerPlayerState(w.vm);return Boolean(state.difficulty&&!state.chosen);
+}
+function resetPrecisionView(w){
+ if(!w)return;w.precisionCamera?.reset();drag.on=false;drag.cell=null;w.cameraMode='fit';fitPlayerField(w);
+}
+function syncPrecisionView(w){
+ fitPlayerField(w);w.precisionCamera??=createPrecisionCamera();
+ const active=precisionViewActive(w),before=w.precisionCamera.snapshot();
+ const view=w.precisionCamera.sync({enabled:active,fit:{...cam},bounds:w.viewBounds,width:cv.width,height:cv.height});
+ Object.assign(cam,view.camera);w.cameraMode=view.zoomed?'precision':'fit';
+ if(!active&&before.pointerCount){drag.on=false;drag.cell=null;}
+ const overview=$('precisionOverview');if(overview){overview.hidden=!view.zoomed;overview.title=`${view.scale.toFixed(1)}배 확대 · 전체 화면으로 돌아가기`;}
+ $('gameApp').dataset.precisionScale=view.scale.toFixed(2);
+}
+function precisionPointer(w,kind,event){
+ const camera=w?.precisionCamera;if(!camera||!precisionViewActive(w)&&!camera.snapshot().pointerCount)return false;
+ const r=cv.getBoundingClientRect(),input={id:event.pointerId,point:{x:(event.clientX-r.left)*cv.width/r.width,y:(event.clientY-r.top)*cv.height/r.height}};
+ const result=kind==='down'?camera.down(input):kind==='move'?camera.move(input):camera.up({...input,cancelled:kind==='cancel'});
+ if(result.consumed){drag.on=false;drag.cell=null;if(event.cancelable!==false)event.preventDefault?.();}
+ if(result.changed)render(w);return result.consumed;
+}
 function render(w,preservePendingDialog=false) {
-  w.cameraMode='fit';fitPlayerField(w);
+  syncPrecisionView(w);
   currentGemTarget(w);
   renderBuildCells(w);
   $("actionFeedback").hidden=performance.now()>flashUntil;
@@ -605,7 +632,10 @@ function render(w,preservePendingDialog=false) {
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(w.terrain, leftX, topY, w.pm.width * w.pm.cellSize * z, w.pm.height * w.pm.cellSize * z);
   }
-  drawFieldGround(ctx,{grid:w.pm,bounds:fieldBounds,project:p=>({x:W2SX(p.x),y:W2SY(p.y)}),sprites});
+  const groundField=w.mobileFields?.[w.viewPlayerId??0],span=(w.pm?.cellSize??32)*buildGridCells(w),lastGround=groundField?.waypoints?.at(-1);
+  const landmarkRects=(groundField?.waypoints??[]).map(r=>({minX:r.minX-span*2,minY:r.minY-span*2,maxX:r.maxX+span*2,maxY:r.maxY+span*2}));
+  for(const point of [groundField?.spawn,lastGround&&{x:groundField.bounds.maxX-span/2,y:(lastGround.minY+lastGround.maxY)/2}])if(point)landmarkRects.push({minX:point.x-span*2,minY:point.y-span*2,maxX:point.x+span*2,maxY:point.y+span*2});
+  drawFieldGround(ctx,{grid:w.pm,bounds:fieldBounds,landmarkRects,project:p=>({x:W2SX(p.x),y:W2SY(p.y)}),sprites});
   if(fieldBounds){
     ctx.save();ctx.lineWidth=2;ctx.strokeStyle="#e2c17e";ctx.setLineDash([]);
     ctx.strokeRect(W2SX(fieldBounds.minX)+1,W2SY(fieldBounds.maxY)+1,(fieldBounds.maxX-fieldBounds.minX)*z-2,(fieldBounds.maxY-fieldBounds.minY)*z-2);ctx.restore();
@@ -908,6 +938,7 @@ function render(w,preservePendingDialog=false) {
   if (hudPhase) hudPhase.textContent = w.gameOver ? "종료" : gemTowerPlayerState(w.vm).chosen !== true ? "보석 준비" : "웨이브 진행 중";
   // P-4: GameOver 오버레이 — 스크립트가 sim.endGame()을 호출했을 때만 등장(재구현 0, 값은 이벤트 그대로).
   renderControls(w);
+  gameMenu.sync({solo:w.sim.playerState.getSlotState(1)!==1,playing});
   const over = $("gameOver");
   if (over) {
     if (w.gameOver) {
@@ -1438,7 +1469,7 @@ function selectMapGem(w,x,y,visualOnly=false){
 }
 
 function clearPlacement(w){
- if(!w)return;w.pendingPlacement=null;w.hover=null;w.hoverGemId=null;
+ if(!w)return;if(w.precisionCamera)resetPrecisionView(w);w.pendingPlacement=null;w.hover=null;w.hoverGemId=null;
 }
 function previewPlacement(w,x,y){
  const block=w.pm&&buildBlockAt(w.pm,x,y,buildGridCells(w)),state=gemTowerPlayerState(w.vm);
@@ -1455,6 +1486,7 @@ function renderPlacement(w){
 $("confirmPlacement").onclick=()=>{if(!world?.pendingPlacement)return;const point=world.pendingPlacement;clearPlacement(world);placeTower(world,point.x,point.y);render(world);};
 $("precisePlacement").onchange=()=>{if(world){world.precisePlacement=$("precisePlacement").checked;clearPlacement(world);render(world);}};
 $("cancelPlacement").onclick=()=>{if(world){clearPlacement(world);flash('건설 미리보기를 취소했습니다');render(world);}};
+$('precisionOverview').onclick=()=>{if(world){resetPrecisionView(world);render(world);}};
 
 function requestSlateDestination(w,x,y){
  if((w.viewPlayerId??0)!==0)return;
@@ -1465,14 +1497,16 @@ function requestSlateDestination(w,x,y){
 // Pointer Events share the same tap/drag/cancel path for mouse, touch and pen.
 surface.addEventListener("pointerdown", (ev) => {
   if(ev.target!==cv&&!ev.target.closest?.(".build-cell"))return;
-  if(ev.isPrimary===false){drag.on=false;return;}
   if(ev.button!==0)return;
+  surface.setPointerCapture(ev.pointerId);
+  if(precisionPointer(world,'down',ev))return;
+  if(ev.isPrimary===false){drag.on=false;return;}
   drag.cell=ev.target.closest?.(".build-cell")??null;
   if(world?.pm&&drag.cell&&!world.pendingPlacement){world.hoverGemId=null;const block=buildBlockAt(world.pm,Number(drag.cell.dataset.x),Number(drag.cell.dataset.y),buildGridCells(world));world.hover={cx:Number(drag.cell.dataset.x),cy:Number(drag.cell.dataset.y),...block};render(world);}
   drag.on=true;drag.moved=false;drag.id=ev.pointerId;drag.sx=ev.clientX;drag.sy=ev.clientY;drag.pointerType=ev.pointerType;drag.startedAt=ev.timeStamp;
-  surface.setPointerCapture(ev.pointerId);
 });
 surface.addEventListener("pointerup", (ev) => {
+  if(precisionPointer(world,'up',ev))return;
   if(!drag.on||ev.pointerId!==drag.id)return;
   const gesture=classifyMapGesture(drag,ev),tap=!drag.moved&&gesture!=="cancel";
   drag.on=false;
@@ -1492,9 +1526,10 @@ surface.addEventListener("pointerup", (ev) => {
     render(world);
   }
 });
-surface.addEventListener("pointercancel",()=>{drag.on=false;if(world&&!world.pendingPlacement){world.hover=null;world.hoverGemId=null;}});
-surface.addEventListener("lostpointercapture",()=>{drag.on=false;});
+surface.addEventListener("pointercancel",ev=>{precisionPointer(world,'cancel',ev);drag.on=false;if(world&&!world.pendingPlacement){world.hover=null;world.hoverGemId=null;}});
+surface.addEventListener("lostpointercapture",ev=>{precisionPointer(world,'cancel',ev);drag.on=false;});
 surface.addEventListener("pointermove", (ev) => {
+  if(precisionPointer(world,'move',ev))return;
   if(ev.isPrimary===false)return;
   const r = cv.getBoundingClientRect();
   const px = (ev.clientX - r.left) * cv.width / r.width, py = (ev.clientY - r.top) * cv.height / r.height;
@@ -1517,7 +1552,14 @@ surface.addEventListener("pointermove", (ev) => {
 });
 surface.addEventListener('pointerleave',()=>{if(!drag.on&&world&&!world.pendingPlacement){world.hover=null;world.hoverGemId=null;}});
 surface.addEventListener('contextmenu',event=>{if(event.target===cv||event.target.closest?.('.build-cell'))event.preventDefault();});
+surface.addEventListener('wheel',event=>{
+ if(event.target!==cv&&!event.target.closest?.('.build-cell')||!precisionViewActive(world))return;
+ const camera=world.precisionCamera,r=cv.getBoundingClientRect(),delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?cv.height:1);
+ const result=camera.zoomAt({x:(event.clientX-r.left)*cv.width/r.width,y:(event.clientY-r.top)*cv.height/r.height},camera.snapshot().scale*Math.exp(-delta*.002));
+ event.preventDefault();if(result.changed){drag.on=false;drag.cell=null;render(world);}
+},{passive:false});
 function focusPlayer(w) {
+  w.precisionCamera?.reset();
   w.cameraMode='fit';fitPlayerField(w);w.cameraFocused=true;
 }
 
@@ -1570,7 +1612,7 @@ $("findCombination").onclick=()=>{
  selectGemById(world,id);
 };
 $("showRocks").onclick=()=>{if(world){world.showRocks=!world.showRocks;render(world);}};
-$("pathWarning").onclick=()=>{if(world){world.showRocks=true;setDrawer(true);$("ownedExplorer").open=true;render(world);$("gemRoster").querySelector("button")?.focus();}};
+$("pathWarning").onclick=()=>{if(world){world.showRocks=true;setDrawer(true);gameMenu.reveal('ownedExplorer');$("ownedExplorer").open=true;render(world);$("gemRoster").querySelector("button")?.focus();}};
 $("gemRoster").addEventListener("click",event=>{
  const button=event.target.closest("button[data-unit-id]");if(!button||!world)return;
  selectGemById(world,Number(button.dataset.unitId));
@@ -1741,7 +1783,7 @@ function chooseMode(mode) {
   cv.focus();
 }
 function setDrawer(open) {
-  if(open&&playing&&$("gameDrawer").hidden){clearPlacement(world);checkpointRun(world,true);if(world)render(world,true);}
+  if(open&&$("gameDrawer").hidden){clearPlacement(world);if(playing){checkpointRun(world,true);if(world)render(world,true);}}
   $("gameDrawer").hidden = !open; $("drawerScrim").hidden = !open;
   $("researchToggle").setAttribute("aria-expanded", String(open));
   if(open){refreshSavedRuns();$("drawerClose").focus();} else $("researchToggle").focus();

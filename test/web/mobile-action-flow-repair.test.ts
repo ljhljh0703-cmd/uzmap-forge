@@ -12,9 +12,9 @@ function selectionFixture(){
  const rock={id:22,alive:true,owner:0,typeId:'h00G'};
  const nodes:any={pathWarning:{},findCombination:{},gameDrawer:{hidden:true},drawerScrim:{hidden:true},researchToggle:{setAttribute(){}},drawerClose:{focus(){}},ownedExplorer:{open:false},gemRoster:{querySelector:()=>({focus(){}})}};
  const world:any={selectedGemId:11,availableComboIds:[22],pendingPointAbility:{unitId:11,abilityId:'A02J'},pendingCombatFocus:true,showRocks:false,sim:{getUnit:(id:number)=>id===22?rock:null},vm:{}};
- const calls:any={renders:0,targets:0};
- const context:any={world,playing:false,$:(id:string)=>nodes[id],refreshSavedRuns(){},render(){calls.renders++;},cancelGemTarget,gemTowerPlayerGemIds:()=>[],requestGemTarget:()=>{calls.targets++;return true;},availableGemCombinations:()=>[22]};
- vm.runInNewContext(fn('setDrawer')+'\n'+fn('selectGemById'),context);
+ const calls:any={renders:0,targets:0,revealed:[]};
+ const context:any={gameMenu:{reveal:(id:string)=>calls.revealed.push(id)},world,playing:false,$:(id:string)=>nodes[id],refreshSavedRuns(){},render(){calls.renders++;},cancelGemTarget,gemTowerPlayerGemIds:()=>[],requestGemTarget:()=>{calls.targets++;return true;},availableGemCombinations:()=>[22]};
+ vm.runInNewContext(fn('clearPlacement')+'\n'+fn('setDrawer')+'\n'+fn('selectGemById'),context);
  return {world,nodes,calls,context};
 }
 it('blocked-path rock entry opens the real drawer and explorer before the existing roster selection',()=>{
@@ -23,7 +23,7 @@ it('blocked-path rock entry opens the real drawer and explorer before the existi
  const a=source.indexOf('$("gemRoster").addEventListener("click"'),b=source.indexOf('// S-A2d',a);
  f.nodes.gemRoster.addEventListener=(_kind:string,handler:Function)=>f.nodes.gemRoster.click=handler;
  vm.runInNewContext(path+'\n'+source.slice(a,b),f.context);f.nodes.pathWarning.onclick();
- assert.equal(f.world.showRocks,true);assert.equal(f.nodes.gameDrawer.hidden,false);assert.equal(f.nodes.drawerScrim.hidden,false);assert.equal(f.nodes.ownedExplorer.open,true);
+ assert.deepEqual(f.calls.revealed,['ownedExplorer']);assert.equal(f.world.showRocks,true);assert.equal(f.nodes.gameDrawer.hidden,false);assert.equal(f.nodes.drawerScrim.hidden,false);assert.equal(f.nodes.ownedExplorer.open,true);
  f.nodes.gemRoster.click({target:{closest:()=>({dataset:{unitId:'22'}})}});assert.equal(f.world.selectedGemId,22,'advertised rock is selectable through the existing roster handler');
 });
 it('combination candidate selection reuses the common selection cleanup instead of leaving an old move or target armed',()=>{

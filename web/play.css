@@ -290,3 +290,45 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 
 /* Supplied B effect art keeps text labels and existing information sheet. */
 .field-effect-icons{display:flex;flex-wrap:wrap;gap:6px 12px;list-style:none;padding:0;margin:8px 0}.field-effect-icons[hidden]{display:none}.field-effect-icons li{display:flex;align-items:center;gap:4px;font-size:12px;line-height:1.5}.field-effect-icons canvas{image-rendering:pixelated;flex:none}.sound-label{font-size:12px;color:var(--dim)}
+
+.precision-overview{position:absolute;right:12px;top:12px;z-index:5;min-height:44px;padding:8px 12px}.precision-overview[hidden]{display:none}.app[data-camera=precision] .combat-count{top:62px}
+
+/* Existing controls, grouped into three on-demand menu views. */
+.app[data-menu-tabs=true] #gameDrawer{display:flex;flex-direction:column;gap:8px;overflow:hidden;width:min(440px,100%)}
+.app[data-menu-tabs=true] #gameDrawer[hidden]{display:none!important}
+#gameMenuTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:none}
+#gameMenuTabs button{min-height:48px;padding:8px 4px;font-size:13px;white-space:normal;line-height:1.5}
+#gameMenuTabs [aria-selected=true]{outline:2px solid #d5b568;outline-offset:-3px;color:#ffe5a0}
+.game-menu-panel{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-gutter:stable;padding-right:2px}
+.game-menu-panel[hidden]{display:none!important}
+#gameDrawer .drawer-head{flex:none}
+#menuPanelSettings>.precise-placement{display:flex;align-items:center;gap:8px;min-height:48px;line-height:1.7}
+#menuPanelSettings>#changeSetup{width:100%;margin:12px 0}
+#menuPanelRun .menu-new-game{padding:20px 0 12px;border-top:1px solid #705332;margin-top:20px}
+#menuPanelRun .menu-new-game button{width:100%}
+#menuPanelGuide .research{margin:12px 0}
+/* Approved panel material is the outer frame for every interactive window. */
+#modeSelect .mode-card.skin-framed,.source-dialog .mode-card.skin-framed{border:0;border-radius:0;box-shadow:none;background:#2b2117}
+.app[data-menu-tabs=true] #gameDrawer.skin-framed{position:absolute;border:0;border-radius:0;background:#2b2117;padding:20px;isolation:isolate}
+#gameDrawer.skin-framed .drawer-head{position:relative;top:auto;margin:0 0 8px;padding:0 0 8px;background:transparent;border:0}
+#gemPanel[data-selection-sheet=true] .gem-detail-body.skin-framed{border:0;border-radius:0;background:#2b2117;box-shadow:none;padding:20px}
+/* Desktop keeps the full field tall and puts the existing controls beside it. */
+@media(min-width:901px){
+ html,body{background:#21160f}
+ .app[data-simple-ui=true]{width:100%;max-width:none;margin:0;min-width:0;box-shadow:none}
+ .app[data-simple-ui=true] main{grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:minmax(0,1fr)}
+ .app[data-simple-ui=true] #battlefield{grid-column:1;grid-row:1;min-width:0;min-height:0}
+ .app[data-simple-ui=true] #bottomPanel{grid-column:2;grid-row:1;width:100%;height:100%;max-height:none;border-top:0;border-left:2px solid #8c6c35;overflow-y:auto;overflow-x:hidden}
+ .app[data-simple-ui=true] #gemPanel{flex-direction:column;align-items:stretch;gap:12px;padding:12px}
+ .app[data-simple-ui=true] .bp-info{display:block;min-width:0;padding-left:0}
+ .app[data-simple-ui=true] .bp-name{width:100%;min-width:0}
+ .app[data-simple-ui=true] .bp-name b{white-space:normal;word-break:keep-all}
+ .app[data-simple-ui=true] .bp-actions{width:100%;max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .app[data-simple-ui=true] .bp-actions #castA009{grid-column:1/-1}
+ .app[data-simple-ui=true] .gem-meta{width:100%;max-width:none}
+ .app[data-simple-ui=true] #gemPanel[data-selection-sheet=true] .gem-detail-body{position:relative;left:auto;right:auto;bottom:auto;width:100%;max-height:none;overflow:visible;box-shadow:none}
+ .app[data-simple-ui=true] #selectionSheetHandle{display:none}
+ .app[data-simple-ui=true] .gem-detail-body .gem-stats{flex-wrap:wrap;gap:10px}
+ .app[data-simple-ui=true] .gem-detail-body .gem-stats .stat{flex:1 1 80px;min-width:0}
+ .app[data-simple-ui=true] .placement-confirm{width:100%;margin:0}
+}

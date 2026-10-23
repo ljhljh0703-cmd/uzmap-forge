@@ -34,17 +34,18 @@ export function drawBuildRoute(ctx,preview,project,{alpha=1,dashed=true}={}){
 // This is a static view of immutable source pathing, not a second placement grid.
 // One atlas tile covers four source cells (the existing tower footprint scale).
 const GROUND_CELL_PX=8;
-export function fieldGroundPlan(grid,bounds){
+function sourceLandmarks(rects){return Array.isArray(rects)?rects.filter(r=>[r?.minX,r?.minY,r?.maxX,r?.maxY].every(Number.isFinite)&&r.maxX>=r.minX&&r.maxY>=r.minY):[];}
+export function fieldGroundPlan(grid,bounds,{landmarkRects=[]}={}){
  if(!grid||!bounds||!Number.isInteger(grid.width)||!Number.isInteger(grid.height)||grid.width<=0||grid.height<=0||!Number.isFinite(grid.cellSize)||grid.cellSize<=0||![grid.originX,grid.originY,bounds.minX,bounds.minY,bounds.maxX,bounds.maxY].every(Number.isFinite)||bounds.maxX<=bounds.minX||bounds.maxY<=bounds.minY||!grid.cells||grid.cells.length<grid.width*grid.height)return null;
- const size=grid.cellSize,left=grid.originX-size/2,bottom=grid.originY-size/2;
+ const landmarks=sourceLandmarks(landmarkRects),size=grid.cellSize,left=grid.originX-size/2,bottom=grid.originY-size/2;
  const minCol=Math.max(0,Math.floor((bounds.minX-left)/size)),maxCol=Math.min(grid.width,Math.ceil((bounds.maxX-left)/size)),minRow=Math.max(0,Math.floor((bounds.minY-bottom)/size)),maxRow=Math.min(grid.height,Math.ceil((bounds.maxY-bottom)/size));
  if(minCol>=maxCol||minRow>=maxRow)return null;
  const runs=[],edges=[],p=GROUND_CELL_PX,kindAt=(col,row)=>col>=0&&row>=0&&col<grid.width&&row<grid.height?terrainKind(grid.cells[row*grid.width+col]):null;
  for(let row=minRow;row<maxRow;row++){
   let run=null;
   for(let col=minCol;col<maxCol;col++){
-   const kind=kindAt(col,row),x=(col-minCol)*p,y=(maxRow-1-row)*p;
-   if(run?.kind===kind)run.width+=p;else{run={kind,col,row,x,y,width:p,height:p};runs.push(run);}
+   const kind=kindAt(col,row),x=(col-minCol)*p,y=(maxRow-1-row)*p,worldX=grid.originX+col*size,worldY=grid.originY+row*size,landmark=kind==='path'&&landmarks.some(r=>worldX>=r.minX&&worldX<=r.maxX&&worldY>=r.minY&&worldY<=r.maxY);
+   if(run?.kind===kind&&run.landmark===landmark)run.width+=p;else{run={kind,landmark,col,row,x,y,width:p,height:p};runs.push(run);}
    if(kind==='build')continue;
    const edge=(side,dx,dy,width,height)=>edges.push({kind,col,row,side,x:x+dx,y:y+dy,width,height});
    // Draw only on the blocked/non-buildable side of each genuine source boundary.
@@ -58,17 +59,22 @@ export function fieldGroundPlan(grid,bounds){
 }
 function paintGroundTexture(ctx,plan,texture,grass=[]){
  if(grass.every(Boolean)&&grass.length===4){
-  ctx.save();ctx.beginPath();for(const run of plan.runs)if(run.kind==='build')ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=.55;
-  const tile=GROUND_CELL_PX*4,startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
-  for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile){const col=Math.floor((plan.minCol+x/GROUND_CELL_PX)/4),row=Math.floor((plan.maxRow-y/GROUND_CELL_PX)/4),index=(Math.imul(col,374761393)^Math.imul(row,668265263))>>>0,t=grass[index%4],f=t.spec.frame;ctx.drawImage(t.image,f.x,f.y,f.w,f.h,x,y,tile,tile);}
-  ctx.restore();
+  for(const landmark of [false,true]){
+   const runs=plan.runs.filter(run=>landmark?run.landmark:run.kind==='build');if(!runs.length)continue;
+   // Only authored landmark NO_BUILD cells cover the old base raster opaquely.
+   // Their original path kind/flags and no-build boundary remain unchanged.
+   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=landmark?1:.55;
+   const tile=GROUND_CELL_PX*4,startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
+   for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile){const col=Math.floor((plan.minCol+x/GROUND_CELL_PX)/4),row=Math.floor((plan.maxRow-y/GROUND_CELL_PX)/4),index=(Math.imul(col,374761393)^Math.imul(row,668265263))>>>0,t=grass[index%4],f=t.spec.frame;ctx.drawImage(t.image,f.x,f.y,f.w,f.h,x,y,tile,tile);}
+   ctx.restore();
+  }
  }
 
  const f=texture.spec.frame,tile=GROUND_CELL_PX*4;
  // Reuse the loaded, unmodified raster. Build ground receives only fine grain;
  // pale no-build cells become worn paving; walls retain their darker source colour.
  for(const [kind,alpha] of [['build',.035],['path',.48],['wall',.32]]){
-  const runs=plan.runs.filter(run=>run.kind===kind);if(!runs.length)continue;
+  const runs=plan.runs.filter(run=>run.kind===kind&&!run.landmark);if(!runs.length)continue;
   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=alpha;
   const startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
   for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile)ctx.drawImage(texture.image,f.x,f.y,f.w,f.h,x,y,tile,tile);
@@ -80,15 +86,15 @@ function paintGroundTexture(ctx,plan,texture,grass=[]){
 }
 const groundCache=new WeakMap();
 /** Render below route previews and entities; the caller's gameplay clip remains intact. */
-export function drawFieldGround(ctx,{grid,bounds,project,sprites}={}){
+export function drawFieldGround(ctx,{grid,bounds,project,sprites,landmarkRects=[]}={}){
  if(!grid||!bounds||typeof project!=='function'||typeof sprites?.get!=='function'||typeof document==='undefined')return;
  const texture=sprites.get('terrain:stone'),grass=Array.from({length:4},(_,i)=>sprites.get('ground:grass:'+i));if(!texture?.image||!texture.spec?.frame)return;
  let grids=groundCache.get(sprites);if(!grids){grids=new WeakMap();groundCache.set(sprites,grids);}
  let cache=grids.get(grid);if(!cache){cache=new Map();grids.set(grid,cache);}
- const key=JSON.stringify([grid.width,grid.height,grid.cellSize,grid.originX,grid.originY,bounds.minX,bounds.minY,bounds.maxX,bounds.maxY]);
+ const key=JSON.stringify([grid.width,grid.height,grid.cellSize,grid.originX,grid.originY,bounds.minX,bounds.minY,bounds.maxX,bounds.maxY,sourceLandmarks(landmarkRects).map(r=>[r.minX,r.minY,r.maxX,r.maxY])]);
  let cached=cache.get(key);
  if(!cached||cached.imageSource!==texture.image||cached.src!==texture.src||grass.some((g,i)=>g?.image!==cached.grassImages[i])){
-  const plan=fieldGroundPlan(grid,bounds);if(!plan)return;
+  const plan=fieldGroundPlan(grid,bounds,{landmarkRects});if(!plan)return;
   const image=document.createElement('canvas');image.width=plan.width;image.height=plan.height;
   const paint=image.getContext('2d');if(!paint)return;paint.imageSmoothingEnabled=false;paintGroundTexture(paint,plan,texture,grass);
   cached={image,plan,imageSource:texture.image,src:texture.src,grassImages:grass.map(g=>g?.image)};cache.set(key,cached);

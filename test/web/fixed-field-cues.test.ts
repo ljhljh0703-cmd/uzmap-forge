@@ -1,11 +1,11 @@
 import {it} from 'node:test';import assert from 'node:assert/strict';import {readFileSync,existsSync} from 'node:fs';import vm from 'node:vm';import * as ui from '../../web/play-ui.js';import {readScriptMap} from '../../src/runtime/session.ts';
 const source=readFileSync(new URL('../../web/main.js',import.meta.url),'utf8');
 it('the mobile play view exposes no map movement or zoom controls',()=>{const html=readFileSync(new URL('../../web/index.html',import.meta.url),'utf8');assert.doesNotMatch(html,/id="(?:cameraToggle|focusPlayer|focusCombat|zoomIn|zoomOut)"|class="camera-menu"/);});
-it('a swipe cancels a tap and never moves the camera, even for a legacy free-view state',()=>{
+it('outside precision mode, swipes and wheels keep the fitted camera even for a legacy free-view state',()=>{
  const handlers=new Map<string,Function>(),cam={cx:0,cy:0,zoom:1};const cv={width:200,height:200,addEventListener:(k:string,f:Function)=>handlers.set(k,f),getBoundingClientRect:()=>({left:0,top:0,width:200,height:200}),setPointerCapture:()=>{}};
- const ctx:any={surface:cv,cv,cam,classifyMapGesture:ui.classifyMapGesture,drag:{on:false},world:{pm:null,cameraMode:'free'},mouseScreen:{},gemNear:()=>null,S2WX:(n:number)=>n,S2WY:(n:number)=>n};
+ const ctx:any={precisionPointer:()=>false,precisionViewActive:()=>false,surface:cv,cv,cam,classifyMapGesture:ui.classifyMapGesture,drag:{on:false},world:{pm:null,cameraMode:'free'},mouseScreen:{},gemNear:()=>null,S2WX:(n:number)=>n,S2WY:(n:number)=>n};
  const a=source.indexOf('surface.addEventListener("pointerdown"'),b=source.indexOf('function focusPlayer(w)',a);vm.runInNewContext(source.slice(a,b),ctx);
- handlers.get('pointerdown')!({target:cv,isPrimary:true,button:0,pointerId:1,clientX:10,clientY:10});handlers.get('pointermove')!({isPrimary:true,pointerId:1,clientX:50,clientY:50});assert.deepEqual(cam,{cx:0,cy:0,zoom:1});assert.equal(ctx.drag.moved,true);assert.equal(handlers.has('wheel'),false);
+ handlers.get('pointerdown')!({target:cv,isPrimary:true,button:0,pointerId:1,clientX:10,clientY:10});handlers.get('pointermove')!({isPrimary:true,pointerId:1,clientX:50,clientY:50});assert.deepEqual(cam,{cx:0,cy:0,zoom:1});assert.equal(ctx.drag.moved,true);assert.equal(handlers.has('wheel'),true);handlers.get('wheel')!({target:cv,deltaY:-500,deltaMode:0,preventDefault(){assert.fail('ordinary wheel cannot be captured for camera zoom');}});assert.deepEqual(cam,{cx:0,cy:0,zoom:1});
 });
 it('entry and outward mine-route markers do not overlap the world, including their rotated 16px boxes',()=>{
  const box={left:20,top:20,width:250,height:300};
