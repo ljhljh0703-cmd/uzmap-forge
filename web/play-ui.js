@@ -172,3 +172,13 @@ export function creepVisualPresentation(role,definition={}){
  const airborne=typeof definition?.movementType==='string'?definition.movementType==='fly':prior==='flying';
  return {band:prior==='ground'||prior==='flying'?(airborne?'flying':'ground'):prior,airborne};
 }
+
+/** The six authored grades, independent of the five decorative frame materials. */
+export function gemGradePresentation(grade){
+ const labels=['최하급','하급','중급','상급','최상급','완벽한'],index=labels.indexOf(grade);
+ return index<0?null:{rank:index+1,label:labels[index]};
+}
+export function attackTypeLabel(type){
+ if(type===undefined||type===null||type==='')return '—';
+ return ({normal:'일반',pierce:'관통',siege:'공성',magic:'마법',chaos:'혼돈',hero:'영웅',spells:'주문'})[type]??'공격 정보 확인 중';
+}

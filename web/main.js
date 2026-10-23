@@ -1,5 +1,5 @@
 import {createBuildPreview} from './dist/runtime/build-preview.js';
-import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth} from './field-art.js';
+import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth,drawGemGrade,drawObjectKindMark,drawAirborneMark} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
 import {createRunCheckpoint} from './run-checkpoint.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
@@ -13,7 +13,7 @@ import {mountOverlapPicker} from "./overlap-picker.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
-import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels,gemObjectPresentation,creepVisualPresentation} from "./play-ui.js";
+import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels,gemObjectPresentation,creepVisualPresentation,gemGradePresentation,attackTypeLabel} from "./play-ui.js";
 import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, freshSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
 import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
@@ -549,6 +549,7 @@ function renderCreeps(w,footprintPx,z) {
     // U-2d: 세그먼트 HP바(teardown "개체별 플로팅 HP바" — 연속 채움바가 아니라 이산 세그먼트로 교체,
     // 호드 가독성). 임계값 색상(>.5/>.25 초록·주황·빨강)은 기존 로직 그대로 재사용(재발명 0). 만피 시
     // 미표시는 기존 조건 유지(P-3/기존 "화면 소음 감소" 관례 — 항상 표시로 바꾸지 않음, 전제 반증 참조).
+    drawAirborneMark(ctx,{x:px,y:py,size:spriteSize,airborne:visual.airborne});
     drawCreepHealth(ctx,{x:px,y:py-hover,size:spriteSize,hp:e.hp,maxHp:e.hpMax});
   }
   return creeps;
@@ -651,17 +652,10 @@ function render(w,preservePendingDialog=false) {
       ctx.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,rad=k%2?2:4;const x=px+Math.cos(a)*rad,y=py-r-8+Math.sin(a)*rad;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.closePath();ctx.fill();
     }
     if (selected) { ctx.strokeStyle = "#f0dfb2"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, r + 4, 0, 7); ctx.stroke(); }
-    // U-1c: 라벨 — 티어 숫자(도형 중심 오버레이) + 라인 이름(하단), roleTable 파생만(발명 0). 미분류
-    // (예: 라운드 시작 돌변환 h00G)는 role.kind !== "tower"라 라벨 생략(데이터 없으면 표시 안 함).
-    if (role && role.kind === "tower" && (selected || e.id===w.hoverGemId || footprintPx>=60)) {
-      ctx.textAlign = "center";
-      ctx.font = `bold ${(r>=24?24:12)}px system-ui`;
-      ctx.lineWidth = 2; ctx.strokeStyle = "#170f0b"; ctx.strokeText(String(role.tier), px, py + r * 0.35);
-      ctx.fillStyle = "#f0dfb2"; ctx.fillText(String(role.tier), px, py + r * 0.35);
-      ctx.font = "12px system-ui"; ctx.fillStyle = "#f0dfb2";
-      ctx.fillText(gemTowerGemFamily(fullName(w,e.typeId))?.lineLabel??fullName(w,e.typeId), px, py + r + 11);
-      ctx.textAlign = "left";
-    } else if (special && (selected || e.id===w.hoverGemId || footprintPx>=60)) {
+    drawObjectKindMark(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx),kind:visual.kind});
+    const grade=gemGradePresentation(normalFamily?.grade);
+    if(visual.kind==='gem'&&grade)drawGemGrade(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx),rank:grade.rank});
+    if (special && (selected || e.id===w.hoverGemId || footprintPx>=60)) {
       // U-6c(DISPATCH_SONNET_U6_INFOARCH §2 U-6c, U-5 흡수) — specialGem 종류명 라벨. 병합 nameMap(81/81
       // 커버, 위 loadNameMap() 참조)에서 그대로 읽는다 — 이전엔 SPECIALGEM_NAMES(28/45)만 커버해 17종이
       // 라벨 생략이었으나, 이제 45종 전원이 이름을 갖는다(원장 그대로, 발명 0).
@@ -678,7 +672,7 @@ function render(w,preservePendingDialog=false) {
   for(const e of w.sim.entities.values()) {
     if(!e.alive || e.typeId!=="h00G")continue;
     const px=W2SX(e.x),py=W2SY(e.y),r=Math.max(5,footprintPx*.27);
-    if(sprites.draw(ctx,"stone",px,py,gemSpriteSize(footprintPx,true)))continue;
+    if(sprites.draw(ctx,"stone",px,py,gemSpriteSize(footprintPx,true))){drawObjectKindMark(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx,true),kind:'stone'});continue;}
     ctx.fillStyle="#778078";ctx.strokeStyle="#354539";ctx.lineWidth=1;
     ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;const x=px+Math.cos(a)*r,y=py+Math.sin(a)*r*.8;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.closePath();ctx.fill();ctx.stroke();
   }
@@ -735,7 +729,7 @@ function render(w,preservePendingDialog=false) {
     if (specialBadge) specialBadge.style.display = (selectedVisual.kind === "special") ? "inline-block" : "none";
     $("gemLabel").textContent = family ? family.lineLabel+" · "+family.grade : selectedVisual.label;
     const gemType = $("gemType");
-    if (gemType) gemType.textContent = d && d.attack ? d.attack.attackType : "—";
+    if (gemType) gemType.textContent = attackTypeLabel(d?.attack?.attackType);
     const attackText=attackDisplay(d?.attack??d?.secondaryAttack,DT);
     $("gemDmg").textContent = attackText.damage;
     $("gemRange").textContent = d?.secondaryAttack?`${d.attack?.rangeU??"—"} / ${d.secondaryAttack.rangeU}`:d?.attack?.rangeU??"—";
@@ -985,7 +979,7 @@ function render(w,preservePendingDialog=false) {
   const skinGem=(entity,slot)=>{
    if(!entity?.alive)return null;
    const name=fullName(w,entity.typeId),family=gemTowerGemFamily(name),visual=gemObjectPresentation(entity.typeId,defOf(w,entity.typeId),family,sprites.aliases[entity.typeId]);
-   return {slot,id:entity.id,name,alive:true,logical:visual.logical,kind:visual.kind,roleLabel:visual.label,tint:visual.kind==='stone'||visual.kind==='slate'?undefined:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
+   return {slot,id:entity.id,name,alive:true,logical:visual.logical,kind:visual.kind,grade:gemGradePresentation(family?.grade),roleLabel:visual.label+(family?' · '+family.grade:''),tint:visual.kind==='stone'||visual.kind==='slate'?undefined:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
   };
   recipeGuide.setBook(w.recipeBook);
   gemSkin.render({casino:{...gemTowerCasinoState(w.vm,w.sim),feedback:w.casinoFeedback?.snapshot()},round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,

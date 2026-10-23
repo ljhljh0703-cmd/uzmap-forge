@@ -259,3 +259,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 #selectionSheetHandle{position:sticky;top:-12px;z-index:3;order:-4;align-self:stretch;flex:none;width:calc(100% + 28px);min-height:44px;margin:-12px -14px 0;padding:14px 12px 7px;border:0;border-bottom:1px solid #705735;border-radius:10px 10px 0 0;background:#32271b;color:#d8c499;font-size:12px;font-weight:400;touch-action:none;user-select:none;-webkit-user-select:none}
 #selectionSheetHandle::before{content:'';position:absolute;top:6px;left:50%;width:30px;height:3px;transform:translateX(-50%);border-radius:2px;background:#b9a16c;pointer-events:none}
 #gemPanel[data-selection-sheet=true] .gem-detail-body button,#gemPanel[data-selection-sheet=true] .gem-detail-body summary{scroll-margin-top:52px;scroll-margin-bottom:16px}
+
+/* Source identity and grades use quiet text cues beside reused raster art. */
+.slot-grade{position:absolute;left:8px;top:8px;min-width:14px;height:14px;padding:0 2px;background:#211a14;color:#f0dfb2;border:1px solid #a08a5e;font:700 10px/12px Galmuri11,system-ui;text-align:center;pointer-events:none;z-index:3}
+.slot-grade[hidden]{display:none}.gem-detail-body .stat,.selected-unit-role{font-size:13px;line-height:1.6}
