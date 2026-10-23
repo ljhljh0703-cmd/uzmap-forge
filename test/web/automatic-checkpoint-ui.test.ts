@@ -74,3 +74,7 @@ it('unchanged checkpoints do not repeatedly replace the live-region text on ever
  const f=await fixture();let changes=0,text='';Object.defineProperty(f.nodes.automaticSaveStatus,'textContent',{get:()=>text,set:(next:string)=>{changes++;text=next;}});
  f.context.checkpointRun(f.world,true,100);for(let now=101;now<201;now++)f.context.checkpointRun(f.world,false,now);assert.equal(changes,1);
 });
+
+it('initial pageshow preserves an explicitly started first game while a back-forward return stays paused',async()=>{
+ const f=await fixture(),hook=f.code.match(/window[.]addEventListener\("pageshow",[\s\S]*?\n\}\);/)?.[0];assert.ok(hook);vm.runInNewContext(hook,f.context);f.context.playing=true;f.callbacks.pageshow({persisted:false});assert.equal(f.context.playing,true);f.callbacks.pageshow({persisted:true});assert.equal(f.context.playing,false);
+});

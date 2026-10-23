@@ -251,7 +251,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .app[data-simple-ui=true] #gemPanel[data-selection-sheet=true] .bp-name>.gem-meta,
 .app[data-simple-ui=true] #gemPanel[data-selection-sheet=true] .bp-name>.gem-meta[open]{position:static;flex:0 0 auto;width:auto;max-height:none;margin:0 0 0 auto}
 .app[data-simple-ui=true] #gemPanel[data-selection-sheet=true][data-combat-card=true] .bp-name>.gem-meta[open]{order:1;flex:0 0 auto;width:auto}
-#gemPanel[data-selection-sheet=true] .gem-detail-body{position:fixed;left:var(--selection-sheet-left,0px);width:var(--selection-sheet-width,min(480px,100vw));right:auto;bottom:var(--selection-sheet-bottom,58px);z-index:12;max-height:min(56dvh,440px,calc(100dvh - var(--selection-sheet-bottom,58px) - var(--ui-header-height) - 80px));min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;scroll-padding:52px 0 16px;gap:10px;padding:12px 14px 16px;border:1px solid #9a7946;border-radius:12px 12px 0 0;background:#2b2117;box-shadow:0 -12px 24px #0006}
+#gemPanel[data-selection-sheet=true] .gem-detail-body{position:fixed;left:var(--selection-sheet-left,0px);width:var(--selection-sheet-width,min(480px,100vw));right:auto;bottom:var(--selection-sheet-bottom,58px);z-index:12;max-height:min(var(--selection-sheet-max-height,40dvh),440px,calc(100dvh - var(--selection-sheet-bottom,58px) - var(--ui-header-height) - 80px));min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:thin;scroll-padding:52px 0 16px;gap:10px;padding:12px 14px 16px;border:1px solid #9a7946;border-radius:12px 12px 0 0;background:#2b2117;box-shadow:0 -12px 24px #0006}
 #gemPanel[data-selection-sheet=true] .gem-detail-body>*{flex-shrink:0}
 #gemPanel[data-selection-sheet=true] .gem-detail-body .bp-actions{max-width:none;width:100%}
 #gemPanel[data-selection-sheet=true] .gem-meta>summary{position:relative;touch-action:none;user-select:none;-webkit-user-select:none;padding-top:13px}
@@ -266,3 +266,24 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 
 .action-success{outline:1px solid #e0c382;outline-offset:-2px}.feedback-sound{display:flex;align-items:center;gap:10px;margin:8px 0 14px}.feedback-sound button{min-height:44px;white-space:nowrap;font-size:12px}.feedback-sound span{font-size:12px;line-height:1.6;color:var(--dim)}#researchStatus{display:block;margin-top:4px}
 @media(prefers-reduced-motion:reduce){.action-success{transition:none}}
+
+/* One source-backed mode/difficulty choice screen. */
+.startup-difficulties{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.startup-difficulties button{display:flex;flex-direction:column;gap:6px;min-height:80px;white-space:normal;word-break:keep-all;line-height:1.5}.startup-difficulties small{font-size:11px;color:var(--dim)}.mode-buttons [aria-pressed=true],.startup-difficulties [aria-pressed=true]{outline:2px solid #d5b568;outline-offset:-3px}.mode-card #startGame{width:100%;min-height:48px;margin-top:4px}.mode-card button strong{font-size:14px}
+
+/* The approved panel frame occupies 16px; keep eight extra pixels inside it. */
+#modeSelect .mode-card,.source-dialog .mode-card{padding:24px;word-break:keep-all}.mode-card button{white-space:normal;word-break:keep-all}
+
+/* Labels sit 14px inside the 12px HUD frame, including phone widths. */
+.app[data-simple-ui=true],.app[data-simple-ui=true][data-mode=classic]{grid-template-rows:44px 64px 28px minmax(0,1fr)}
+.app[data-simple-ui=true][data-mode=classic]{grid-template-rows:44px 64px 44px minmax(0,1fr)}
+.app[data-simple-ui=true] .statusbar{padding:14px 16px;align-items:center}
+.app[data-simple-ui=true] .hud-pill,#objectiveHud{grid-template-rows:14px 22px}
+.app[data-simple-ui=true] .header-actions button{font-size:12px;white-space:nowrap;padding-left:8px;padding-right:8px;min-height:44px}
+.app[data-simple-ui=true] #speedCycle{min-width:70px}
+.menu-controls #changeSetup{width:100%;margin:8px 0}
+
+/* Closed fixed descendants have no layout or hit area; stats retain named groups. */
+#gemPanel[data-selection-sheet=true] .gem-meta:not([open]) .gem-detail-body{display:none}
+
+/* Korean menu explanations wrap at word boundaries, including expanded help. */
+#gameDrawer{word-break:keep-all}

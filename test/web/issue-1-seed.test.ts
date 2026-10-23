@@ -25,8 +25,8 @@ it('new-game and play-again buttons request fresh entropy rather than replaying 
  const callbacks=source.match(/^(?:\$\("reset"\)\.onclick = |if \(goRestart\) goRestart\.onclick = )[^\n]+/gm);assert.equal(callbacks?.length,2);
  for(const callback of callbacks!){
   let entropyCalls=0;const requested:number[]=[],reset:any={},goRestart:any={};
-  const context:any={...actions,sessionSeed:6,world:{seed:6},restoring:false,goRestart,$:()=>reset,crypto:{getRandomValues(out:Uint32Array){entropyCalls++;out[0]=6;return out;}},loadFromUrl:async(seed:number)=>{requested.push(seed);context.sessionSeed=seed;return true;}};
-  vm.runInNewContext(callback,context);await (callback.startsWith('if')?goRestart:reset).onclick();
+  const context:any={...actions,sessionSeed:6,world:{seed:6},restoring:false,confirm:()=>true,checkpointRun:()=>({kind:'saved'}),setDrawer(){},goRestart,$:()=>reset,crypto:{getRandomValues(out:Uint32Array){entropyCalls++;out[0]=6;return out;}},loadFromUrl:async(seed:number)=>{requested.push(seed);context.sessionSeed=seed;return true;}};
+  vm.runInNewContext(source.match(/^function startNewGame[^\n]*\{[\s\S]*?^\}/m)[0]+'\n'+callback,context);await (callback.startsWith('if')?goRestart:reset).onclick();
   assert.equal(entropyCalls,1);assert.equal(requested.length,1);assert.notEqual(requested[0],6);assert.ok(requested[0]!>=0&&requested[0]!<=0xffffffff);
  }
 });
@@ -63,7 +63,7 @@ it('publishing a verified seed keeps unrelated query fields and the URL fragment
 
 it('actual loader passes each chosen seed to boot and withholds URL publication for a restore candidate',async()=>{
  const nodes:any=new Proxy({}, {get(target:any,key:string){return target[key]??= {textContent:'',dataset:{},style:{},hidden:true};}}),bootSeeds:number[]=[],published:number[]=[];
- const context:any={sessionSeed:6,selectedSource:{mapBytes:new ArrayBuffer(0),stockProfile:{}},localSourceMode:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},document:{documentElement:{dataset:{}}},setMsg(){},extractGemPresentation:()=>({}),frameClock:{reset(){}},drag:{on:false},$:(id:string)=>nodes[id],resize(){},boot:(_bytes:any,_names:any,_profile:any,seed:number)=>{bootSeeds.push(seed);return {seed,sim:{ledger:{gold:()=>10}}};},world:null,Map,renderChatHelp(){},render(){},commitSessionSeed:(seed:number)=>{published.push(seed);context.sessionSeed=seed;},console};
+ const context:any={restoring:false,listRunRecords:()=>[{trace:{}}],localStorage:{},contentBuild:'a'.repeat(16),replayBuild:'b'.repeat(16),sessionSeed:6,selectedSource:{mapBytes:new ArrayBuffer(0),stockProfile:{}},localSourceMode:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},document:{documentElement:{dataset:{}}},setMsg(){},extractGemPresentation:()=>({}),frameClock:{reset(){}},drag:{on:false},$:(id:string)=>nodes[id],resize(){},boot:(_bytes:any,_names:any,_profile:any,seed:number)=>{bootSeeds.push(seed);return {seed,sim:{ledger:{gold:()=>10}}};},world:null,Map,renderChatHelp(){},render(){},commitSessionSeed:(seed:number)=>{published.push(seed);context.sessionSeed=seed;},console};
  vm.runInNewContext(declaration('loadFromUrl'),context);
  assert.equal(await context.loadFromUrl(),true);assert.equal(context.world.seed,6);assert.deepEqual(published,[6]);
  assert.equal(await context.loadFromUrl(77,{publishSeed:false}),true);assert.equal(context.world.seed,77);assert.deepEqual(published,[6]);assert.equal(context.sessionSeed,6);

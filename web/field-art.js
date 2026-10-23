@@ -25,10 +25,10 @@ export function drawFieldRim(ctx,box,sprites){
  ctx.drawImage(cached.image,0,0);
 }
 /** Thin ground forecast only, below units. Partial blocked routes are never extended. */
-export function drawBuildRoute(ctx,preview,project){
+export function drawBuildRoute(ctx,preview,project,{alpha=1,dashed=true}={}){
  if(!preview||preview.status==='invalid'||preview.points.length<2)return;
  ctx.save();ctx.beginPath();preview.points.forEach((p,index)=>{const q=project(p);if(index)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);});
- ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';ctx.setLineDash([4,4]);ctx.strokeStyle=preview.status==='blocked'?'#efaa8c':'#eadcb1';ctx.stroke();ctx.restore();
+ ctx.globalAlpha=alpha;ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';ctx.setLineDash(dashed?[4,4]:[]);ctx.strokeStyle=preview.status==='blocked'?'#efaa8c':'#eadcb1';ctx.stroke();ctx.restore();
 }
 
 // This is a static view of immutable source pathing, not a second placement grid.

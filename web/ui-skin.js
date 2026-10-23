@@ -64,9 +64,9 @@ export function dispatchCasinoApproach(view,id,approach){
 }
 const QUALITY_MATERIALS=['slot-grey','slot-green','slot-blue','slot-purple','slot-gold'];
 export function qualityMaterialForFrame(frame){return QUALITY_MATERIALS[frame]??QUALITY_MATERIALS[0];}
-const NEGATIVE_BUTTONS=new Set(['cancelPoint','castA008','castA02G','reset','drawerClose','cancelGemTarget','cancelRestore']);
+const NEGATIVE_BUTTONS=new Set(['reset']);
 export function approvedButtonMaterial({id='',primary=false,action=false,disabled=false,pressed=false}={}){
- const color=primary?'gold':NEGATIVE_BUTTONS.has(id)?'red':action||id.startsWith('cast')?'green':null;
+ const color=id==='play'?null:primary?'gold':NEGATIVE_BUTTONS.has(id)?'red':action||id.startsWith('cast')?'green':null;
  return color?`button-${color}-${disabled?'disabled':pressed?'pressed':'normal'}`:null;
 }
 const QUALITY_COLORS=['#ada99c','#46a250','#368ac6','#a66ec7','#e6bb46'];
@@ -120,8 +120,8 @@ export function createSelectionSheet(doc,{panel,meta,body,summary}){
   if(!selected||!meta.open||!panel.getBoundingClientRect)return;
   const r=panel.getBoundingClientRect(),height=doc.defaultView?.innerHeight;
   if(!Number.isFinite(height)||!Number.isFinite(r.left)||!Number.isFinite(r.top)||!(r.width>0))return;
-  const bottom=Math.max(0,height-r.top),key=JSON.stringify([r.left,r.width,bottom]);if(key===position)return;position=key;
-  body.style.setProperty('--selection-sheet-left',r.left+'px');body.style.setProperty('--selection-sheet-width',r.width+'px');body.style.setProperty('--selection-sheet-bottom',bottom+'px');
+  const bottom=Math.max(0,height-r.top),fieldHeight=doc.getElementById?.('battlefield')?.getBoundingClientRect?.().height,maxHeight=Math.max(0,(Number.isFinite(fieldHeight)?fieldHeight:r.top)*.5),key=JSON.stringify([r.left,r.width,bottom,maxHeight]);if(key===position)return;position=key;
+  body.style.setProperty('--selection-sheet-left',r.left+'px');body.style.setProperty('--selection-sheet-width',r.width+'px');body.style.setProperty('--selection-sheet-bottom',bottom+'px');body.style.setProperty('--selection-sheet-max-height',maxHeight+'px');
  };
  const sync=()=>{if(selected&&interacting&&!meta.open)meta.open=true;panel.dataset.sheetOpen=String(selected&&meta.open);measure();};
  const release=()=>{const g=gesture;gesture=null;if(g)try{if(g.node.hasPointerCapture?.(g.id))g.node.releasePointerCapture(g.id);}catch{ /* A cancelled/removed handle already lost capture. */ }};
@@ -200,7 +200,7 @@ export function createSelectionCard(doc){
    else{delete unitArt.dataset.kind;unitRole.textContent='';unitRole.title='';}
   }
   const compact=snapshot.combatActive===true&&Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem);
-  const active=doc.activeElement,focusInBody=active&&active!==close&&!active.disabled&&!active.hidden&&(body.contains(active)||actions.contains(active)),interacting=Boolean(snapshot.pendingTarget||snapshot.pendingPoint);
+  const active=doc.activeElement,completedKeep=compact&&!lastCombat&&active===keep,focusInBody=active&&!completedKeep&&active!==close&&!active.disabled&&!active.hidden&&(body.contains(active)||actions.contains(active)),interacting=Boolean(snapshot.pendingTarget||snapshot.pendingPoint);
   panel.dataset.combatCard=String(compact);
   if(compact){
    if(actions.parentNode!==body)body.append(actions);
@@ -220,8 +220,8 @@ export function createSelectionCard(doc){
    if(summary.textContent!==homes.summary)summary.textContent=homes.summary;
   }
   sheet.update({selected:Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem),interacting});
-  // A completed keep command becomes disabled at the source transition. Its
-  // focus belongs on the visible disclosure, rather than in a closed body.
+  // The original keep button can remain enabled after the source transition.
+  // Its preparatory focus belongs on the visible summary when combat starts.
   const focusTarget=compact&&!meta.open&&active&&body.contains(active)?summary:active;
   if(focusTarget&&doc.activeElement!==focusTarget&&focusTarget.isConnected!==false)focusTarget.focus({preventScroll:true});
   lastCombat=compact;lastSelected=snapshot.selectedId??null;
@@ -316,7 +316,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  addIcon(doc.getElementById('objectiveHud'),'icon-wave-flag','ui-wave-icon');
  for(const [index,key]of ['icon-attack-sword','icon-range-crosshair','icon-speed-boot'].entries()){
   const host=doc.querySelectorAll('.gem-stats .stat>span')[index];if(!host)continue;
-  const label=doc.createElement('span');label.className='stat-label-text';label.textContent=host.textContent;host.textContent='';host.append(label);addIcon(host,key);
+  const label=doc.createElement('span');label.className='stat-label-text';label.textContent=host.textContent;host.parentElement?.setAttribute('role','group');host.parentElement?.setAttribute('aria-label',label.textContent);host.setAttribute('aria-hidden','true');host.textContent='';host.append(label);addIcon(host,key);
  }
  function paintIcons(){for(const {canvas,key}of icons){const prepared=preparedRaster(MATERIALS[key]);if(!prepared)continue;const c=canvas.getContext('2d');c.clearRect(0,0,32,32);c.imageSmoothingEnabled=false;c.drawImage(prepared.image,Math.floor((32-prepared.image.width)/2),Math.floor((32-prepared.image.height)/2));canvas.dataset.artReady='true';}}
  const notice=doc.getElementById('actionFeedback');
@@ -379,9 +379,9 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const rangeNote=Number.isFinite(targeted?.rangeU)?`시전 사거리 ${targeted.rangeU}`:'';
   cancelButton.hidden=!selecting;targetHint.textContent=(selecting?['교환할 보석을 누르세요 · 보유 목록에서도 선택',rangeNote]:[targeted?.description.split(/\r?\n/)[0],rangeNote,targetNote]).filter(Boolean).join(' · ');
   selectionCard.render(snapshot);
-  const keep=doc.getElementById('castA009'),start=doc.getElementById('skip'),play=doc.getElementById('play');
   for(const b of doc.querySelectorAll('button[data-primary]'))delete b.dataset.primary;
-  const primary=keep&&!keep.disabled&&keep.getClientRects().length?keep:start&&!start.disabled&&start.getClientRects().length?start:play;
+  const primaryCandidates=['startGame','castA009','skip','speedCycle'].filter(id=>{const b=doc.getElementById(id);return b&&!b.disabled&&!b.hidden&&b.getClientRects().length;});
+  const primary=doc.getElementById(primaryActionId(snapshot,primaryCandidates));
   if(primary&&!primary.disabled)primary.dataset.primary='true';paintFrames();paintButtons();paintIcons();
  }
  function repaint(){signature='';for(const p of panels.values())p.paintedKey='';if(latest)render(latest);else paintFrames();}
@@ -390,4 +390,9 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  void materialsReady().then(()=>{for(const spec of Object.values(MATERIALS)){const im=imageAt(spec.file);if(!im.complete)im.addEventListener('load',repaint,{once:true});}repaint();}).catch(error=>{app.dataset.skinError='materials';console.warn('[UI material]',error.message);});
  app.dataset.uiSkin='walnut-brass';app.dataset.uiAssets='claude-approved-23';
  return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
+}
+
+export function primaryActionId(snapshot={},available=[]){
+ const has=id=>available.includes(id);
+ return has('startGame')?'startGame':!snapshot.chosen&&has('castA009')?'castA009':has('skip')?'skip':snapshot.combatActive&&has('speedCycle')?'speedCycle':null;
 }

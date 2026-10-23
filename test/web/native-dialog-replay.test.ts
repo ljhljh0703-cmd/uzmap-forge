@@ -1,5 +1,6 @@
 /** Standalone review regression. Can also be copied to test/web/*.test.ts unchanged.
  * Only a synthetic map is used; no product or private original files are written. */
+import {sourceDifficultyLabel} from '../../web/first-minute.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -52,7 +53,7 @@ endfunction`;
 function surface(world){
  const host={children:[],replaceChildren(){this.children=[];},append(b){this.children.push(b);},querySelector(){return this.children[0];},addEventListener(_kind,fn){this.click=fn;}};
  const nodes={sourceDialog:{},sourceDialogTitle:{},sourceDialogButtons:host};
- const context={world,w:world,preservePendingDialog:false,$:id=>nodes[id],sourceText:(_w,text)=>text,document:{createElement:()=>({dataset:{},focus(){}})},recordInput:(w,a)=>w.inputLog.push({tick:w.sim.tickCount,...a}),render(){}};
+ const context={world,w:world,preservePendingDialog:false,sourceDifficultyLabel:(_w,d,b,f)=>f,$:id=>nodes[id],sourceText:(_w,text)=>text,document:{createElement:()=>({dataset:{},focus(){}})},recordInput:(w,a)=>w.inputLog.push({tick:w.sim.tickCount,...a}),render(){}};
  vm.runInNewContext(clickSource,context);
  return {context,host,paint(preserve=false){context.preservePendingDialog=preserve;vm.runInNewContext("(()=>{\n"+paintSource+"\n})()",context);},paintRestored(){context.render=(w,preserve)=>{assert.equal(w,world);this.paint(preserve);};vm.runInNewContext(finalRestoreRender,context);},click(id){const d=world.vm.getGlobal('d').v;host.click({target:{closest:()=>({dataset:{dialogId:String(d),dialogButton:String(id)}})}});}};
 }

@@ -1,3 +1,4 @@
+import {keepResultNotice,completedKeepNotice,sourceDifficultyChoices,sourceDifficultyLabel,requestStartupChoice,advanceStartupChoice} from './first-minute.js';
 import {createActionFeedback,createCueAudio} from './action-feedback.js';
 import {createBuildPreview} from './dist/runtime/build-preview.js';
 import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth,drawGemGrade,drawObjectKindMark,drawAirborneMark} from './field-art.js';
@@ -14,7 +15,7 @@ import {mountOverlapPicker} from "./overlap-picker.js";
 import {targetGemActions,armGemTarget,cancelGemTarget,currentGemTarget,gemTargetReason,issueGemTarget} from "./gem-targeting.js";
 import {gemTowerMobileLayout,GEMTOWER_FIELD_RECTS,installGemTowerOutcome,gemTowerPlayerState,gemTowerGemFamily,gemTowerPlayerGemIds,createGemTowerSourceDefs,gemTowerCasinoState} from "./dist/runtime/maps/gemtower.js";
 import {DT} from "./dist/sim/rng.js";
-import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels,gemObjectPresentation,creepVisualPresentation,gemGradePresentation,attackTypeLabel} from "./play-ui.js";
+import {visibleGemChoices,classifyMapGesture,trainingOptionView,trainingInterruptionText,TRAIN_REASON,pointInBattlefield,playerCamera,battlefieldCamera,battlefieldBounds,gemSpriteSize,remainingBuildSlots,screenFootprintBox,ingressMarker,lifeLossFeedback,simplifyPlayShell,showGemAction,visibleBuildBlocks,rangeInBuildCells,attackDisplay,attackTargetLabel,upgradeAttackSummary,upgradeConditionText,gemActionConditions,combatEffectLabels,gemObjectPresentation,creepVisualPresentation,gemGradePresentation,attackTypeLabel} from "./play-ui.js";
 import {trainingActions,requestTrainingBatch,advanceTrainingBatch,armSlateMove,issueSlateMove, availableGemCombinations,blockedCreepCount,ownedRocks,validateInputReplay,replayInputBatch,gemActions, gemBuildHint, isGemSelectable, captureGemCast, observeGemCast, parseSessionSeed, freshSessionSeed, requestModeChoice, flushModeChoice, extractGemPresentation } from "./gem-actions.js";
 import { loadLocalStockProfile, parseStockProfile } from "./local-stock.js";
 import {isLocalGameHost,readPlayFiles,sourceGemPresentation,loadHostedPlayFiles} from "./source-input.js";
@@ -376,6 +377,7 @@ function renderControls(w) {
  $("restoreOverlay").hidden=!restoring;$("cancelRestore").disabled=!restoring||restoreCancelled;
  for(const id of ["play","stepBtn","speed","chatInput","chatSend"])$(id).disabled=restoring||ended||runtimeFailed;
  if(awaitingMode)for(const id of ["play","stepBtn"])$(id).disabled=true;
+ const cycle=$("speedCycle");if(cycle){cycle.disabled=$("speed").disabled||awaitingMode||Boolean(w?.startupChoice);cycle.textContent='배속 '+($("speed").value||1)+'×';}
  if(w?.replayMismatch)play.disabled=true;
  for(const id of ["reset","resumeRun","importRun"])$(id).disabled=restoring;
  $("saveRun").disabled=restoring||Boolean(w?.trainingBatch)||pendingMode;
@@ -522,11 +524,12 @@ function renderBuildPreview(w){
  const target=$('buildPreviewStatus'),state=gemTowerPlayerState(w.vm),field=w.mobileFields?.[w.viewPlayerId??0];
  const ready=Boolean(field&&w.pm&&w.hover&&(w.hoverGemId===null||w.hoverGemId===undefined)&&(w.viewPlayerId??0)===0&&w.modeDialog?.clicked&&state.difficulty&&!state.chosen&&!w.gameOver&&!restoring&&!w.pendingTargetAbility&&!w.pendingPointAbility&&remainingBuildSlots(state,w.pendingBuilds)>0);
  if(target){target.hidden=!ready;target.parentElement.dataset.preview=String(ready);}
- if(!ready){w.buildPreviewResult=null;return;}
- const point={x:w.hover.cx,y:w.hover.cy},last=field.waypoints.at(-1),exit={x:field.bounds.maxX-w.pm.cellSize/2,y:(last.minY+last.maxY)/2};
+ if(restoring||!field||!w.pm||!w.modeDialog?.clicked||!state.difficulty){w.buildPreviewResult=null;return;}
+ const point=ready?{x:w.hover.cx,y:w.hover.cy}:null,last=field.waypoints.at(-1),exit={x:field.bounds.maxX-w.pm.cellSize/2,y:(last.minY+last.maxY)/2};
  w.previewSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
- const preview=w.previewSearch.evaluate({entities:w.sim.entities.values(),bounds:field.bounds,start:field.spawn,waypoints:[...field.waypoints.map(r=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2})),exit],waypointBounds:[...field.waypoints,null],pending:w.pendingBuilds.map(p=>({typeId:'h006',...p})),candidate:{typeId:'h006',...point}});
- w.buildPreviewResult=preview;
+ const preview=w.previewSearch.evaluate({entities:w.sim.entities.values(),bounds:field.bounds,start:field.spawn,waypoints:[...field.waypoints.map(r=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2})),exit],waypointBounds:[...field.waypoints,null],pending:w.pendingBuilds.map(p=>({typeId:'h006',...p})),candidate:point?{typeId:'h006',...point}:null});
+ w.buildPreviewResult=ready?preview:null;w.groundRoute=preview;
+ if(!ready){drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}),{alpha:.3,dashed:false});return;}
  if(target){target.dataset.state=preview.status;target.textContent=preview.status==='open'?'배치 후 지상 예상 길':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침';}
  drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}));
  const ok=canPlaceBlock(w,w.hover.blockCol,w.hover.blockRow,buildGridCells(w)),size=w.pm.cellSize*buildGridCells(w)*cam.zoom;
@@ -748,10 +751,10 @@ function render(w,preservePendingDialog=false) {
     if (gemType) gemType.textContent = attackTypeLabel(d?.attack?.attackType);
     const attackText=attackDisplay(d?.attack??d?.secondaryAttack,DT);
     $("gemDmg").textContent = attackText.damage;
-    $("gemRange").textContent = d?.secondaryAttack?`${d.attack?.rangeU??"—"} / ${d.secondaryAttack.rangeU}`:d?.attack?.rangeU??"—";
+    $("gemRange").textContent = [d?.attack,d?.secondaryAttack].filter(Boolean).map(a=>rangeInBuildCells(a.rangeU,(w.pm?.cellSize??32)*buildGridCells(w))).join(" / ")||"—";
     $("gemCd").textContent = attackText.interval;
     const effects=combatEffectLabels(w.sim.abilityEffects?.effects(selected.abilities)??[],DT),effectText=$("gemEffects");
-    if(d?.secondaryAttack){const a=d.secondaryAttack,t=attackDisplay(a,DT),band=attackTargetLabel({attack:a});effects.unshift(`${band} · ${t.damage} · 사거리 ${a.rangeU} · ${t.interval}`);}
+    if(d?.secondaryAttack){const a=d.secondaryAttack,t=attackDisplay(a,DT),band=attackTargetLabel({attack:a});effects.unshift(`${band} · ${t.damage} · 사거리 ${rangeInBuildCells(a.rangeU,(w.pm?.cellSize??32)*buildGridCells(w))} · ${t.interval}`);}
     if(d?.attack?.splash?.quarterU>0)effects.unshift(`범위 공격 · 반경 ${d.attack.splash.quarterU}`);
     for(const id of w.sim.abilityEffects?.unresolvedFor?.(selected.abilities)??[]){
       const name=sourceText(w,w.sim.mapIr.objectMods.filter(o=>o.kind==="ability"&&(o.newId??o.baseId)===id).flatMap(o=>o.mods).findLast(m=>m.field==="anam")?.value);
@@ -776,7 +779,7 @@ function render(w,preservePendingDialog=false) {
       button.title = action.reason ? abilityOrderReason(action.reason) : "보유한 능력 사용";
       if(action.disabled&&!button.hidden&&["A03M","A02J","A02G","A008"].includes(action.abilityId))button.textContent+=" · "+button.title;
     }
-    $("gemCombineGate").textContent = gemActionConditions(actions).join("\n");
+    $("gemCombineGate").textContent = gemActionConditions(actions).join("\n");$("gemCombineGate").hidden=!$("gemCombineGate").textContent;
 
   } else {
     w.selectedGemId = null;
@@ -905,13 +908,13 @@ function render(w,preservePendingDialog=false) {
   }
   const sourceState=gemTowerPlayerState(w.vm),difficulty=sourceState.difficulty??0;
   const difficultyName=difficulty?w.vm.getGlobalIndexed('vI',30+difficulty):null;
-  $("difficultyTag").textContent=difficultyName?.t==='string'?sourceText(w,difficultyName.v):'난이도 미선택';
+  $("difficultyTag").textContent=sourceDifficultyChoices(w)[difficulty-1]?.label??(difficultyName?.t==='string'?sourceText(w,difficultyName.v):'난이도 미선택');
   const dialog=w.registry.dialogIds.map(id=>w.vm.handles.get(id)).find(d=>d?.kind==='dialog'&&d.id!==w.modeDialog?.dialogId&&(d.data.visibleTo??[]).includes(0)&&d.data.buttons?.length);
-  $("sourceDialog").hidden=!dialog||Boolean(w.gameOver);
+  $("sourceDialog").hidden=!dialog||Boolean(w.gameOver)||Boolean(w.startupChoice)&&sourceDifficultyChoices(w).some(c=>c.dialogId===dialog?.id);
   if(dialog&&!w.gameOver){
     const key=JSON.stringify([dialog.id,dialog.data.message,dialog.data.buttons]);
     if(w.nativeDialogKey!==key){w.nativeDialogKey=key;if(!preservePendingDialog)w.nativeDialogPendingId=null;$("sourceDialogTitle").textContent=sourceText(w,dialog.data.message)||'선택해 주세요';$("sourceDialogButtons").replaceChildren();
-      for(const id of dialog.data.buttons){const handle=w.vm.handles.get(id);if(handle?.kind!=='button')continue;const button=document.createElement('button');button.className='sec';button.dataset.dialogButton=String(id);button.dataset.dialogId=String(dialog.id);button.textContent=sourceText(w,handle.data.text);$("sourceDialogButtons").append(button);}$("sourceDialogButtons").querySelector('button')?.focus();
+      for(const id of dialog.data.buttons){const handle=w.vm.handles.get(id);if(handle?.kind!=='button')continue;const button=document.createElement('button');button.className='sec';button.dataset.dialogButton=String(id);button.dataset.dialogId=String(dialog.id);button.textContent=sourceDifficultyLabel(w,dialog.id,id,sourceText(w,handle.data.text));$("sourceDialogButtons").append(button);}$("sourceDialogButtons").querySelector('button')?.focus();
     }
     for(const button of $("sourceDialogButtons").children)button.disabled=w.nativeDialogPendingId===dialog.id;
   }else {w.nativeDialogKey=null;w.nativeDialogPendingId=null;}
@@ -926,7 +929,7 @@ function render(w,preservePendingDialog=false) {
   } else { $("prep").style.display = "none"; }
   // S-A2d: 모드 선택 오버레이 — 클릭 전까지만 노출(원작 Ne 다이얼로그와 동일하게 1회성).
   const modeSelectEl = $("modeSelect");
-  if (modeSelectEl) modeSelectEl.style.display = w.modeDialog && !w.modeDialog.clicked ? "flex" : "none";
+  if (modeSelectEl) modeSelectEl.style.display = w.modeDialog && !w.modeDialog.clicked ? "flex" : "none";renderStartupOptions(w);
   // U-2e: 공격 juice — 타겟팅 라인 + 임팩트 버스트(단일 콤보 이펙트, Motion Gate 1포인트). 좌표는 stepN()이
   // lastPos 스냅샷에서 얻은 값(재발명 0). 220ms 수명 — 다음 공격까지 잔상이 안 남을 만큼 짧게(남발 금지).
   const nowT = performance.now();
@@ -1203,12 +1206,15 @@ function stepN(w, n) {
     const vmEvents=w.vm.drainEvents();
     for(const event of vmEvents)if(event.kind==='ThreadCrashed')w.runtimeCrashes.push(event);
     for(const result of w.casinoFeedback?.observe(gemTowerCasinoState(w.vm,w.sim),vmEvents,w.sim.tickCount)??[])if(!restoring)flash(result.message);
-    flushModeChoice(w);
+    flushModeChoice(w);advanceStartupChoice(w);
     if (!w.cameraFocused) focusPlayer(w);
     // A race wave is started by the actual gem choice/combine trigger, not the timer shim.
     if (w.vm.getGlobal("Be").v === 2 && gemTowerPlayerState(w.vm).chosen === true) w.prepActive = false;
     for (let i = w.pendingCasts.length - 1; i >= 0; i--) {
-      const req = w.pendingCasts[i], observed = observeGemCast(w, req, w.sim.tickCount);
+      const req=w.pendingCasts[i],keptCandidate=w.sim.getUnit(req.unitId);
+      const keepNotice=req.abilityId==='A009'?completedKeepNotice({request:req,kept:keptCandidate,chosen:gemTowerPlayerState(w.vm).chosen,rocks:ownedRocks(w),name:keptCandidate?fullName(w,keptCandidate.typeId):''}):null;
+      if(keepNotice){flash(keepNotice);w.pendingCasts.splice(i,1);continue;}
+      const observed = observeGemCast(w, req, w.sim.tickCount);
       if (observed.state === "waiting") continue;
       if (observed.result) {
         w.knownGemIds.add(observed.result.typeId);
@@ -1216,7 +1222,10 @@ function stepN(w, n) {
         const combined=["A007","A00R","A03M"].includes(req.abilityId);
         flash((combined?"조합 완료: ":"시전 결과: ") + fullName(w, observed.result.typeId));
         if(combined)showActionSuccess(w,'combine',observed.result);
-      } else flash("능력 사용됨");
+      } else {
+        const kept=w.sim.getUnit(req.unitId);
+        flash(req.abilityId==='A009'&&kept?.alive&&kept.owner===0&&gemTowerPlayerState(w.vm).chosen===true?keepResultNotice(fullName(w,kept.typeId),kept.id,req.hand,ownedRocks(w)):"능력 사용됨");
+      }
       w.pendingCasts.splice(i, 1);
     }
     // P-4: 종결 후에도 sim.step()이 계속 도는 것은 무의미(endGame은 멱등이지만 자원 낭비+오버레이 표시
@@ -1242,7 +1251,9 @@ function castGem(w, abilityId) {
   }
   if (!w.sim.issueAbilityOrder(0, id, abilityId)) { flash("시전 거부: " + abilityOrderReason(w.sim.validateAbilityOrder(0, id, abilityId))); return; }
   recordInput(w,{kind:"ability",playerId:0,unitId:id,abilityId});
-  w.pendingCasts.push(captureGemCast(w,e,abilityId));
+  const request=captureGemCast(w,e,abilityId);
+  if(abilityId==='A009')request.hand=Array.from({length:5},(_,i)=>w.vm.getGlobalIndexed('I',i+1)).map(h=>h.t==='handle'&&h.v!==null?w.sim.getUnit(h.v):null).filter(e=>e?.alive).map(e=>({id:e.id,x:e.x,y:e.y}));
+  w.pendingCasts.push(request);
   flash("능력 사용을 요청했습니다");
 }
 
@@ -1503,8 +1514,10 @@ function startWaves(w) {
 $("play").onclick = () => { if (!world||restoring||loadingRun||runtimeFailed) return;if(world.replayMismatch){flash("기록이 일치하지 않습니다 · 새 게임을 시작하세요");return;} playing = !playing; $("play").textContent = playing ? "일시정지" : "재개";if(!playing)checkpointRun(world,true); };
 $("skip").onclick = () => { if (world && world.prepActive) startWaves(world); };
 $("stepBtn").onclick = () => { if (world&&!restoring&&!loadingRun&&!runtimeFailed) { stepN(world, 1); render(world);checkpointRun(world,true); } };
-$("reset").onclick = () => loadFromUrl(freshSessionSeed(sessionSeed,crypto));
-$("speed").oninput = (e) => { tps = +e.target.value; $("spd").textContent = tps + "×"; };
+$("reset").onclick = () => startNewGame();
+$("changeSetup").onclick = () => startNewGame(true);
+$("speed").oninput = (e) => { tps = +e.target.value; $("spd").textContent = tps + "×";if($("speedCycle"))$("speedCycle").textContent='배속 '+tps+'×'; };
+$("speedCycle").onclick=()=>{const slider=$("speed");if(slider.disabled)return;const next=Number(slider.value)+Number(slider.step||1);slider.value=String(next>Number(slider.max)?slider.min:next);slider.oninput({target:slider});};
 for (const id of ["A009", "A007", "A00R", "A03M", "A02G", "A008", "A02J"]) {
   $("cast" + id).onclick = () => { if (world) castGem(world, id); };
 }
@@ -1545,8 +1558,9 @@ $("gemRoster").addEventListener("click",event=>{
 });
 // S-A2d(DISPATCH_SONNET_SA2_MODE_RESTORE) — 복원된 Ne 다이얼로그 클릭 주입(injectDialogClick 재사용,
 // 새 입력경로 0). Be 값 자체는 대입하지 않는다 — 원작 yc/Sc/uc가 세팅(발명 경계 준수).
-$("modeClassic").onclick = () => chooseMode("classic");
-$("modeRace").onclick = () => chooseMode("race");
+$("modeClassic").onclick = () => {if(world&&!world.modeDialog?.clicked){world.startupMode="classic";renderStartupOptions(world);}};
+$("modeRace").onclick = () => {if(world&&!world.modeDialog?.clicked){world.startupMode="race";renderStartupOptions(world);}};
+$("startGame").onclick=()=>{if(world)chooseStartup(world.startupMode??"race",world.startupDifficulty??0);};
 // Research remains an enqueue-only source order. The view locks stale prices until its result.
 function requestResearch(w,techId) {
  if(!w||restoring||loadingRun||runtimeFailed||w.gameOver||w.replayMismatch||(w.viewPlayerId??0)!==0||w.pendingResearch||!RESEARCH_IDS.includes(techId)||$("rs"+techId+"Btn")?.disabled)return false;
@@ -1568,7 +1582,7 @@ for (const techId of RESEARCH_IDS) {
   if (btn) btn.onclick = () => requestResearch(world,techId);
 }
 const goRestart = $("goRestart");
-if (goRestart) goRestart.onclick = () => loadFromUrl(freshSessionSeed(sessionSeed,crypto));
+if (goRestart) goRestart.onclick = () => startNewGame();
 
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6) — 채팅 콘솔: injectChat(P0,text) 왕복만(효과는 스크립트 소유, 재구현
 // 0). 도움말은 실맵 registry.chatSubs 미러(chat_commands.json 부재 — 런타임 등록부가 원장 대체, A-G9).
@@ -1605,11 +1619,16 @@ if ($("chatInput")) $("chatInput").addEventListener("keydown", (e) => { if (e.ke
 if ($("chatShowAdmin")) $("chatShowAdmin").onchange = () => renderChatHelp(world);
 
 function setMsg(t) { const m = $("msg"); if (m) { m.style.display = "flex"; m.textContent = t; } }
+function startNewGame(showSetup=false){
+ if(world&&!world.gameOver&&!confirm('진행 중인 판을 먼저 저장하고 새 판을 시작할까요?'))return false;
+ if(checkpointRun(world,true).kind==='failed')return false;
+ setDrawer(false);return loadFromUrl(freshSessionSeed(sessionSeed,crypto),{showSetup});
+}
 function commitSessionSeed(seed) {
   const url=new URL(location.href);url.searchParams.set('seed',String(seed));
   history.replaceState(history.state,'',url);sessionSeed=seed;
 }
-async function loadFromUrl(seed=sessionSeed,{publishSeed=true}={}) {
+async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false}={}) {
   if(loadingRun)return false;
   checkpointRun(world,true);
   const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
@@ -1636,6 +1655,8 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true}={}) {
     renderChatHelp(world);
     $("engineTag").textContent = "보석 5개 건설 → 보석 선택 또는 같은 보석 조합";
     playing = false; $("play").textContent = "방식 선택";
+    let returning=true;try{returning=listRunRecords(localStorage,contentBuild,replayBuild).some(r=>r.trace);}catch{ /* Storage access failure keeps the explicit choice screen. */ }
+    if(!restoring&&!showSetup&&!returning)chooseStartup('race',0);
     render(world);
     if(publishSeed)commitSessionSeed(seed);
     loaded=true;return true;
@@ -1670,11 +1691,30 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", () => {
  frameClock.reset();playing=false;interruptUiOrders(world);checkpointRun(world,true);renderControls(world);
 });
-window.addEventListener("pageshow", () => {
- frameClock.reset();playing=false;renderControls(world);
+window.addEventListener("pageshow", event => {
+ frameClock.reset();if(event?.persisted)playing=false;renderControls(world);
 });
 resize(); requestAnimationFrame(loop); loadFromUrl();
 
+function renderStartupOptions(w){
+ if(!w?.modeDialog||w.modeDialog.clicked)return;
+ const choices=sourceDifficultyChoices(w),mode=w.startupMode??'race',selected=w.startupDifficulty??0;
+ for(const [value,id]of [['classic','modeClassic'],['race','modeRace']])$(id).setAttribute('aria-pressed',String(mode===value));
+ const host=$('startupDifficulties');
+ if(w.startupOptionsKey!==JSON.stringify(choices)){
+  w.startupOptionsKey=JSON.stringify(choices);host.replaceChildren();
+  for(const choice of choices){const b=document.createElement('button');b.type='button';b.className='sec';b.dataset.difficultyIndex=String(choice.index);const title=document.createElement('strong'),note=document.createElement('small');title.textContent=choice.label;note.textContent=choice.description;b.append(title,note);b.onclick=()=>{w.startupDifficulty=choice.index;renderStartupOptions(w);};host.append(b);}
+ }
+ for(const button of host.children)button.setAttribute('aria-pressed',String(Number(button.dataset.difficultyIndex)===selected));
+ $('startGame').disabled=!choices.length;$('startGame').textContent=`${mode==='classic'?'클래식':'레이스'} · ${choices[selected]?.label??'난이도 확인'} 시작`;
+}
+function chooseStartup(mode,index){
+ if(!world||!requestStartupChoice(world,mode,index))return false;
+ $('gameApp').dataset.mode=mode;frameClock.reset();playing=true;
+ // Start through ordinary fixed steps. The original delayed difficulty timer
+ // continues on the frame clock; advanceStartupChoice waits for its real buttons.
+ stepN(world,4);render(world);cv.focus();return true;
+}
 function chooseMode(mode) {
   if (!world || !requestModeChoice(world, mode)) return;
   world.runMode=mode;$("gameApp").dataset.mode = mode;

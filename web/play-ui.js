@@ -61,7 +61,7 @@ export function upgradeConditionText(reason,owner){
  return ({busy:'강화 진행 중','insufficient-gold':'골드가 부족합니다','missing-data':'원작 강화 정보를 확인할 수 없습니다','prereq-unmet':'필요한 보석이나 연구가 없습니다','not-owner':'조종할 수 없는 보석입니다','game-over':'게임이 끝났습니다'})[reason]??'지금은 강화할 수 없습니다';
 }
 export function gemActionConditions(actions){
- return actions.filter(action=>['A007','A00R','A03M'].includes(action.abilityId)).map(action=>`${action.label} · ${!action.disabled?'사용 가능':action.reason==='missing-ability'?'현재 보석에 조합 능력이 없습니다':action.reason==='not-owner'?'조종할 수 없는 보석입니다':action.reason==='game-over'?'게임이 끝났습니다':'지금은 사용할 수 없습니다'}`);
+ return actions.filter(action=>['A007','A00R','A03M'].includes(action.abilityId)&&showGemAction(action)).map(action=>`${action.label} · ${!action.disabled?'사용 가능':action.reason==='missing-ability'?'현재 보석에 조합 능력이 없습니다':action.reason==='not-owner'?'조종할 수 없는 보석입니다':action.reason==='game-over'?'게임이 끝났습니다':'지금은 사용할 수 없습니다'}`);
 }
 
 
@@ -80,6 +80,7 @@ export function simplifyPlayShell(doc){
  };
  const controls=doc.createElement('section');controls.className='menu-controls';controls.setAttribute('aria-label','게임 조작');
  const title=doc.createElement('h3');title.textContent='게임 조작';controls.append(title,byId('reset'),doc.querySelector('.speed-control'));const precision=doc.querySelector('.precise-placement');if(precision)controls.append(precision);
+ const setup=byId('changeSetup');if(setup)controls.append(setup);
  drawer.querySelector('.drawer-head').after(controls);
  doc.querySelector('.header-actions').prepend(byId('play'));
  controls.after(byId('ownedExplorer'));
@@ -93,7 +94,7 @@ export function simplifyPlayShell(doc){
  const body=doc.createElement('div');body.className='gem-detail-body';
  body.append(byId('gemCombatTarget'),doc.querySelector('.gem-stats'),byId('gemUpgrades'),byId('upgradeStatus'),byId('gemTargetAbilities'));
  for(const child of [...meta.children])if(child!==summary)body.append(child);
- meta.append(body);app.dataset.simpleUi='true';
+ meta.append(body);byId('engineTag')?.setAttribute('aria-hidden','true');app.dataset.simpleUi='true';
 }
 
 
@@ -181,4 +182,9 @@ export function gemGradePresentation(grade){
 export function attackTypeLabel(type){
  if(type===undefined||type===null||type==='')return '—';
  return ({normal:'일반',pierce:'관통',siege:'공성',magic:'마법',chaos:'혼돈',hero:'영웅',spells:'주문'})[type]??'공격 정보 확인 중';
+}
+
+/** Source world distance divided by the existing build footprint; display only. */
+export function rangeInBuildCells(range,span){
+ return Number.isFinite(range)&&range>=0&&Number.isFinite(span)&&span>0?`${Number((range/span).toFixed(1))}칸`:'—';
 }
