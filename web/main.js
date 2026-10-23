@@ -1,3 +1,6 @@
+import {drawFieldGem,drawFieldStone,drawFieldSlate,drawFieldPlacement,drawMineCreep} from './field-units.js';
+import {drawGroundRoute,drawFieldLandmarks} from './field-ground.js';
+import {mountEffectIcons,drawFieldEffectMarks,createFieldFeedback} from './field-effects.js';
 import {keepResultNotice,completedKeepNotice,sourceDifficultyChoices,sourceDifficultyLabel,requestStartupChoice,advanceStartupChoice} from './first-minute.js';
 import {createActionFeedback,createCueAudio} from './action-feedback.js';
 import {createBuildPreview} from './dist/runtime/build-preview.js';
@@ -34,8 +37,9 @@ const $ = (id) => document.getElementById(id);
 const cv = $("cv"), ctx = cv.getContext("2d");
 const surface=cv.parentElement;
 const sprites = new SpriteBank();
+const effectIcons=mountEffectIcons({document,host:$('gemEffectIcons'),sprites});
 const gemSkin=mountGemSkin({document,
- drawGem:(context,item,x,y,size)=>sprites.draw(context,item.logical,x,y,size,{tick:0,tint:item.tint}),
+ drawGem:(context,item,x,y,size)=>item.kind==='stone'?drawFieldStone(context,{sprites,x,y,size}):item.kind==='slate'?drawFieldSlate(context,{sprites,logical:item.logical,x,y,size}):drawFieldGem(context,{sprites,logical:item.logical,x,y,size,grade:item.name,selected:item.selected,tint:item.tint,tick:0}),
  selectUnit:id=>selectGemById(world,id),
  armTarget:abilityId=>{if(world&&armGemTarget(world,world.selectedGemId,abilityId)){world.buildCellsView=null;flash('교환할 보석을 누르세요 · 보유 목록에서도 선택할 수 있습니다');render(world);}},
  cancelTarget:()=>{if(world&&cancelGemTarget(world)){flash('교환을 취소했습니다');render(world);}},
@@ -55,7 +59,7 @@ $('feedbackSound').onclick=()=>{actionAudio.setEnabled(!actionAudio.snapshot().e
 const unlockActionAudio=event=>{if(event.isTrusted===false)return;void actionAudio.unlock();};
 document.addEventListener('pointerdown',unlockActionAudio,{capture:true,passive:true});
 document.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')unlockActionAudio(event);},true);
-const quietActionFeedback=()=>{actionFeedback.clear();void actionAudio.suspend();};
+const quietActionFeedback=()=>{actionFeedback.clear();world?.fieldFeedback?.clear();void actionAudio.suspend();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)quietActionFeedback();});
 window.addEventListener('pagehide',quietActionFeedback);
 
@@ -139,7 +143,7 @@ function fitPlayerField(w){
 function switchField(w,playerId){
  if(!w||!Number.isInteger(playerId)||playerId<0||playerId>=MAX_FIELD_PLAYERS)return;
  if(playerId!==0&&w.sim.playerState?.getSlotState(playerId)!==1&&w.sim.playerState)return;
- w.viewPlayerId=playerId;w.cameraMode='fit';w.hover=null;w.hoverGemId=null;w.buildCellsView=null;
+ w.fieldFeedback?.clear();w.viewPlayerId=playerId;w.cameraMode='fit';w.hover=null;w.hoverGemId=null;w.buildCellsView=null;
  fitPlayerField(w);render(w);
 }
 function renderFieldView(w){
@@ -162,8 +166,9 @@ function renderFieldView(w){
  const loss=lifeLossFeedback(w.displayedLife[player],state.life);
  const lifeStatus=$('lifeLossStatus');
  if((restoring||w.displayedLife[player]===undefined)&&lifeStatus?.textContent)lifeStatus.textContent='';
- if(loss&&!restoring&&w.modeDialog?.clicked&&(state.round??0)>0){
+ if(loss&&!restoring&&!document.hidden&&w.modeDialog?.clicked&&(state.round??0)>0){
   w.lifeHitUntil[player]=now+1800;w.lifeHitMessage[player]=loss;
+  w.fieldFeedback?.emit({kind:'life',key:`${w.runId}:${w.sim.tickCount}:life:${player}:${state.life}`,x:cv.width-24,y:110,space:'screen'});
   if(lifeStatus)lifeStatus.textContent=(other?'상대 전장 · ':'')+loss+` · 남은 생명 ${state.life}`;
  }
  w.displayedLife[player]=state.life;const hit=now<(w.lifeHitUntil[player]??0);
@@ -314,6 +319,7 @@ function boot(bytes, presentation, stockProfile, seed) {
   w.recordInput=input=>recordInput(w,input);
   focusPlayer(w);
   w.viewFeedback=actionFeedback;w.cueAudio=actionAudio;
+  w.fieldFeedback=createFieldFeedback({reducedMotion:()=>reducedMotion.matches});
   return w;
 }
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -441,7 +447,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
  const checkpoint=checkpointRun(world,true);if(checkpoint?.kind==='failed'){flash('현재 진행을 보관하지 못해 이어하기를 중단했습니다 · 현재 게임은 계속할 수 있습니다');return;}
  const before=captureRunView(),savedSelection=$("savedRuns")?.value;let savedCopy,completed=false;
  const rollbackCopy=()=>{if(!savedCopy)return '';try{return savedCopy.rollback()?'':' · 새 복사본이 변경되어 그대로 남겨 두었습니다';}catch{return ' · 새 복사본 정리를 완료하지 못했습니다';}};
- restoring=true;world?.viewFeedback?.clear();world?.cueAudio?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
+ restoring=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
   await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   if((world.sourceVersion??null)!==(trace.sourceVersion??null))throw Error('원작 자료 버전이 달라 이어할 수 없습니다');
@@ -527,7 +533,12 @@ function renderBuildPreview(w){
  if(restoring||!field||!w.pm||!w.modeDialog?.clicked||!state.difficulty){w.buildPreviewResult=null;return;}
  const point=ready?{x:w.hover.cx,y:w.hover.cy}:null,last=field.waypoints.at(-1),exit={x:field.bounds.maxX-w.pm.cellSize/2,y:(last.minY+last.maxY)/2};
  w.previewSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
- const preview=w.previewSearch.evaluate({entities:w.sim.entities.values(),bounds:field.bounds,start:field.spawn,waypoints:[...field.waypoints.map(r=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2})),exit],waypointBounds:[...field.waypoints,null],pending:w.pendingBuilds.map(p=>({typeId:'h006',...p})),candidate:point?{typeId:'h006',...point}:null});
+ const input={entities:w.sim.entities.values(),bounds:field.bounds,start:field.spawn,waypoints:[...field.waypoints.map(r=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2})),exit],waypointBounds:[...field.waypoints,null],pending:w.pendingBuilds.map(p=>({typeId:'h006',...p})),candidate:point?{typeId:'h006',...point}:null};
+ const preview=w.previewSearch.evaluate(input),project=p=>({x:W2SX(p.x),y:W2SY(p.y)});
+ let current=preview;
+ if(ready){w.baseRouteSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});current=w.baseRouteSearch.evaluate({...input,entities:w.sim.entities.values(),candidate:null});}
+ drawGroundRoute(ctx,{preview:current,project,cellSize:w.pm.cellSize,sprites});
+ drawFieldLandmarks(ctx,{field,project,span:w.pm.cellSize*buildGridCells(w),sprites});
  w.buildPreviewResult=ready?preview:null;w.groundRoute=preview;
  if(!ready){drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}),{alpha:.3,dashed:false});return;}
  if(target){target.dataset.state=preview.status;target.textContent=preview.status==='open'?'배치 후 지상 예상 길':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침';}
@@ -535,7 +546,7 @@ function renderBuildPreview(w){
  const ok=canPlaceBlock(w,w.hover.blockCol,w.hover.blockRow,buildGridCells(w)),size=w.pm.cellSize*buildGridCells(w)*cam.zoom;
  ctx.save();ctx.fillStyle=ok?(preview.status==='blocked'?'#e0ab6b50':'#d8d99d40'):'#dc8e8155';ctx.fillRect(W2SX(point.x)-size/2,W2SY(point.y)-size/2,size,size);
  ctx.strokeStyle=ok?'#dacb98':'#e09b8b';ctx.lineWidth=1;ctx.strokeRect(W2SX(point.x)-size/2+1,W2SY(point.y)-size/2+1,Math.max(1,size-2),Math.max(1,size-2));
- if(ok){ctx.globalAlpha=.5;sprites.draw(ctx,'gem:unknown:0',W2SX(point.x),W2SY(point.y),gemSpriteSize(size),{tick:0});}ctx.restore();
+ if(ok){ctx.globalAlpha=.5;drawFieldPlacement(ctx,{sprites,x:W2SX(point.x),y:W2SY(point.y),size:gemSpriteSize(size)});}ctx.restore();
 }
 
 function renderCreeps(w,footprintPx,z) {
@@ -562,7 +573,7 @@ function renderCreeps(w,footprintPx,z) {
     ctx.fillStyle = col; ctx.strokeStyle = band === "boss" ? "#ff3b3b" : "#170f0b"; ctx.lineWidth = band === "boss" ? 2 : 1;
     const spriteSize=clamp(footprintPx*(band==="boss"?1.7:1.15),band==="boss"?44:30,band==="boss"?84:56);
     const hover=visual.airborne&&!reducedMotion.matches?Math.sin(w.sim.tickCount*.2)*3:0;
-    if(!sprites.draw(ctx,"creep:"+band,px,py-hover,spriteSize,{tick:reducedMotion.matches?0:w.sim.tickCount,anchor:.8,flip:e.orderX<e.x})){
+    if(!drawMineCreep(ctx,{sprites,typeId:e.typeId,band,airborne:visual.airborne,x:px,y:py-hover,groundY:py,size:spriteSize,tick:w.sim.tickCount,flip:e.orderX<e.x,reducedMotion:reducedMotion.matches})){
       ctx.beginPath(); ctx.arc(px, py, creepR, 0, 7); ctx.fill(); ctx.stroke();
     }
     // U-2d: 세그먼트 HP바(teardown "개체별 플로팅 HP바" — 연속 채움바가 아니라 이산 세그먼트로 교체,
@@ -601,7 +612,7 @@ function render(w,preservePendingDialog=false) {
   }
   renderBuildPreview(w);
   // Accepted queued placements have the same footprint and art scale as their eventual gem.
-  for(const spot of w.pendingBuilds){const size=w.pm.cellSize*buildGridCells(w)*z;ctx.save();ctx.globalAlpha=.45;ctx.fillStyle='#d9c783';ctx.fillRect(W2SX(spot.x)-size/2,W2SY(spot.y)-size/2,size,size);sprites.draw(ctx,'gem:unknown:0',W2SX(spot.x),W2SY(spot.y),gemSpriteSize(size),{tick:0});ctx.restore();}
+  for(const spot of w.pendingBuilds){const size=w.pm.cellSize*buildGridCells(w)*z;ctx.save();ctx.globalAlpha=.45;ctx.fillStyle='#d9c783';ctx.fillRect(W2SX(spot.x)-size/2,W2SY(spot.y)-size/2,size,size);drawFieldPlacement(ctx,{sprites,x:W2SX(spot.x),y:W2SY(spot.y),size:gemSpriteSize(size)});ctx.restore();}
   const cellPx = (w.pm ? w.pm.cellSize : 32) * z;
   const footprintPx = cellPx * buildGridCells(w); // U-1a/U-1c 공용 기준 — 건설 풋프린트(2×2) 픽셀 크기
   let creeps = 0, towers = 0;
@@ -645,7 +656,7 @@ function render(w,preservePendingDialog=false) {
     const logical=visual.logical;
     const line=logical.startsWith("gem:")?logical.split(":")[1]:null;
     const colour=LINE_COLORS[line]??vis.color;
-    if(!sprites.draw(ctx,logical,px,py,gemSpriteSize(footprintPx),{tick:reducedMotion.matches?0:w.sim.tickCount,tint:logical.startsWith('slate:')?undefined:colour})){
+    if(!(visual.kind==='slate'?drawFieldSlate(ctx,{sprites,logical,x:px,y:py,size:gemSpriteSize(footprintPx)}):drawFieldGem(ctx,{sprites,logical,x:px,y:py,size:gemSpriteSize(footprintPx),grade:fullName(w,e.typeId),selected,tint:colour,tick:reducedMotion.matches?0:w.sim.tickCount}))){
     ctx.beginPath();
     for (let k = 0; k < vis.vertices; k++) {
       const ang = -Math.PI / 2 + (k * 2 * Math.PI) / vis.vertices;
@@ -672,6 +683,7 @@ function render(w,preservePendingDialog=false) {
     }
     if (selected) { ctx.strokeStyle = "#f0dfb2"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, r + 4, 0, 7); ctx.stroke(); }
     drawObjectKindMark(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx),kind:visual.kind});
+    if(selected)drawFieldEffectMarks(ctx,{sprites,effects:w.sim.abilityEffects?.effects(e.abilities)??[],def:d,x:px,y:py,size:gemSpriteSize(footprintPx)});
     const grade=gemGradePresentation(normalFamily?.grade);
     if(visual.kind==='gem'&&grade)drawGemGrade(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx),rank:grade.rank});
     if (special && (selected || e.id===w.hoverGemId || footprintPx>=60)) {
@@ -691,7 +703,7 @@ function render(w,preservePendingDialog=false) {
   for(const e of w.sim.entities.values()) {
     if(!e.alive || e.typeId!=="h00G")continue;
     const px=W2SX(e.x),py=W2SY(e.y),r=Math.max(5,footprintPx*.27);
-    if(sprites.draw(ctx,"stone",px,py,gemSpriteSize(footprintPx,true))){drawObjectKindMark(ctx,{x:px,y:py,size:gemSpriteSize(footprintPx,true),kind:'stone'});continue;}
+    if(drawFieldStone(ctx,{sprites,x:px,y:py,size:gemSpriteSize(footprintPx,true)}))continue;
     ctx.fillStyle="#778078";ctx.strokeStyle="#354539";ctx.lineWidth=1;
     ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;const x=px+Math.cos(a)*r,y=py+Math.sin(a)*r*.8;if(k===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.closePath();ctx.fill();ctx.stroke();
   }
@@ -753,7 +765,9 @@ function render(w,preservePendingDialog=false) {
     $("gemDmg").textContent = attackText.damage;
     $("gemRange").textContent = [d?.attack,d?.secondaryAttack].filter(Boolean).map(a=>rangeInBuildCells(a.rangeU,(w.pm?.cellSize??32)*buildGridCells(w))).join(" / ")||"—";
     $("gemCd").textContent = attackText.interval;
-    const effects=combatEffectLabels(w.sim.abilityEffects?.effects(selected.abilities)??[],DT),effectText=$("gemEffects");
+    const resolvedEffects=w.sim.abilityEffects?.effects(selected.abilities)??[];
+    effectIcons.render({effects:resolvedEffects,def:d});
+    const effects=combatEffectLabels(resolvedEffects,DT),effectText=$("gemEffects");
     if(d?.secondaryAttack){const a=d.secondaryAttack,t=attackDisplay(a,DT),band=attackTargetLabel({attack:a});effects.unshift(`${band} · ${t.damage} · 사거리 ${rangeInBuildCells(a.rangeU,(w.pm?.cellSize??32)*buildGridCells(w))} · ${t.interval}`);}
     if(d?.attack?.splash?.quarterU>0)effects.unshift(`범위 공격 · 반경 ${d.attack.splash.quarterU}`);
     for(const id of w.sim.abilityEffects?.unresolvedFor?.(selected.abilities)??[]){
@@ -908,7 +922,7 @@ function render(w,preservePendingDialog=false) {
   }
   const sourceState=gemTowerPlayerState(w.vm),difficulty=sourceState.difficulty??0;
   const difficultyName=difficulty?w.vm.getGlobalIndexed('vI',30+difficulty):null;
-  $("difficultyTag").textContent=sourceDifficultyChoices(w)[difficulty-1]?.label??(difficultyName?.t==='string'?sourceText(w,difficultyName.v):'난이도 미선택');
+  $("difficultyTag").textContent=sourceDifficultyChoices(w)[difficulty-1]?.label??(difficultyName?.t==='string'?sourceText(w,difficultyName.v):w.startupChoice?'선택한 난이도 적용 중':'선택 전');
   const dialog=w.registry.dialogIds.map(id=>w.vm.handles.get(id)).find(d=>d?.kind==='dialog'&&d.id!==w.modeDialog?.dialogId&&(d.data.visibleTo??[]).includes(0)&&d.data.buttons?.length);
   $("sourceDialog").hidden=!dialog||Boolean(w.gameOver)||Boolean(w.startupChoice)&&sourceDifficultyChoices(w).some(c=>c.dialogId===dialog?.id);
   if(dialog&&!w.gameOver){
@@ -966,7 +980,7 @@ function render(w,preservePendingDialog=false) {
     const age = (nowT - t.born) / 1200;
     ctx.globalAlpha = Math.max(0, 1 - age);
     ctx.font = "bold 12px system-ui"; ctx.textAlign = "left"; ctx.fillStyle = "#d4ac43";
-    ctx.fillText(t.text, 16, 130 + i * 16 - age * 18);
+    ctx.fillText(t.text, 24, 130 + i * 16 - age * 18);
     ctx.globalAlpha = 1;
   });
   // U-1c: 호버 툴팁 — 클릭선택 패널과 별개로 마우스오버만으로 라인·티어·공격력·사거리 즉시 확인
@@ -992,6 +1006,7 @@ function render(w,preservePendingDialog=false) {
   // vuv/vUv/vwv/vWv/vyv are the exact O[1]==1..5 predicates. Never infer a
   // round hand from DOM order, coordinates or the retained R group.
   ctx.restore();
+  w.fieldFeedback?.draw(ctx,sprites,point=>pointInBattlefield(point,fieldBounds)?{x:W2SX(point.x),y:W2SY(point.y)}:null);
   if(fieldBounds)drawFieldRim(ctx,{left:W2SX(fieldBounds.minX),top:W2SY(fieldBounds.maxY),width:(fieldBounds.maxX-fieldBounds.minX)*z,height:(fieldBounds.maxY-fieldBounds.minY)*z},sprites);
   renderRouteCues(w);
   const sourceHand=gemTowerPlayerState(w.vm);
@@ -1141,7 +1156,10 @@ function stepN(w, n) {
     }
     // G-6: 골드 차분 → "{n} 골드!"/"+{n} 골드"(원문 3형, MAP_DISSECTION §99). P0(로컬 관전 플레이어) 기준.
     const goldNow = w.sim.ledger.gold(0);
-    if (goldNow > prevGold[0]) spawnGoldTag(goldNow - prevGold[0]);
+    if (goldNow > prevGold[0]) {
+      if(!restoring)spawnGoldTag(goldNow - prevGold[0]);
+      if((w.viewPlayerId??0)===0)w.fieldFeedback?.emit({kind:'gold',key:`${w.runId}:${w.sim.tickCount}:gold`,x:12,y:122,space:'screen',suppressed:restoring||document.hidden});
+    }
     prevGold[0] = goldNow;
     for (const ev of w.sim.drainEvents()) {
       if (ev.kind === "RectEntered") rectEntered++;
@@ -1289,6 +1307,7 @@ function requestGemTarget(w,targetUnitId){
 
 function showActionSuccess(w,kind,unit) {
  if(!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||w.gameOver||!unit?.id)return null;
+ if(kind==='combine'&&(w.viewPlayerId??0)===0){const actual=w.sim.getUnit(unit.id);if(actual?.alive)w.fieldFeedback?.emit({kind:'combine',key:`${w.runId}:${w.sim.tickCount}:combine:${unit.id}`,x:actual.x,y:actual.y,space:'world'});}
  return actionFeedback.confirm({key:`${w.runId}:${w.sim.tickCount}:${kind}:${unit.id}`,kind,unitId:unit.id,name:fullName(w,unit.typeId)});
 }
 
@@ -1632,7 +1651,7 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false}={
   if(loadingRun)return false;
   checkpointRun(world,true);
   const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
-  loadingRun=true;world?.viewFeedback?.clear();world?.cueAudio?.stop();playing=false;frameClock.reset();
+  loadingRun=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();playing=false;frameClock.reset();
   runtimeFailed=false;document.documentElement.dataset.gameReady='false';
   try {
     setMsg("맵 로딩 중…");

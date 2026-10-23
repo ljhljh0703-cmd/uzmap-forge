@@ -10,11 +10,11 @@ it('equal stun durations do not invent a different hero duration and unknown des
  assert.match(labels[0],/기절.*1.5초/);assert.doesNotMatch(labels[0],/영웅/);assert.match(labels[1],/확인|지원/);assert.ok(labels.every((s:string)=>!/(독|NaN|undefined)/.test(s)));
 });
 function selectedEffects(){
- const source=fs.readFileSync(new URL('../../web/main.js',import.meta.url),'utf8'),start=source.indexOf('    const effects=combatEffectLabels('),end=source.indexOf('    const upgrades=',start);assert.ok(start>0&&end>start);
+ const source=fs.readFileSync(new URL('../../web/main.js',import.meta.url),'utf8'),start=source.indexOf('    const resolvedEffects='),end=source.indexOf('    const upgrades=',start);assert.ok(start>0&&end>start);
  const sourceText=source.match(/^function sourceText\([^\n]*$/m)?.[0];assert.ok(sourceText);
  const historical=new Set(['FIRE','Adts']),abilities=new Map([[rawCodeOf('FIRE'),1],[rawCodeOf('Adts'),1]]),node:any={hidden:true,textContent:''},catalog={effects:()=>[],unresolved:historical,unresolvedFor:(current:Map<number,number>)=>(current.get(rawCodeOf('FIRE'))??0)===1?['FIRE']:[]};
  const w={sim:{abilityEffects:catalog,mapIr:{objectMods:[{kind:'ability',baseId:'Aliq',newId:'FIRE',mods:[{field:'anam',value:'TRIGSTR_42'}]}]}},strings:new Map([[42,'|cffff0000원작의 불꽃|r']])};
- const context:any={w,d:{},selected:{abilities},DT:.05,$:()=>node,combatEffectLabels,attackDisplay,attackTargetLabel,resolveWtsText};vm.runInNewContext(sourceText,context);
+ const context:any={effectIcons:{render(){}},w,d:{},selected:{abilities},DT:.05,$:()=>node,combatEffectLabels,attackDisplay,attackTargetLabel,resolveWtsText};vm.runInNewContext(sourceText,context);
  return {paint:()=>vm.runInNewContext('{\n'+source.slice(start,end)+'\n}',context),abilities,node,catalog,w};
 }
 it('selected-unit unsupported warnings use current grant/level and original WTS names, not the historical global unresolved set',()=>{

@@ -287,3 +287,6 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 
 /* Korean menu explanations wrap at word boundaries, including expanded help. */
 #gameDrawer{word-break:keep-all}
+
+/* Supplied B effect art keeps text labels and existing information sheet. */
+.field-effect-icons{display:flex;flex-wrap:wrap;gap:6px 12px;list-style:none;padding:0;margin:8px 0}.field-effect-icons[hidden]{display:none}.field-effect-icons li{display:flex;align-items:center;gap:4px;font-size:12px;line-height:1.5}.field-effect-icons canvas{image-rendering:pixelated;flex:none}.sound-label{font-size:12px;color:var(--dim)}

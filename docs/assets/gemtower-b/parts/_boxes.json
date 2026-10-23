@@ -1,0 +1,3229 @@
+{
+  "state": "provisional",
+  "gate": "gate_pending",
+  "generator": "Web ChatGPT provided 2026-10-23 source art; crop/repack only",
+  "coordinateFormat": "sourceBox=[left,top,rightExclusive,bottomExclusive]; atlas frame={x,y,w,h}",
+  "operations": [
+    "integer-coordinate crop",
+    "transparent padding",
+    "equal animation cell repack"
+  ],
+  "padding": {
+    "rgba": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "atlasGap": 4,
+    "monsterCellPaddingMin": 2,
+    "pedestalCell": [
+      256,
+      256
+    ]
+  },
+  "alphaPolicy": "Normalized raw atlas preserves supplied RGBA exactly. Final web atlas removes alpha only from conservative magenta candidates connected to exterior transparency. Every retained RGBA and every RGB component are identical to normalized raw atlas.",
+  "sources": {
+    "1": {
+      "alphaFile": "B1-terrain-alpha.png",
+      "alphaSha256": "3964e0da6d1f359f8af06d6c4ab048c7e9d678e857eed912d6dad979a9046186",
+      "opaqueFile": "B1-terrain.png",
+      "opaqueSha256": "f5949dc25382196c83a64656216db407d7482e1d3591a218e3b52cec7d3a7e62",
+      "size": [
+        1536,
+        1024
+      ]
+    },
+    "2": {
+      "alphaFile": "B2-pedestals-alpha.png",
+      "alphaSha256": "0b63b79565f7398e1f5423004cf3998b0aae91932d6ffe89991f460b954f8d84",
+      "opaqueFile": "B2-pedestals.png",
+      "opaqueSha256": "db63034273a51ce971527b1519b5bfa55fb0b0cd39559ae78772839ed5a66295",
+      "size": [
+        1448,
+        1086
+      ]
+    },
+    "3": {
+      "alphaFile": "B3-monsters-alpha.png",
+      "alphaSha256": "b2590ffb77c96da2f4a5ccafd567697592273a8d7f4c3eaa151be03d508c8e4c",
+      "opaqueFile": "B3-monsters.png",
+      "opaqueSha256": "e284962aecc2970c1175275e6d4d25f043b0ef50d7eab9922087b568d89bc571",
+      "size": [
+        1086,
+        1448
+      ]
+    },
+    "4": {
+      "alphaFile": "B4-effect-icons-alpha.png",
+      "alphaSha256": "6ef8b470c8ae296865935da0db6d67dff7b46fd9a703befae34d5d6c93552d14",
+      "opaqueFile": "B4-effect-icons.png",
+      "opaqueSha256": "f632a3c72d47bdaa75bc17b0d60265874e320e00a49e5e974c3f2dcd45ca304f",
+      "size": [
+        2146,
+        733
+      ]
+    }
+  },
+  "existingPngHashes": {
+    "web/assets/sprites/acolyte.png": "b809a57ac21e9eb1251dbbfabcc9bca36423d1beb89e005c6c88adcfeeefc6ff",
+    "web/assets/sprites/builder.png": "38b3b0b92c890350b17502c7f3c061b91065378ef510a2516b60695755d9b7a2",
+    "web/assets/sprites/pearl.png": "eef5c2f44f506729962cc35b01e5738c2a7623623872607759322e8312480d28",
+    "web/assets/sprites/props.png": "dfc81b01e9b01021f3700955a1b452f560a8c3031057cedf5527a4dcaeab2f83",
+    "web/assets/sprites/shambler.png": "63d679e023b18abcfb3f13dcc71220ea5f12e59bd3fd1c7ee9ab6f45c604e09d",
+    "web/assets/sprites/slime.png": "73ac878b15816cc0e6cd87c79b363a675104b061adaf6571d1f396a1d74b4006",
+    "web/assets/sprites/tiles.png": "ebdaa9f75547ab62128b076e784c4d17984f6e5ef7e0a74619906b79037b715c",
+    "web/assets/sprites/widow.png": "79fead9947a035953f4b8a17e10de9a91e265a080cdd85b64f90eba355eb0bda",
+    "web/assets/ui/approved/btn-gold-disabled.png": "74afb4bb9b73feaffd5bc8894e71999109bf8d958e5e9a021cc443c4dfe1f040",
+    "web/assets/ui/approved/btn-gold-normal.png": "5d9fa42b33cdeb08f89091d4b5bc9b4c0a2c47e5525ba61338b8f0b97b7e33b2",
+    "web/assets/ui/approved/btn-gold-pressed.png": "87066b955815233afc7eeac0553e7c1b056dc2a08e0eb6ed33a74b214c9ab780",
+    "web/assets/ui/approved/btn-green-disabled.png": "95c269657d6f02b81f9189807ebfac4358d10f29ae9ee867905f92132241619a",
+    "web/assets/ui/approved/btn-green-normal.png": "764a9710999be8f1ba72209c32da0c0cf4a52aee0765904586bed9c6d99b7f8c",
+    "web/assets/ui/approved/btn-green-pressed.png": "a56a31c61aa56b9ccd8dc8c1f55be2a4b79398cec7ed9925a0c78e805f208e8e",
+    "web/assets/ui/approved/btn-red-disabled.png": "f87c664ce77a1128b740372d17b1a8f6737904f522d0bef6754560536d957dc4",
+    "web/assets/ui/approved/btn-red-normal.png": "1ecf06bc8fd7bf7566965dc90820627a21f16cbc69cffb40e130ea80d0c027e6",
+    "web/assets/ui/approved/btn-red-pressed.png": "cf775d300ba7d9b10e1ce43aa59d56c8809dc15c8aaf149f7d0c418feaa4437d",
+    "web/assets/ui/approved/frame-panel.png": "686628ced66d0013732ec40460369d1a43958c0694937da26cdeffba110173e2",
+    "web/assets/ui/approved/frame-topbar.png": "b04c1f8bf07b45197463885928acc9d7e9c64160a18ea7f49b3842085bd7f5f1",
+    "web/assets/ui/approved/frame-tray.png": "7ba5b0f00311c180f006b79ee79e5fb7b6c19a1474279bfd1a17b500716ec734",
+    "web/assets/ui/approved/icon-attack-sword.png": "133f317639e5744e049145db43fdc1d4468064f23caed8b0c157e6a35239dbb1",
+    "web/assets/ui/approved/icon-gold-coin.png": "614308e1ee9232dbe9c31eef7c535565b76bb82cfafb4828b822db3c6744e5c0",
+    "web/assets/ui/approved/icon-life-heart.png": "2b1716aab48a027bb65aa2317c5a1228053d6e7481c93bf3139813201d3e74bb",
+    "web/assets/ui/approved/icon-range-crosshair.png": "855a452204dd515b9f7a62d2a88af92c1c600b2456996c9aaa744930e5c18c63",
+    "web/assets/ui/approved/icon-speed-boot.png": "d732b1430f9f7034ba15bd2756f48867e1baee445fc65cd66697404dca92d83c",
+    "web/assets/ui/approved/icon-wave-flag.png": "f2a0efe65ddaa4a424dbb91874adb919784de99cf6805b86db6e22d6eb0eaa6f",
+    "web/assets/ui/approved/slot-blue.png": "37ccdd12d1eea7ea30153793705be8bb4a8b9eff45af35ac6bd446554e4328e0",
+    "web/assets/ui/approved/slot-gold.png": "d8299dd053c58f422800c88dce86a33e8bea6341b9c539a0e3dd4b65be5968c2",
+    "web/assets/ui/approved/slot-green.png": "841a45adb425d038b6ef84aa7e726718e603a34d2a898fc211055a62123d6469",
+    "web/assets/ui/approved/slot-grey.png": "d67ffa410ac61a5b58852e87caaebaac63da85f4d36bb9e6a86664fa3198a67b",
+    "web/assets/ui/approved/slot-purple.png": "ee647c0221fdf8fdeabcb531f10332930e24d776181dffa645d8a63811b9d267"
+  },
+  "atlases": {
+    "1": {
+      "path": "web/assets/sprites/gemtower-b1.png",
+      "size": [
+        1024,
+        750
+      ],
+      "sha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "rawAtlas": {
+        "path": "artifacts/field-art-b/asset-slicing/raw-atlases/normalized-crops/gemtower-b1.png",
+        "size": [
+          1024,
+          750
+        ],
+        "sha256": "9f2ede9d4c74b6050c2b4babe867b790e7a9c0f6f28a9b5d2b4fb48a09f4c55b"
+      }
+    },
+    "2": {
+      "path": "web/assets/sprites/gemtower-b2.png",
+      "size": [
+        2048,
+        520
+      ],
+      "sha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "rawAtlas": {
+        "path": "artifacts/field-art-b/asset-slicing/raw-atlases/normalized-crops/gemtower-b2.png",
+        "size": [
+          2048,
+          520
+        ],
+        "sha256": "688f46119b2076a67ff17f5987c77be6cf6eeb6f392cea724ac7f9f84007f6d1"
+      }
+    },
+    "3": {
+      "path": "web/assets/sprites/gemtower-b3.png",
+      "size": [
+        2048,
+        565
+      ],
+      "sha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "rawAtlas": {
+        "path": "artifacts/field-art-b/asset-slicing/raw-atlases/normalized-crops/gemtower-b3.png",
+        "size": [
+          2048,
+          565
+        ],
+        "sha256": "1295c188e95fea00aa331652b8d2871a448a129cde2411a7b3dc79eabab61e79"
+      }
+    },
+    "4": {
+      "path": "web/assets/sprites/gemtower-b4.png",
+      "size": [
+        1024,
+        635
+      ],
+      "sha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "rawAtlas": {
+        "path": "artifacts/field-art-b/asset-slicing/raw-atlases/normalized-crops/gemtower-b4.png",
+        "size": [
+          1024,
+          635
+        ],
+        "sha256": "ca5d8de4f2cd383897203e12b5916e51c958883c22484e663394c456d3185d27"
+      }
+    }
+  },
+  "parts": [
+    {
+      "key": "ground:grass:0",
+      "sheet": 1,
+      "sourceBox": [
+        103,
+        75,
+        231,
+        203
+      ],
+      "kind": "opaque grass interior",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 2,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "visibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ]
+    },
+    {
+      "key": "ground:grass:1",
+      "sheet": 1,
+      "sourceBox": [
+        358,
+        75,
+        486,
+        203
+      ],
+      "kind": "opaque grass interior",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 134,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "atlasFrame": {
+        "x": 134,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "visibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ]
+    },
+    {
+      "key": "ground:grass:2",
+      "sheet": 1,
+      "sourceBox": [
+        610,
+        75,
+        738,
+        203
+      ],
+      "kind": "opaque grass interior",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 266,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "atlasFrame": {
+        "x": 266,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "visibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ]
+    },
+    {
+      "key": "ground:grass:3",
+      "sheet": 1,
+      "sourceBox": [
+        863,
+        75,
+        991,
+        203
+      ],
+      "kind": "opaque grass interior",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 398,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "atlasFrame": {
+        "x": 398,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "visibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        128,
+        128
+      ]
+    },
+    {
+      "key": "ground:path:horizontal",
+      "sheet": 1,
+      "sourceBox": [
+        88,
+        300,
+        248,
+        460
+      ],
+      "kind": "opaque path interior",
+      "connections": "EW",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 530,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 530,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:vertical",
+      "sheet": 1,
+      "sourceBox": [
+        329,
+        299,
+        489,
+        459
+      ],
+      "kind": "opaque path interior",
+      "connections": "NS",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 694,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 694,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:corner-ne",
+      "sheet": 1,
+      "sourceBox": [
+        570,
+        299,
+        730,
+        459
+      ],
+      "kind": "opaque path interior",
+      "connections": "NE",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 858,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 858,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:corner-nw",
+      "sheet": 1,
+      "sourceBox": [
+        1295,
+        300,
+        1455,
+        460
+      ],
+      "kind": "opaque path interior",
+      "connections": "NW",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 2,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:corner-sw",
+      "sheet": 1,
+      "sourceBox": [
+        810,
+        299,
+        970,
+        459
+      ],
+      "kind": "opaque path interior",
+      "connections": "SW",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 166,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 166,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:t-junction",
+      "sheet": 1,
+      "sourceBox": [
+        91,
+        532,
+        251,
+        692
+      ],
+      "kind": "opaque path interior",
+      "connections": "ESW",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 330,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 330,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:cross",
+      "sheet": 1,
+      "sourceBox": [
+        346,
+        533,
+        506,
+        693
+      ],
+      "kind": "opaque path interior",
+      "connections": "NESW",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 494,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 494,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:dead",
+      "sheet": 1,
+      "sourceBox": [
+        598,
+        532,
+        758,
+        692
+      ],
+      "kind": "opaque path interior",
+      "connections": "S",
+      "islandEdgeExcluded": true,
+      "atlasRect": {
+        "x": 658,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 658,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "ground:path:corner-se",
+      "sheet": 1,
+      "sourceBox": [
+        570,
+        299,
+        730,
+        459
+      ],
+      "kind": "reuse NE with renderer rotation",
+      "connections": "SE",
+      "rotation": 90,
+      "reuses": "ground:path:corner-ne",
+      "exception": "No SE art in supplied sheet; third corner duplicates SW",
+      "atlasRect": {
+        "x": 822,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "atlasFrame": {
+        "x": 822,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "visibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ],
+      "transparentPixels": 0,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        160,
+        160
+      ]
+    },
+    {
+      "key": "field:checkpoint",
+      "sheet": 1,
+      "sourceBox": [
+        824,
+        513,
+        1031,
+        710
+      ],
+      "region": [
+        815,
+        505,
+        1045,
+        720
+      ],
+      "kind": "provided island landmark; retain complete source silhouette",
+      "atlasRect": {
+        "x": 2,
+        "y": 330,
+        "w": 207,
+        "h": 197
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 330,
+        "w": 207,
+        "h": 197
+      },
+      "visibleBbox": [
+        0,
+        0,
+        207,
+        197
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1478,
+      "alphaCleanupRemovedPixels": 137,
+      "finalVisibleBbox": [
+        0,
+        0,
+        207,
+        197
+      ]
+    },
+    {
+      "key": "field:entrance",
+      "sheet": 1,
+      "sourceBox": [
+        69,
+        746,
+        288,
+        953
+      ],
+      "region": [
+        55,
+        735,
+        300,
+        970
+      ],
+      "kind": "provided island landmark; retain complete source silhouette",
+      "atlasRect": {
+        "x": 213,
+        "y": 330,
+        "w": 219,
+        "h": 207
+      },
+      "atlasFrame": {
+        "x": 213,
+        "y": 330,
+        "w": 219,
+        "h": 207
+      },
+      "visibleBbox": [
+        0,
+        0,
+        219,
+        207
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1618,
+      "alphaCleanupRemovedPixels": 159,
+      "finalVisibleBbox": [
+        0,
+        0,
+        219,
+        207
+      ]
+    },
+    {
+      "key": "field:exit",
+      "sheet": 1,
+      "sourceBox": [
+        333,
+        746,
+        559,
+        953
+      ],
+      "region": [
+        320,
+        735,
+        570,
+        970
+      ],
+      "kind": "provided island landmark; retain complete source silhouette",
+      "atlasRect": {
+        "x": 436,
+        "y": 330,
+        "w": 226,
+        "h": 207
+      },
+      "atlasFrame": {
+        "x": 436,
+        "y": 330,
+        "w": 226,
+        "h": 207
+      },
+      "visibleBbox": [
+        0,
+        0,
+        226,
+        207
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1489,
+      "alphaCleanupRemovedPixels": 173,
+      "finalVisibleBbox": [
+        0,
+        1,
+        226,
+        207
+      ]
+    },
+    {
+      "key": "field:bush",
+      "sheet": 1,
+      "sourceBox": [
+        599,
+        746,
+        797,
+        953
+      ],
+      "region": [
+        585,
+        735,
+        810,
+        970
+      ],
+      "kind": "provided island landmark; retain complete source silhouette",
+      "atlasRect": {
+        "x": 666,
+        "y": 330,
+        "w": 198,
+        "h": 207
+      },
+      "atlasFrame": {
+        "x": 666,
+        "y": 330,
+        "w": 198,
+        "h": 207
+      },
+      "visibleBbox": [
+        0,
+        0,
+        198,
+        207
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1386,
+      "alphaCleanupRemovedPixels": 101,
+      "finalVisibleBbox": [
+        0,
+        0,
+        197,
+        207
+      ]
+    },
+    {
+      "key": "field:pebbles",
+      "sheet": 1,
+      "sourceBox": [
+        839,
+        746,
+        1036,
+        953
+      ],
+      "region": [
+        825,
+        735,
+        1050,
+        970
+      ],
+      "kind": "provided island landmark; retain complete source silhouette",
+      "atlasRect": {
+        "x": 2,
+        "y": 541,
+        "w": 197,
+        "h": 207
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 541,
+        "w": 197,
+        "h": 207
+      },
+      "visibleBbox": [
+        0,
+        0,
+        197,
+        207
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1329,
+      "alphaCleanupRemovedPixels": 97,
+      "finalVisibleBbox": [
+        0,
+        0,
+        197,
+        207
+      ]
+    },
+    {
+      "key": "pedestal:0",
+      "sheet": 2,
+      "sourceBox": [
+        47,
+        137,
+        247,
+        334
+      ],
+      "sourcePasteOffset": [
+        28,
+        57
+      ],
+      "region": [
+        20,
+        110,
+        265,
+        350
+      ],
+      "kind": "pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "gray",
+      "atlasRect": {
+        "x": 2,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        28,
+        57,
+        228,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 32314,
+      "alphaCleanupRemovedPixels": 122,
+      "finalVisibleBbox": [
+        29,
+        58,
+        228,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:1",
+      "sheet": 2,
+      "sourceBox": [
+        280,
+        137,
+        480,
+        334
+      ],
+      "sourcePasteOffset": [
+        28,
+        57
+      ],
+      "region": [
+        252,
+        110,
+        497,
+        350
+      ],
+      "kind": "pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "green",
+      "atlasRect": {
+        "x": 262,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 262,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        28,
+        57,
+        228,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 32470,
+      "alphaCleanupRemovedPixels": 103,
+      "finalVisibleBbox": [
+        29,
+        57,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:2",
+      "sheet": 2,
+      "sourceBox": [
+        510,
+        137,
+        710,
+        334
+      ],
+      "sourcePasteOffset": [
+        28,
+        57
+      ],
+      "region": [
+        484,
+        110,
+        729,
+        350
+      ],
+      "kind": "pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "blue",
+      "atlasRect": {
+        "x": 522,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 522,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        28,
+        57,
+        228,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 32532,
+      "alphaCleanupRemovedPixels": 106,
+      "finalVisibleBbox": [
+        29,
+        57,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:3",
+      "sheet": 2,
+      "sourceBox": [
+        740,
+        138,
+        938,
+        334
+      ],
+      "sourcePasteOffset": [
+        29,
+        58
+      ],
+      "region": [
+        716,
+        110,
+        961,
+        350
+      ],
+      "kind": "pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "purple",
+      "atlasRect": {
+        "x": 782,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 782,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        29,
+        58,
+        227,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 33856,
+      "alphaCleanupRemovedPixels": 30,
+      "finalVisibleBbox": [
+        29,
+        58,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:4",
+      "sheet": 2,
+      "sourceBox": [
+        970,
+        136,
+        1167,
+        334
+      ],
+      "sourcePasteOffset": [
+        29,
+        56
+      ],
+      "region": [
+        948,
+        110,
+        1193,
+        350
+      ],
+      "kind": "pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "gold",
+      "atlasRect": {
+        "x": 1042,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 1042,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        29,
+        56,
+        226,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 32392,
+      "alphaCleanupRemovedPixels": 71,
+      "finalVisibleBbox": [
+        29,
+        57,
+        226,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:5",
+      "sheet": 2,
+      "sourceBox": [
+        1203,
+        137,
+        1401,
+        334
+      ],
+      "sourcePasteOffset": [
+        29,
+        57
+      ],
+      "region": [
+        1180,
+        110,
+        1425,
+        350
+      ],
+      "kind": "pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "red",
+      "atlasRect": {
+        "x": 1302,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 1302,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        29,
+        57,
+        227,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 32510,
+      "alphaCleanupRemovedPixels": 175,
+      "finalVisibleBbox": [
+        29,
+        58,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:selected:0",
+      "sheet": 2,
+      "sourceBox": [
+        47,
+        433,
+        246,
+        655
+      ],
+      "sourcePasteOffset": [
+        28,
+        32
+      ],
+      "region": [
+        20,
+        410,
+        265,
+        675
+      ],
+      "kind": "selected pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "gray",
+      "atlasRect": {
+        "x": 1562,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 1562,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        28,
+        32,
+        227,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 31723,
+      "alphaCleanupRemovedPixels": 60,
+      "finalVisibleBbox": [
+        28,
+        32,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:selected:1",
+      "sheet": 2,
+      "sourceBox": [
+        281,
+        433,
+        479,
+        655
+      ],
+      "sourcePasteOffset": [
+        29,
+        32
+      ],
+      "region": [
+        252,
+        410,
+        497,
+        675
+      ],
+      "kind": "selected pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "green",
+      "atlasRect": {
+        "x": 2,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        29,
+        32,
+        227,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 31596,
+      "alphaCleanupRemovedPixels": 71,
+      "finalVisibleBbox": [
+        29,
+        32,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:selected:2",
+      "sheet": 2,
+      "sourceBox": [
+        512,
+        439,
+        709,
+        656
+      ],
+      "sourcePasteOffset": [
+        29,
+        37
+      ],
+      "region": [
+        484,
+        410,
+        729,
+        675
+      ],
+      "kind": "selected pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "blue",
+      "atlasRect": {
+        "x": 262,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 262,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        29,
+        37,
+        226,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 31377,
+      "alphaCleanupRemovedPixels": 126,
+      "finalVisibleBbox": [
+        29,
+        37,
+        226,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:selected:3",
+      "sheet": 2,
+      "sourceBox": [
+        740,
+        439,
+        937,
+        656
+      ],
+      "sourcePasteOffset": [
+        29,
+        37
+      ],
+      "region": [
+        716,
+        410,
+        961,
+        675
+      ],
+      "kind": "selected pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "purple",
+      "atlasRect": {
+        "x": 522,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 522,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        29,
+        37,
+        226,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 34184,
+      "alphaCleanupRemovedPixels": 175,
+      "finalVisibleBbox": [
+        29,
+        37,
+        226,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:selected:4",
+      "sheet": 2,
+      "sourceBox": [
+        969,
+        433,
+        1167,
+        656
+      ],
+      "sourcePasteOffset": [
+        29,
+        31
+      ],
+      "region": [
+        948,
+        410,
+        1193,
+        675
+      ],
+      "kind": "selected pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "gold",
+      "atlasRect": {
+        "x": 782,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 782,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        29,
+        31,
+        227,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 31161,
+      "alphaCleanupRemovedPixels": 111,
+      "finalVisibleBbox": [
+        29,
+        31,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "pedestal:selected:5",
+      "sheet": 2,
+      "sourceBox": [
+        1204,
+        438,
+        1403,
+        655
+      ],
+      "sourcePasteOffset": [
+        28,
+        37
+      ],
+      "region": [
+        1180,
+        410,
+        1425,
+        675
+      ],
+      "kind": "selected pedestal",
+      "cellSize": [
+        256,
+        256
+      ],
+      "align": "bottom-center",
+      "colors": "red",
+      "atlasRect": {
+        "x": 1042,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "atlasFrame": {
+        "x": 1042,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "visibleBbox": [
+        28,
+        37,
+        227,
+        254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 31419,
+      "alphaCleanupRemovedPixels": 115,
+      "finalVisibleBbox": [
+        29,
+        37,
+        227,
+        254
+      ]
+    },
+    {
+      "key": "field:stone",
+      "sheet": 2,
+      "sourceBox": [
+        274,
+        726,
+        509,
+        976
+      ],
+      "region": [
+        260,
+        710,
+        520,
+        990
+      ],
+      "kind": "provided world object",
+      "atlasRect": {
+        "x": 1302,
+        "y": 262,
+        "w": 235,
+        "h": 250
+      },
+      "atlasFrame": {
+        "x": 1302,
+        "y": 262,
+        "w": 235,
+        "h": 250
+      },
+      "visibleBbox": [
+        0,
+        0,
+        235,
+        250
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 9004,
+      "alphaCleanupRemovedPixels": 77,
+      "finalVisibleBbox": [
+        0,
+        0,
+        235,
+        250
+      ]
+    },
+    {
+      "key": "field:slate",
+      "sheet": 2,
+      "sourceBox": [
+        606,
+        776,
+        839,
+        976
+      ],
+      "region": [
+        590,
+        710,
+        850,
+        990
+      ],
+      "kind": "provided world object",
+      "atlasRect": {
+        "x": 1541,
+        "y": 262,
+        "w": 233,
+        "h": 200
+      },
+      "atlasFrame": {
+        "x": 1541,
+        "y": 262,
+        "w": 233,
+        "h": 200
+      },
+      "visibleBbox": [
+        0,
+        0,
+        233,
+        200
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 3101,
+      "alphaCleanupRemovedPixels": 70,
+      "finalVisibleBbox": [
+        0,
+        0,
+        233,
+        200
+      ]
+    },
+    {
+      "key": "field:placement",
+      "sheet": 2,
+      "sourceBox": [
+        944,
+        757,
+        1171,
+        973
+      ],
+      "region": [
+        920,
+        710,
+        1190,
+        990
+      ],
+      "kind": "provided world object",
+      "atlasRect": {
+        "x": 1778,
+        "y": 262,
+        "w": 227,
+        "h": 216
+      },
+      "atlasFrame": {
+        "x": 1778,
+        "y": 262,
+        "w": 227,
+        "h": 216
+      },
+      "visibleBbox": [
+        0,
+        0,
+        227,
+        216
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 1536,
+      "alphaCleanupRemovedPixels": 0,
+      "finalVisibleBbox": [
+        0,
+        0,
+        227,
+        216
+      ]
+    },
+    {
+      "key": "creep:mine:goblin",
+      "sheet": 3,
+      "sourceBoxes": [
+        [
+          102,
+          54,
+          284,
+          203
+        ],
+        [
+          347,
+          54,
+          526,
+          200
+        ]
+      ],
+      "sourceRegions": [
+        [
+          25,
+          30,
+          300,
+          220
+        ],
+        [
+          320,
+          30,
+          560,
+          220
+        ]
+      ],
+      "physicalCell": [
+        186,
+        153
+      ],
+      "sourcePasteOffsets": [
+        [
+          2,
+          2
+        ],
+        [
+          189,
+          5
+        ]
+      ],
+      "frames": 2,
+      "fps": 4,
+      "align": "bottom-center",
+      "flying": false,
+      "purpleShadowExcluded": false,
+      "kind": "two equal physical animation cells, original pixels unchanged",
+      "atlasRect": {
+        "x": 2,
+        "y": 2,
+        "w": 372,
+        "h": 153
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 186,
+        "h": 153
+      },
+      "visibleBbox": [
+        2,
+        2,
+        368,
+        151
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 23611,
+      "alphaCleanupRemovedPixels": 342,
+      "finalVisibleBbox": [
+        2,
+        3,
+        368,
+        151
+      ]
+    },
+    {
+      "key": "creep:mine:beetle",
+      "sheet": 3,
+      "sourceBoxes": [
+        [
+          66,
+          244,
+          291,
+          390
+        ],
+        [
+          326,
+          244,
+          545,
+          390
+        ]
+      ],
+      "sourceRegions": [
+        [
+          35,
+          230,
+          300,
+          405
+        ],
+        [
+          310,
+          230,
+          560,
+          405
+        ]
+      ],
+      "physicalCell": [
+        229,
+        150
+      ],
+      "sourcePasteOffsets": [
+        [
+          2,
+          2
+        ],
+        [
+          234,
+          2
+        ]
+      ],
+      "frames": 2,
+      "fps": 4,
+      "align": "bottom-center",
+      "flying": false,
+      "purpleShadowExcluded": false,
+      "kind": "two equal physical animation cells, original pixels unchanged",
+      "atlasRect": {
+        "x": 378,
+        "y": 2,
+        "w": 458,
+        "h": 150
+      },
+      "atlasFrame": {
+        "x": 378,
+        "y": 2,
+        "w": 229,
+        "h": 150
+      },
+      "visibleBbox": [
+        2,
+        2,
+        453,
+        148
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 26010,
+      "alphaCleanupRemovedPixels": 225,
+      "finalVisibleBbox": [
+        2,
+        2,
+        453,
+        147
+      ]
+    },
+    {
+      "key": "creep:mine:rat",
+      "sheet": 3,
+      "sourceBoxes": [
+        [
+          48,
+          433,
+          285,
+          561
+        ],
+        [
+          309,
+          436,
+          554,
+          564
+        ]
+      ],
+      "sourceRegions": [
+        [
+          30,
+          415,
+          300,
+          580
+        ],
+        [
+          300,
+          415,
+          575,
+          580
+        ]
+      ],
+      "physicalCell": [
+        249,
+        132
+      ],
+      "sourcePasteOffsets": [
+        [
+          6,
+          2
+        ],
+        [
+          251,
+          2
+        ]
+      ],
+      "frames": 2,
+      "fps": 4,
+      "align": "bottom-center",
+      "flying": false,
+      "purpleShadowExcluded": false,
+      "kind": "two equal physical animation cells, original pixels unchanged",
+      "atlasRect": {
+        "x": 840,
+        "y": 2,
+        "w": 498,
+        "h": 132
+      },
+      "atlasFrame": {
+        "x": 840,
+        "y": 2,
+        "w": 249,
+        "h": 132
+      },
+      "visibleBbox": [
+        6,
+        2,
+        496,
+        130
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 32645,
+      "alphaCleanupRemovedPixels": 243,
+      "finalVisibleBbox": [
+        6,
+        2,
+        496,
+        130
+      ]
+    },
+    {
+      "key": "creep:mine:bat",
+      "sheet": 3,
+      "sourceBoxes": [
+        [
+          63,
+          593,
+          295,
+          741
+        ],
+        [
+          322,
+          619,
+          558,
+          743
+        ]
+      ],
+      "sourceRegions": [
+        [
+          35,
+          585,
+          310,
+          750
+        ],
+        [
+          305,
+          585,
+          580,
+          750
+        ]
+      ],
+      "physicalCell": [
+        240,
+        152
+      ],
+      "sourcePasteOffsets": [
+        [
+          4,
+          2
+        ],
+        [
+          242,
+          26
+        ]
+      ],
+      "frames": 2,
+      "fps": 4,
+      "align": "bottom-center",
+      "flying": true,
+      "purpleShadowExcluded": true,
+      "kind": "two equal physical animation cells, original pixels unchanged",
+      "atlasRect": {
+        "x": 1342,
+        "y": 2,
+        "w": 480,
+        "h": 152
+      },
+      "atlasFrame": {
+        "x": 1342,
+        "y": 2,
+        "w": 240,
+        "h": 152
+      },
+      "visibleBbox": [
+        4,
+        2,
+        478,
+        150
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 40511,
+      "alphaCleanupRemovedPixels": 239,
+      "finalVisibleBbox": [
+        4,
+        2,
+        478,
+        150
+      ]
+    },
+    {
+      "key": "creep:mine:wisp",
+      "sheet": 3,
+      "sourceBoxes": [
+        [
+          75,
+          807,
+          242,
+          942
+        ],
+        [
+          346,
+          810,
+          515,
+          946
+        ]
+      ],
+      "sourceRegions": [
+        [
+          35,
+          795,
+          300,
+          950
+        ],
+        [
+          310,
+          795,
+          565,
+          950
+        ]
+      ],
+      "physicalCell": [
+        173,
+        140
+      ],
+      "sourcePasteOffsets": [
+        [
+          3,
+          3
+        ],
+        [
+          175,
+          2
+        ]
+      ],
+      "frames": 2,
+      "fps": 4,
+      "align": "bottom-center",
+      "flying": true,
+      "purpleShadowExcluded": true,
+      "kind": "two equal physical animation cells, original pixels unchanged",
+      "atlasRect": {
+        "x": 2,
+        "y": 159,
+        "w": 346,
+        "h": 140
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 159,
+        "w": 173,
+        "h": 140
+      },
+      "visibleBbox": [
+        3,
+        2,
+        344,
+        138
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 25426,
+      "alphaCleanupRemovedPixels": 219,
+      "finalVisibleBbox": [
+        3,
+        2,
+        344,
+        138
+      ]
+    },
+    {
+      "key": "creep:mine:ogre",
+      "sheet": 3,
+      "sourceBoxes": [
+        [
+          51,
+          1008,
+          523,
+          1408
+        ],
+        [
+          575,
+          1006,
+          1053,
+          1403
+        ]
+      ],
+      "sourceRegions": [
+        [
+          20,
+          985,
+          540,
+          1420
+        ],
+        [
+          555,
+          985,
+          1070,
+          1420
+        ]
+      ],
+      "physicalCell": [
+        482,
+        404
+      ],
+      "sourcePasteOffsets": [
+        [
+          5,
+          2
+        ],
+        [
+          484,
+          5
+        ]
+      ],
+      "frames": 2,
+      "fps": 4,
+      "align": "bottom-center",
+      "flying": false,
+      "purpleShadowExcluded": false,
+      "kind": "two equal physical animation cells, original pixels unchanged",
+      "atlasRect": {
+        "x": 352,
+        "y": 159,
+        "w": 964,
+        "h": 404
+      },
+      "atlasFrame": {
+        "x": 352,
+        "y": 159,
+        "w": 482,
+        "h": 404
+      },
+      "visibleBbox": [
+        5,
+        2,
+        962,
+        402
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 155007,
+      "alphaCleanupRemovedPixels": 724,
+      "finalVisibleBbox": [
+        5,
+        2,
+        962,
+        402
+      ]
+    },
+    {
+      "key": "effect:poison",
+      "sheet": 4,
+      "sourceBox": [
+        82,
+        128,
+        290,
+        336
+      ],
+      "region": [
+        60,
+        100,
+        312,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 2,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 156,
+      "alphaCleanupRemovedPixels": 109,
+      "finalVisibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ]
+    },
+    {
+      "key": "effect:fire",
+      "sheet": 4,
+      "sourceBox": [
+        336,
+        128,
+        544,
+        336
+      ],
+      "region": [
+        312,
+        100,
+        564,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 214,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 214,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 155,
+      "alphaCleanupRemovedPixels": 116,
+      "finalVisibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ]
+    },
+    {
+      "key": "effect:slow",
+      "sheet": 4,
+      "sourceBox": [
+        590,
+        128,
+        797,
+        336
+      ],
+      "region": [
+        564,
+        100,
+        816,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 426,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 426,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        207,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 139,
+      "alphaCleanupRemovedPixels": 78,
+      "finalVisibleBbox": [
+        0,
+        0,
+        207,
+        208
+      ]
+    },
+    {
+      "key": "effect:stun",
+      "sheet": 4,
+      "sourceBox": [
+        843,
+        128,
+        1050,
+        336
+      ],
+      "region": [
+        816,
+        100,
+        1068,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 637,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 637,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        207,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 141,
+      "alphaCleanupRemovedPixels": 78,
+      "finalVisibleBbox": [
+        0,
+        0,
+        207,
+        208
+      ]
+    },
+    {
+      "key": "effect:critical",
+      "sheet": 4,
+      "sourceBox": [
+        1096,
+        128,
+        1304,
+        336
+      ],
+      "region": [
+        1068,
+        100,
+        1320,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 2,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 155,
+      "alphaCleanupRemovedPixels": 113,
+      "finalVisibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ]
+    },
+    {
+      "key": "effect:splash",
+      "sheet": 4,
+      "sourceBox": [
+        1349,
+        128,
+        1557,
+        336
+      ],
+      "region": [
+        1320,
+        100,
+        1572,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 214,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 214,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 152,
+      "alphaCleanupRemovedPixels": 115,
+      "finalVisibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ]
+    },
+    {
+      "key": "effect:air",
+      "sheet": 4,
+      "sourceBox": [
+        1603,
+        128,
+        1811,
+        336
+      ],
+      "region": [
+        1572,
+        100,
+        1824,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 426,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 426,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 152,
+      "alphaCleanupRemovedPixels": 83,
+      "finalVisibleBbox": [
+        0,
+        0,
+        208,
+        208
+      ]
+    },
+    {
+      "key": "effect:ground",
+      "sheet": 4,
+      "sourceBox": [
+        1857,
+        128,
+        2064,
+        336
+      ],
+      "region": [
+        1824,
+        100,
+        2076,
+        350
+      ],
+      "kind": "provided framed effect icon",
+      "atlasRect": {
+        "x": 638,
+        "y": 214,
+        "w": 207,
+        "h": 208
+      },
+      "atlasFrame": {
+        "x": 638,
+        "y": 214,
+        "w": 207,
+        "h": 208
+      },
+      "visibleBbox": [
+        0,
+        0,
+        207,
+        208
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 145,
+      "alphaCleanupRemovedPixels": 94,
+      "finalVisibleBbox": [
+        0,
+        0,
+        207,
+        208
+      ]
+    },
+    {
+      "key": "feedback:gold",
+      "sheet": 4,
+      "sourceBox": [
+        680,
+        415,
+        891,
+        615
+      ],
+      "region": [
+        650,
+        390,
+        920,
+        650
+      ],
+      "kind": "provided floating reaction",
+      "atlasRect": {
+        "x": 2,
+        "y": 426,
+        "w": 211,
+        "h": 200
+      },
+      "atlasFrame": {
+        "x": 2,
+        "y": 426,
+        "w": 211,
+        "h": 200
+      },
+      "visibleBbox": [
+        0,
+        0,
+        211,
+        200
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 16283,
+      "alphaCleanupRemovedPixels": 89,
+      "finalVisibleBbox": [
+        0,
+        0,
+        211,
+        200
+      ]
+    },
+    {
+      "key": "feedback:life",
+      "sheet": 4,
+      "sourceBox": [
+        969,
+        425,
+        1175,
+        632
+      ],
+      "region": [
+        940,
+        390,
+        1220,
+        650
+      ],
+      "kind": "provided floating reaction",
+      "atlasRect": {
+        "x": 217,
+        "y": 426,
+        "w": 206,
+        "h": 207
+      },
+      "atlasFrame": {
+        "x": 217,
+        "y": 426,
+        "w": 206,
+        "h": 207
+      },
+      "visibleBbox": [
+        0,
+        0,
+        206,
+        207
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 16838,
+      "alphaCleanupRemovedPixels": 248,
+      "finalVisibleBbox": [
+        0,
+        0,
+        205,
+        207
+      ]
+    },
+    {
+      "key": "feedback:combine",
+      "sheet": 4,
+      "sourceBox": [
+        1255,
+        415,
+        1462,
+        620
+      ],
+      "region": [
+        1220,
+        390,
+        1510,
+        650
+      ],
+      "kind": "provided floating reaction",
+      "atlasRect": {
+        "x": 427,
+        "y": 426,
+        "w": 207,
+        "h": 205
+      },
+      "atlasFrame": {
+        "x": 427,
+        "y": 426,
+        "w": 207,
+        "h": 205
+      },
+      "visibleBbox": [
+        0,
+        0,
+        207,
+        205
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "transparentPixels": 23672,
+      "alphaCleanupRemovedPixels": 199,
+      "finalVisibleBbox": [
+        0,
+        0,
+        207,
+        205
+      ]
+    }
+  ],
+  "exceptions": [
+    {
+      "key": "ground:path:corner-se",
+      "reason": "Provided sheet contains duplicate SW and no SE corner",
+      "solution": "Entry reuses NE crop with rotation:90; renderer applies clockwise canvas transform. Source derivative remains unrotated."
+    },
+    {
+      "key": "ground:path:corner-sw",
+      "sourceDuplicateBox": [
+        1051,
+        297,
+        1211,
+        457
+      ],
+      "reason": "Third supplied corner also opens SW; duplicate not required for a second entry."
+    },
+    {
+      "keys": [
+        "ground:grass:0",
+        "ground:grass:1",
+        "ground:grass:2",
+        "ground:grass:3"
+      ],
+      "reason": "Outer island outline excluded; opposite edge texels are not synthesized to manufacture mathematically seamless repetition. Visual tile join review remains required."
+    },
+    {
+      "keys": [
+        "creep:mine:bat",
+        "creep:mine:wisp"
+      ],
+      "reason": "Purple source ground shadows excluded by crop; renderer must provide separate black translucent shadow."
+    }
+  ],
+  "proof": {
+    "keys": 50,
+    "originalPixelCropEquality": "PASS",
+    "atlasBounds": "PASS",
+    "spriteFramePhysicalStride": "PASS",
+    "opaqueInteriorTiles": "PASS",
+    "twoFramesPerMonster": "PASS",
+    "newArtGenerated": 0,
+    "resampledPixels": 0,
+    "paintedPixels": 0,
+    "filteredPixels": 0
+  },
+  "alphaCleanup": {
+    "operation": "remove_exterior_connected_magenta_alpha_only",
+    "threshold": {
+      "redMin": 180,
+      "blueMin": 180,
+      "greenMax": 45,
+      "redBlueMaxDifference": 45,
+      "connectivity": 4
+    },
+    "proof": {
+      "1": {
+        "rawSha256": "9f2ede9d4c74b6050c2b4babe867b790e7a9c0f6f28a9b5d2b4fb48a09f4c55b",
+        "finalSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+        "removedAlphaPixels": 667,
+        "interiorMagentaCandidatePixelsProtected": 0,
+        "perPart": {
+          "ground:grass:0": 0,
+          "ground:grass:1": 0,
+          "ground:grass:2": 0,
+          "ground:grass:3": 0,
+          "ground:path:horizontal": 0,
+          "ground:path:vertical": 0,
+          "ground:path:corner-ne": 0,
+          "ground:path:corner-nw": 0,
+          "ground:path:corner-sw": 0,
+          "ground:path:t-junction": 0,
+          "ground:path:cross": 0,
+          "ground:path:dead": 0,
+          "ground:path:corner-se": 0,
+          "field:checkpoint": 137,
+          "field:entrance": 159,
+          "field:exit": 173,
+          "field:bush": 101,
+          "field:pebbles": 97
+        },
+        "RGBUnchanged": "PASS",
+        "retainedRGBAUnchanged": "PASS",
+        "onlyExteriorConnectedCandidateAlphaRemoved": "PASS",
+        "geometryAndFrameBoundsUnchanged": "PASS"
+      },
+      "2": {
+        "rawSha256": "688f46119b2076a67ff17f5987c77be6cf6eeb6f392cea724ac7f9f84007f6d1",
+        "finalSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+        "removedAlphaPixels": 1412,
+        "interiorMagentaCandidatePixelsProtected": 424,
+        "perPart": {
+          "pedestal:0": 122,
+          "pedestal:1": 103,
+          "pedestal:2": 106,
+          "pedestal:3": 30,
+          "pedestal:4": 71,
+          "pedestal:5": 175,
+          "pedestal:selected:0": 60,
+          "pedestal:selected:1": 71,
+          "pedestal:selected:2": 126,
+          "pedestal:selected:3": 175,
+          "pedestal:selected:4": 111,
+          "pedestal:selected:5": 115,
+          "field:stone": 77,
+          "field:slate": 70,
+          "field:placement": 0
+        },
+        "RGBUnchanged": "PASS",
+        "retainedRGBAUnchanged": "PASS",
+        "onlyExteriorConnectedCandidateAlphaRemoved": "PASS",
+        "geometryAndFrameBoundsUnchanged": "PASS"
+      },
+      "3": {
+        "rawSha256": "1295c188e95fea00aa331652b8d2871a448a129cde2411a7b3dc79eabab61e79",
+        "finalSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+        "removedAlphaPixels": 1992,
+        "interiorMagentaCandidatePixelsProtected": 26,
+        "perPart": {
+          "creep:mine:goblin": 342,
+          "creep:mine:beetle": 225,
+          "creep:mine:rat": 243,
+          "creep:mine:bat": 239,
+          "creep:mine:wisp": 219,
+          "creep:mine:ogre": 724
+        },
+        "RGBUnchanged": "PASS",
+        "retainedRGBAUnchanged": "PASS",
+        "onlyExteriorConnectedCandidateAlphaRemoved": "PASS",
+        "geometryAndFrameBoundsUnchanged": "PASS"
+      },
+      "4": {
+        "rawSha256": "ca5d8de4f2cd383897203e12b5916e51c958883c22484e663394c456d3185d27",
+        "finalSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+        "removedAlphaPixels": 1322,
+        "interiorMagentaCandidatePixelsProtected": 4,
+        "perPart": {
+          "effect:poison": 109,
+          "effect:fire": 116,
+          "effect:slow": 78,
+          "effect:stun": 78,
+          "effect:critical": 113,
+          "effect:splash": 115,
+          "effect:air": 83,
+          "effect:ground": 94,
+          "feedback:gold": 89,
+          "feedback:life": 248,
+          "feedback:combine": 199
+        },
+        "RGBUnchanged": "PASS",
+        "retainedRGBAUnchanged": "PASS",
+        "onlyExteriorConnectedCandidateAlphaRemoved": "PASS",
+        "geometryAndFrameBoundsUnchanged": "PASS"
+      }
+    },
+    "opaquePurpleAnchorProof": [
+      {
+        "key": "pedestal:3",
+        "xy": [
+          931,
+          71
+        ],
+        "RGBA": [
+          145,
+          124,
+          147,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:3",
+        "xy": [
+          912,
+          87
+        ],
+        "RGBA": [
+          105,
+          18,
+          178,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:3",
+        "xy": [
+          970,
+          108
+        ],
+        "RGBA": [
+          98,
+          3,
+          220,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:3",
+        "xy": [
+          936,
+          131
+        ],
+        "RGBA": [
+          129,
+          28,
+          197,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:3",
+        "xy": [
+          922,
+          137
+        ],
+        "RGBA": [
+          214,
+          110,
+          234,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:3",
+        "xy": [
+          901,
+          147
+        ],
+        "RGBA": [
+          76,
+          2,
+          172,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:selected:3",
+        "xy": [
+          613,
+          302
+        ],
+        "RGBA": [
+          254,
+          222,
+          253,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:selected:3",
+        "xy": [
+          679,
+          337
+        ],
+        "RGBA": [
+          91,
+          0,
+          142,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:selected:3",
+        "xy": [
+          598,
+          366
+        ],
+        "RGBA": [
+          253,
+          203,
+          250,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:selected:3",
+        "xy": [
+          736,
+          380
+        ],
+        "RGBA": [
+          121,
+          78,
+          106,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:selected:3",
+        "xy": [
+          698,
+          395
+        ],
+        "RGBA": [
+          163,
+          44,
+          186,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "pedestal:selected:3",
+        "xy": [
+          650,
+          414
+        ],
+        "RGBA": [
+          245,
+          80,
+          161,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "creep:mine:bat",
+        "xy": [
+          1377,
+          8
+        ],
+        "RGBA": [
+          116,
+          60,
+          96,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "creep:mine:bat",
+        "xy": [
+          1551,
+          37
+        ],
+        "RGBA": [
+          136,
+          82,
+          129,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "creep:mine:bat",
+        "xy": [
+          1518,
+          50
+        ],
+        "RGBA": [
+          119,
+          59,
+          101,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "creep:mine:bat",
+        "xy": [
+          1696,
+          81
+        ],
+        "RGBA": [
+          155,
+          103,
+          140,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "creep:mine:bat",
+        "xy": [
+          1494,
+          98
+        ],
+        "RGBA": [
+          127,
+          68,
+          103,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      },
+      {
+        "key": "creep:mine:bat",
+        "xy": [
+          1418,
+          126
+        ],
+        "RGBA": [
+          113,
+          29,
+          108,
+          255
+        ],
+        "unchanged": true,
+        "interiorCheck": "5x5 opaque neighborhood inside source art"
+      }
+    ],
+    "rawEvidence": "artifacts/field-art-b/asset-slicing/raw-atlases/normalized-crops/",
+    "initialCropEvidence": "artifacts/field-art-b/asset-slicing/raw-atlases/initial-crops/",
+    "limitations": [
+      "Darker or weak-chroma fringe outside the conservative predicate is retained.",
+      "No internal purple recoloring or opaque geometry painting.",
+      "Full art acceptance remains a user visual decision."
+    ]
+  }
+}

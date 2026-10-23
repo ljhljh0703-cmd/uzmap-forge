@@ -56,7 +56,14 @@ export function fieldGroundPlan(grid,bounds){
  }
  return {width:(maxCol-minCol)*p,height:(maxRow-minRow)*p,minCol,maxRow,runs,edges,world:{minX:left+minCol*size,minY:bottom+minRow*size,maxX:left+maxCol*size,maxY:bottom+maxRow*size}};
 }
-function paintGroundTexture(ctx,plan,texture){
+function paintGroundTexture(ctx,plan,texture,grass=[]){
+ if(grass.every(Boolean)&&grass.length===4){
+  ctx.save();ctx.beginPath();for(const run of plan.runs)if(run.kind==='build')ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=.55;
+  const tile=GROUND_CELL_PX*4,startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
+  for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile){const col=Math.floor((plan.minCol+x/GROUND_CELL_PX)/4),row=Math.floor((plan.maxRow-y/GROUND_CELL_PX)/4),index=(Math.imul(col,374761393)^Math.imul(row,668265263))>>>0,t=grass[index%4],f=t.spec.frame;ctx.drawImage(t.image,f.x,f.y,f.w,f.h,x,y,tile,tile);}
+  ctx.restore();
+ }
+
  const f=texture.spec.frame,tile=GROUND_CELL_PX*4;
  // Reuse the loaded, unmodified raster. Build ground receives only fine grain;
  // pale no-build cells become worn paving; walls retain their darker source colour.
@@ -75,16 +82,16 @@ const groundCache=new WeakMap();
 /** Render below route previews and entities; the caller's gameplay clip remains intact. */
 export function drawFieldGround(ctx,{grid,bounds,project,sprites}={}){
  if(!grid||!bounds||typeof project!=='function'||typeof sprites?.get!=='function'||typeof document==='undefined')return;
- const texture=sprites.get('terrain:stone');if(!texture?.image||!texture.spec?.frame)return;
+ const texture=sprites.get('terrain:stone'),grass=Array.from({length:4},(_,i)=>sprites.get('ground:grass:'+i));if(!texture?.image||!texture.spec?.frame)return;
  let grids=groundCache.get(sprites);if(!grids){grids=new WeakMap();groundCache.set(sprites,grids);}
  let cache=grids.get(grid);if(!cache){cache=new Map();grids.set(grid,cache);}
  const key=JSON.stringify([grid.width,grid.height,grid.cellSize,grid.originX,grid.originY,bounds.minX,bounds.minY,bounds.maxX,bounds.maxY]);
  let cached=cache.get(key);
- if(!cached||cached.imageSource!==texture.image||cached.src!==texture.src){
+ if(!cached||cached.imageSource!==texture.image||cached.src!==texture.src||grass.some((g,i)=>g?.image!==cached.grassImages[i])){
   const plan=fieldGroundPlan(grid,bounds);if(!plan)return;
   const image=document.createElement('canvas');image.width=plan.width;image.height=plan.height;
-  const paint=image.getContext('2d');if(!paint)return;paint.imageSmoothingEnabled=false;paintGroundTexture(paint,plan,texture);
-  cached={image,plan,imageSource:texture.image,src:texture.src};cache.set(key,cached);
+  const paint=image.getContext('2d');if(!paint)return;paint.imageSmoothingEnabled=false;paintGroundTexture(paint,plan,texture,grass);
+  cached={image,plan,imageSource:texture.image,src:texture.src,grassImages:grass.map(g=>g?.image)};cache.set(key,cached);
   // The product exposes two fields; don't retain canvases for old camera bounds.
   if(cache.size>2)cache.delete(cache.keys().next().value);
  }
