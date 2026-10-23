@@ -263,3 +263,6 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 /* Source identity and grades use quiet text cues beside reused raster art. */
 .slot-grade{position:absolute;left:8px;top:8px;min-width:14px;height:14px;padding:0 2px;background:#211a14;color:#f0dfb2;border:1px solid #a08a5e;font:700 10px/12px Galmuri11,system-ui;text-align:center;pointer-events:none;z-index:3}
 .slot-grade[hidden]{display:none}.gem-detail-body .stat,.selected-unit-role{font-size:13px;line-height:1.6}
+
+.action-success{outline:1px solid #e0c382;outline-offset:-2px}.feedback-sound{display:flex;align-items:center;gap:10px;margin:8px 0 14px}.feedback-sound button{min-height:44px;white-space:nowrap;font-size:12px}.feedback-sound span{font-size:12px;line-height:1.6;color:var(--dim)}#researchStatus{display:block;margin-top:4px}
+@media(prefers-reduced-motion:reduce){.action-success{transition:none}}

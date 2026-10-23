@@ -1,3 +1,4 @@
+import {createActionFeedback,createCueAudio} from './action-feedback.js';
 import {createBuildPreview} from './dist/runtime/build-preview.js';
 import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth,drawGemGrade,drawObjectKindMark,drawAirborneMark} from './field-art.js';
 import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
@@ -43,6 +44,20 @@ simplifyPlayShell(document);
 const recipeGuide=mountRecipeBook(document);
 const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
+const actionAudio=createCueAudio({onState:state=>{
+ const button=$('feedbackSound'),label=$('feedbackSoundStatus');if(!button||!label)return;
+ button.textContent=state.enabled?'효과음 켜짐':'효과음 꺼짐';button.setAttribute('aria-pressed',String(state.enabled));button.dataset.soundState=state.status;button.dataset.played=String(state.played);
+ const text=({idle:'첫 터치 후 소리가 준비됩니다',loading:'효과음 준비 중…',ready:'효과음 준비됨',muted:'효과음이 꺼져 있습니다',paused:'다음 터치부터 소리가 재개됩니다',blocked:'소리를 준비하지 못했습니다 · 다시 켜서 시도하세요',unsupported:'이 브라우저는 효과음을 지원하지 않습니다'})[state.status];if(label.textContent!==text)label.textContent=text;
+}});
+const actionFeedback=createActionFeedback({document,play:kind=>actionAudio.play(kind),reducedMotion:()=>reducedMotion.matches});
+$('feedbackSound').onclick=()=>{actionAudio.setEnabled(!actionAudio.snapshot().enabled);if(actionAudio.snapshot().enabled)void actionAudio.unlock();};
+const unlockActionAudio=event=>{if(event.isTrusted===false)return;void actionAudio.unlock();};
+document.addEventListener('pointerdown',unlockActionAudio,{capture:true,passive:true});
+document.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')unlockActionAudio(event);},true);
+const quietActionFeedback=()=>{actionFeedback.clear();void actionAudio.suspend();};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)quietActionFeedback();});
+window.addEventListener('pagehide',quietActionFeedback);
+
 const artManifestURL=new URL("./assets/manifest.json",import.meta.url);
 const contentBuild=new URL(import.meta.url).searchParams.get("build");
 const replayBuild=/^[a-f0-9]{16}$/.test(window.UZMAP_REPLAY_BUILD??'')?window.UZMAP_REPLAY_BUILD:null;
@@ -65,7 +80,7 @@ const frameClock = createFrameClock();
 let restoring=false,restoreCancelled=false;
 let runtimeFailed=false,loadingRun=false;
 let world = null, playing = false, tps = 1, rectEntered = 0, deaths = 0, gatePassed = 0;
-window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;frameClock.reset();$("play").disabled=true;$("runState").textContent='오류로 정지';});
+window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;world?.viewFeedback?.clear();void world?.cueAudio?.suspend();frameClock.reset();$("play").disabled=true;$("runState").textContent='오류로 정지';});
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6, GEM_IDENTITY_MINE_DESIGN §6) — TextTag(피격/획득 부유 숫자).
 // Attacked 이벤트엔 대미지 수치 필드가 없어(world_api.ts SimEvent — attackerUnitId/targetUnitId만) 값
 // 재구현 없이 "매 스텝 전/후 hp 스냅샷 차이"로 대미지량을 관측한다(엔진 hp mutation을 그대로 읽을 뿐 —
@@ -297,6 +312,7 @@ function boot(bytes, presentation, stockProfile, seed) {
   rectEntered = 0; deaths = 0; gatePassed = 0;
   w.recordInput=input=>recordInput(w,input);
   focusPlayer(w);
+  w.viewFeedback=actionFeedback;w.cueAudio=actionAudio;
   return w;
 }
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -423,7 +439,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
  const checkpoint=checkpointRun(world,true);if(checkpoint?.kind==='failed'){flash('현재 진행을 보관하지 못해 이어하기를 중단했습니다 · 현재 게임은 계속할 수 있습니다');return;}
  const before=captureRunView(),savedSelection=$("savedRuns")?.value;let savedCopy,completed=false;
  const rollbackCopy=()=>{if(!savedCopy)return '';try{return savedCopy.rollback()?'':' · 새 복사본이 변경되어 그대로 남겨 두었습니다';}catch{return ' · 새 복사본 정리를 완료하지 못했습니다';}};
- restoring=true;restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
+ restoring=true;world?.viewFeedback?.clear();world?.cueAudio?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
   await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   if((world.sourceVersion??null)!==(trace.sourceVersion??null))throw Error('원작 자료 버전이 달라 이어할 수 없습니다');
@@ -1150,15 +1166,18 @@ function stepN(w, n) {
         w.pendingBuilds.shift(); // D5: 조용한 실패 금지 — 큐 적재순 그대로 소비, 사유 표면화
         flash("건설 거부: " + (BUILD_REJECT_LABEL[ev.reason] || ev.reason));
       } else if (ev.kind === "ConstructFinished") {
+        if(ev.playerId!==undefined&&ev.playerId!==0)continue;
         // ReplaceUnitBJ는 위치·소유를 승계하되 id를 새로 발급한다(unit-entity.ts replaceEntity 계약) —
         // 원 unitId는 이미 제거돼 있으므로 우리가 큐잉 시 기록해둔 좌표로 결과 엔티티를 찾는다.
         const spot = w.pendingBuilds.shift();
         if (spot) {
           const rolled = [...w.sim.entities.values()].find((e) => e.alive && e.x === spot.x && e.y === spot.y && e.typeId !== "h006" && e.typeId !== "u000");
-          flash(rolled ? "젬 확정: " + fullName(w, rolled.typeId) : "건설 완료(조건 대기 — 관측)");
+          flash(rolled ? "설치 완료: " + fullName(w, rolled.typeId) : "건설 완료 · 결과 확인 중");
+          if(rolled)showActionSuccess(w,'place',rolled);
         }
       } else if (ev.kind === "UpgradeFinished") {
         flash("강화 완료: " + fullName(w,ev.targetTypeId));
+        if(ev.owner===0)showActionSuccess(w,'upgrade',{id:ev.unitId,typeId:ev.targetTypeId});
       } else if(ev.kind === "UpgradeRejected") {
         flash(ev.reason==='not-owner'?'라운드가 바뀌어 강화를 취소했습니다 · 전투 중 다시 선택하세요':ev.reason==='insufficient-gold'?'강화할 골드가 부족합니다':ev.reason==='busy'?'이미 강화 중입니다':'강화 조건이 바뀌어 요청을 취소했습니다');
       } else if (ev.kind === "AbilityOrderRejected") {
@@ -1194,7 +1213,9 @@ function stepN(w, n) {
       if (observed.result) {
         w.knownGemIds.add(observed.result.typeId);
         if (w.selectedGemId === req.unitId || w.selectedGemId === null) w.selectedGemId = observed.result.id;
-        flash("시전 결과: " + fullName(w, observed.result.typeId));
+        const combined=["A007","A00R","A03M"].includes(req.abilityId);
+        flash((combined?"조합 완료: ":"시전 결과: ") + fullName(w, observed.result.typeId));
+        if(combined)showActionSuccess(w,'combine',observed.result);
       } else flash("능력 사용됨");
       w.pendingCasts.splice(i, 1);
     }
@@ -1255,6 +1276,11 @@ function requestGemTarget(w,targetUnitId){
  const accepted=issueGemTarget(w,targetUnitId);flash(accepted?'교환 명령을 전달했습니다':'지금은 교환 명령을 전달할 수 없습니다');return accepted;
 }
 
+function showActionSuccess(w,kind,unit) {
+ if(!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||w.gameOver||!unit?.id)return null;
+ return actionFeedback.confirm({key:`${w.runId}:${w.sim.tickCount}:${kind}:${unit.id}`,kind,unitId:unit.id,name:fullName(w,unit.typeId)});
+}
+
 function flash(t) { flashMsg = ""; flashUntil = performance.now() + 1800;gemSkin.notify(t); }
 
 function loop(now = performance.now()) {
@@ -1262,7 +1288,7 @@ function loop(now = performance.now()) {
   if(runtimeFailed||loadingRun)return;
   try{
     const ticks=frameClock.advance(now,Boolean(world&&playing&&!restoring),tps);
-    if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);checkpointRun(world);}
+    if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);world.viewFeedback?.render(world.selectedGemId);checkpointRun(world);}
   }catch(error){runtimeFailed=true;playing=false;frameClock.reset();window.showErr('게임 화면 오류',error);}
 }
 
@@ -1587,7 +1613,7 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true}={}) {
   if(loadingRun)return false;
   checkpointRun(world,true);
   const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
-  loadingRun=true;playing=false;frameClock.reset();
+  loadingRun=true;world?.viewFeedback?.clear();world?.cueAudio?.stop();playing=false;frameClock.reset();
   runtimeFailed=false;document.documentElement.dataset.gameReady='false';
   try {
     setMsg("맵 로딩 중…");
