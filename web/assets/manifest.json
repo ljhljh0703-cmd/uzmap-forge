@@ -1,7 +1,7 @@
 {
   "version": 1,
   "state": "provisional",
-  "sourcePack": "existing user asset-forge + ClaudeCraft generated sprites",
+  "sourcePack": "existing user generated sprites + supplied GemTower Web ChatGPT B sheets",
   "entries": {
     "gem:*": {
       "src": "sprites/props.png",
@@ -169,6 +169,469 @@
         "use": "평판 슬레이트의 대체 표현",
         "limit": "균열 바닥 타일 재사용이며 원작 슬레이트 형태나 조각 문양 재현이 아님"
       }
+    },
+    "ground:grass:0": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:grass:1": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 134,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:grass:2": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 266,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:grass:3": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 398,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:path:horizontal": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 530,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:vertical": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 694,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-ne": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 858,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-nw": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-sw": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 166,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:t-junction": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 330,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:cross": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 494,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:dead": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 658,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-se": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 822,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "rotation": 90
+    },
+    "field:checkpoint": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 330,
+        "w": 207,
+        "h": 197
+      }
+    },
+    "field:entrance": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 213,
+        "y": 330,
+        "w": 219,
+        "h": 207
+      }
+    },
+    "field:exit": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 436,
+        "y": 330,
+        "w": 226,
+        "h": 207
+      }
+    },
+    "field:bush": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 666,
+        "y": 330,
+        "w": 198,
+        "h": 207
+      }
+    },
+    "field:pebbles": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 541,
+        "w": 197,
+        "h": 207
+      }
+    },
+    "pedestal:0": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:1": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 262,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:2": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 522,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:3": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 782,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:4": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1042,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:5": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1302,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:0": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1562,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:1": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 2,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:2": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 262,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:3": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 522,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:4": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 782,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:5": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1042,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "field:stone": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1302,
+        "y": 262,
+        "w": 235,
+        "h": 250
+      }
+    },
+    "field:slate": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1541,
+        "y": 262,
+        "w": 233,
+        "h": 200
+      }
+    },
+    "field:placement": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1778,
+        "y": 262,
+        "w": 227,
+        "h": 216
+      }
+    },
+    "creep:mine:goblin": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 186,
+        "h": 153
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:beetle": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 378,
+        "y": 2,
+        "w": 229,
+        "h": 150
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:rat": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 840,
+        "y": 2,
+        "w": 249,
+        "h": 132
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:bat": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 1342,
+        "y": 2,
+        "w": 240,
+        "h": 152
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:wisp": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 2,
+        "y": 159,
+        "w": 173,
+        "h": 140
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:ogre": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 352,
+        "y": 159,
+        "w": 482,
+        "h": 404
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "effect:poison": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:fire": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 214,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:slow": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 426,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      }
+    },
+    "effect:stun": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 637,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      }
+    },
+    "effect:critical": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 2,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:splash": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 214,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:air": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 426,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:ground": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 638,
+        "y": 214,
+        "w": 207,
+        "h": 208
+      }
+    },
+    "feedback:gold": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 2,
+        "y": 426,
+        "w": 211,
+        "h": 200
+      }
+    },
+    "feedback:life": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 217,
+        "y": 426,
+        "w": 206,
+        "h": 207
+      }
+    },
+    "feedback:combine": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 427,
+        "y": 426,
+        "w": 207,
+        "h": 205
+      }
     }
   },
   "aliases": {
@@ -308,6 +771,38 @@
       "source": "hwigi-tower/Assets/_Project/Audio/SFX/Shop/sfx_shop_purchase.wav",
       "sha256": "256d3cd4022915469d8323968981ced7681d9aa431275a6de86c63d9b1cb2847",
       "use": "existing user project prototype cue reused for this provisional UI; original bytes unchanged"
+    },
+    {
+      "file": "sprites/gemtower-b1.png",
+      "sha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "source": "Web ChatGPT 2026-10-23; user-provided GemTower B sheet 1",
+      "sourceRecord": "wiki/projects/design-aesthetic-returns/2026-10-23-gemtower-parts-b/README.md",
+      "derivationRecord": "docs/assets/gemtower-b/parts/_boxes.json",
+      "state": "provisional"
+    },
+    {
+      "file": "sprites/gemtower-b2.png",
+      "sha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "source": "Web ChatGPT 2026-10-23; user-provided GemTower B sheet 2",
+      "sourceRecord": "wiki/projects/design-aesthetic-returns/2026-10-23-gemtower-parts-b/README.md",
+      "derivationRecord": "docs/assets/gemtower-b/parts/_boxes.json",
+      "state": "provisional"
+    },
+    {
+      "file": "sprites/gemtower-b3.png",
+      "sha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "source": "Web ChatGPT 2026-10-23; user-provided GemTower B sheet 3",
+      "sourceRecord": "wiki/projects/design-aesthetic-returns/2026-10-23-gemtower-parts-b/README.md",
+      "derivationRecord": "docs/assets/gemtower-b/parts/_boxes.json",
+      "state": "provisional"
+    },
+    {
+      "file": "sprites/gemtower-b4.png",
+      "sha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "source": "Web ChatGPT 2026-10-23; user-provided GemTower B sheet 4",
+      "sourceRecord": "wiki/projects/design-aesthetic-returns/2026-10-23-gemtower-parts-b/README.md",
+      "derivationRecord": "docs/assets/gemtower-b/parts/_boxes.json",
+      "state": "provisional"
     }
   ],
   "palette": {

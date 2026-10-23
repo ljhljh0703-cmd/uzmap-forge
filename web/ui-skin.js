@@ -1,3 +1,4 @@
+import {fieldGradeIndex,FIELD_GRADE_COLORS} from './field-units.js';
 import {createFrameTask} from './browser-runtime.js';
 /** Gem-selection screen skin. View-only: no Sim/VM imports, no source commands.
  * Root supplies original I[1..5] presentation and existing selection/drawing callbacks.
@@ -354,6 +355,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const frame=button.querySelector('.slot-material'),art=button.querySelector('.slot-gem'),w=Math.round(button.clientWidth),h=Math.round(button.clientHeight);
   if(frame.width!==w||frame.height!==h){frame.width=w;frame.height=h;}
   const ctx=frame.getContext('2d');const key=qualityMaterialForFrame(item.frame);rasterNineSlice(ctx,MATERIALS[key],w,h);button.dataset.qualityMaterial=key;
+  const accent=fieldGradeIndex(item.name);button.dataset.qualityAccent=accent===null?'':String(accent);if(accent!==null){ctx.save();ctx.strokeStyle=FIELD_GRADE_COLORS[accent];ctx.lineWidth=1;ctx.strokeRect(7.5,7.5,Math.max(1,w-15),Math.max(1,h-15));ctx.restore();}
   const a=art.getContext('2d');a.clearRect(0,0,64,64);a.imageSmoothingEnabled=false;
   const painted=!item.id||drawGem(a,item,32,34,64);button.dataset.artReady=String(Boolean(painted));button.dataset.empty=String(!item.id);
  }
@@ -369,7 +371,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   latest=snapshot;const key=JSON.stringify([models,snapshot.round,snapshot.buildCount,snapshot.chosen,snapshot.selectedId,snapshot.selectedGem]);
   state.textContent=snapshot.chosen?'보석을 남겼습니다':`${Math.min(5,snapshot.buildCount??0)} / 5`;
   title.textContent=snapshot.chosen?'이번 선택':'이번 보석';
-  if(signature!==key||selectedPortrait.dataset.artReady==='false'||(!tray.hidden&&buttons.some(b=>b.dataset.artReady==='false'))){signature=key;for(let i=0;i<5;i++){const item=models[i],button=buttons[i];button.dataset.unitId=item.id??'';button.disabled=!item.id;button.setAttribute('aria-pressed',String(item.selected));button.setAttribute('aria-label',`보석 ${i+1} · ${item.name}`);button.title=item.name;button.style.setProperty('--quality-color',QUALITY_COLORS[item.frame]);if(!tray.hidden)paintSlot(button,item);}
+  if(signature!==key||selectedPortrait.dataset.artReady==='false'||(!tray.hidden&&buttons.some(b=>b.dataset.artReady==='false'))){signature=key;for(let i=0;i<5;i++){const item=models[i],button=buttons[i];button.dataset.unitId=item.id??'';button.disabled=!item.id;button.setAttribute('aria-pressed',String(item.selected));button.setAttribute('aria-label',`보석 ${i+1} · ${item.name}`);button.title=item.name;button.style.setProperty('--quality-color',FIELD_GRADE_COLORS[fieldGradeIndex(item.name)]??QUALITY_COLORS[item.frame]);if(!tray.hidden)paintSlot(button,item);}
    const selected=snapshot.selectedGem??models.find(m=>m.selected);const p=selectedPortrait.getContext('2d');p.clearRect(0,0,64,64);selectedPortrait.dataset.unitId=selected?.id??'';selectedPortrait.dataset.artReady=String(!selected||Boolean(drawGem(p,selected,32,34,64)));
   }
   const targeted=snapshot.targetActions?.find(action=>action.abilityId==='A05L'),selecting=Boolean(snapshot.pendingTarget);

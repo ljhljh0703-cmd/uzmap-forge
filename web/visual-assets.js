@@ -62,7 +62,7 @@ export class SpriteBank{
    source=this.tints.get(cacheKey);rect={x:0,y:0,w:frame.w,h:frame.h};
   }
   ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.fillStyle='rgba(14,31,20,.26)';ctx.beginPath();ctx.ellipse(x,y+size*.18,size*.26,size*.09,0,0,Math.PI*2);ctx.fill();
+  if(options.shadow!==false){ctx.fillStyle=options.shadowColor??'rgba(14,31,20,.26)';ctx.beginPath();ctx.ellipse(x,y+size*.18,size*.26,size*.09,0,0,Math.PI*2);ctx.fill();}
   ctx.translate(Math.round(x),Math.round(y));if(options.flip)ctx.scale(-1,1);
   // Fit the visible art inside the existing size/picking box without stretching.
   const anchor=options.anchor??.5,scale=size/Math.max(rect.w,rect.h);

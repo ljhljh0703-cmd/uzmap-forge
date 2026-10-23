@@ -28,7 +28,7 @@ it('existing atlas is cached below units without scanning or rasterizing again w
  const ctx:any={save(){},restore(){},beginPath(){},rect(...v:any[]){clips.push(v);},clip(){},drawImage(){blits++;}};
  (globalThis as any).document={createElement:()=>{canvases++;return {width:0,height:0,getContext:()=>paint};}};
  try{
-  const g=grid(),sprites={get:()=>texture},project=(p:any)=>({x:p.x/2,y:100-p.y/2});
+  const g=grid(),sprites={get:(key)=>key==='terrain:stone'?texture:null},project=(p:any)=>({x:p.x/2,y:100-p.y/2});
   ground.drawFieldGround(ctx,{grid:g,bounds,project,sprites});const first=tiles;assert.ok(first>0);assert.equal(canvases,1);assert.equal(blits,1);
   // A getter detects accidental frame-time WPM reads, rather than merely checking equal output.
   Object.defineProperty(g,'cells',{get(){throw Error('static WPM scanned during redraw');}});
@@ -43,8 +43,13 @@ it('a missing atlas adds no procedural fallback picture and can recover after th
  const old=(globalThis as any).document;let texture:any=null,tiles=0,blits=0;
  const paint:any={globalAlpha:1,save(){},restore(){},beginPath(){},rect(){},clip(){},fillRect(){},drawImage(){tiles++;}};
  (globalThis as any).document={createElement:()=>({getContext:()=>paint})};
- try{const g=grid(),sprites={get:()=>texture},ctx:any={save(){},restore(){},beginPath(){},rect(){},clip(){},drawImage(){blits++;}},options={grid:g,bounds,project:(p:any)=>({x:p.x,y:-p.y}),sprites};
+ try{const g=grid(),sprites={get:(key)=>key==='terrain:stone'?texture:null},ctx:any={save(){},restore(){},beginPath(){},rect(){},clip(){},drawImage(){blits++;}},options={grid:g,bounds,project:(p:any)=>({x:p.x,y:-p.y}),sprites};
   ground.drawFieldGround(ctx,options);assert.equal(tiles,0);assert.equal(blits,0);
   texture={src:'tiles.png',image:{},spec:{frame:{x:0,y:0,w:32,h:32}}};ground.drawFieldGround(ctx,options);assert.ok(tiles>0);assert.equal(blits,1);
  }finally{if(old===undefined)delete (globalThis as any).document;else (globalThis as any).document=old;}
+});
+
+it('new grass variants cover only source build ground and remain cached while the camera changes',()=>{
+ const old=globalThis.document,images=Array.from({length:4},(_,i)=>({i})),oldTexture={src:'old',image:{old:true},spec:{frame:{x:0,y:0,w:32,h:32}}},draws:any[]=[],clips:any[]=[],paint:any={globalAlpha:1,save(){},restore(){},beginPath(){},rect(...a){clips.push(a);},clip(){},fillRect(){},drawImage(...a){draws.push(a);}},ctx:any={save(){},restore(){},beginPath(){},rect(){},clip(){},drawImage(){}};let canvases=0;globalThis.document={createElement:()=>{canvases++;return {getContext:()=>paint};}} as any;
+ try{const g=grid(),sprites={get:key=>key==='terrain:stone'?oldTexture:key.startsWith('ground:grass:')?{src:key,image:images[Number(key.at(-1))],spec:{frame:{x:0,y:0,w:128,h:128}}}:null};ground.drawFieldGround(ctx,{grid:g,bounds,project:p=>p,sprites});assert.ok(draws.some(a=>images.includes(a[0])));const n=draws.length;for(let i=0;i<20;i++)ground.drawFieldGround(ctx,{grid:g,bounds,project:p=>p,sprites});assert.equal(draws.length,n);assert.equal(canvases,1);}finally{globalThis.document=old;}
 });
