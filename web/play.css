@@ -396,3 +396,11 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 /* A brief wave notice outranks hover text; the path preview on the field stays visible. */
 .route-legend[data-attention=true]>.entry-legend,.route-legend[data-attention=true]>.exit-legend,.route-legend[data-attention=true]>#buildPreviewStatus{visibility:hidden}
 .route-legend[data-attention=true]>.wave-attention{display:flex}
+
+/* H: both channels stay in the existing settings panel. */
+.feedback-sound{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+#feedbackSoundStatus,.sound-volume{grid-column:1/-1;min-width:0;word-break:keep-all}
+.sound-volume{display:grid;grid-template-columns:64px minmax(0,1fr) 32px;align-items:center;gap:8px;min-height:48px}
+.sound-volume input{width:100%;min-width:0;height:44px;accent-color:#d6b565}
+.sound-volume output{text-align:right;font-variant-numeric:tabular-nums}
+#soundReview button{width:100%;margin:4px 0}#soundReview textarea{width:100%;min-width:0}

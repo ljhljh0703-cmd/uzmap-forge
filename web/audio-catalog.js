@@ -1,0 +1,6 @@
+/** Lazy URL catalogue. CC0 provenance: assets/audio/LICENSES.md and cc0/manifest.json. */
+const build=new URL(import.meta.url).searchParams.get('build');
+const variants=name=>Object.freeze(['ogg','m4a'].map(format=>{const url=new URL('./assets/audio/cc0/'+name+'.'+format,import.meta.url);if(build)url.searchParams.set('build',build);return url.href;}));
+export const H_AUDIO_CUES=Object.freeze(Object.fromEntries(["place", "combine", "upgrade", "waveStart", "lifeLoss", "kill", "boss", "air", "keep", "rare", "research", "waveGold", "tap", "defeat", "clear"].map(name=>[name,variants(name)])));
+export const H_BGM=Object.freeze({prepare:variants('bgm-prepare'),combat:variants('bgm-combat')});
+export const H_CUE_SETTINGS=Object.freeze(Object.fromEntries(Object.entries({"place":{"gain":0.45,"priority":3},"combine":{"gain":0.7,"priority":6},"upgrade":{"gain":0.65,"priority":5},"waveStart":{"gain":0.7,"priority":6},"lifeLoss":{"gain":0.9,"priority":10},"kill":{"gain":0.12,"priority":1},"boss":{"gain":0.85,"priority":9},"air":{"gain":0.65,"priority":7},"keep":{"gain":0.65,"priority":4},"rare":{"gain":0.8,"priority":8},"research":{"gain":0.65,"priority":5},"waveGold":{"gain":0.45,"priority":4},"tap":{"gain":0.1,"priority":0},"defeat":{"gain":0.85,"priority":11},"clear":{"gain":0.85,"priority":11}}).map(([name,value])=>[name,Object.freeze(value)])));

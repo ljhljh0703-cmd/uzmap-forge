@@ -1,3 +1,7 @@
+import {H_AUDIO_CUES,H_BGM,H_CUE_SETTINGS} from './audio-catalog.js';
+import {mountAudioSettings} from './audio-settings.js';
+import {createGameRecording} from './audio-recording.js';
+import {createSoundEventRouter,sourceCueForCall} from './sound-events.js';
 import {createFirstRunGuide} from './first-run-guide.js';
 import {createWaveWarnings,createEnemyEncounters} from './wave-notices.js';
 import {combinationHints} from './combination-hints.js';
@@ -69,17 +73,22 @@ const nextWaveCard=mountNextWave(document,Object.assign((context,model,x,y,size)
 const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
 const lifeHud=mountHudLifeCue({document,sprites,feedback:createFieldFeedback({reducedMotion:()=>reducedMotion.matches}),reducedMotion:()=>reducedMotion.matches});
-const actionAudio=createCueAudio({onState:state=>{
+$('gameApp').dataset.audioRequests='0';
+const fetchAudioFile=url=>{$('gameApp').dataset.audioRequests=String(Number($('gameApp').dataset.audioRequests)+1);return fetch(url);};
+let soundSettings=null,soundRecording=null;
+const actionAudio=createCueAudio({fetch:fetchAudioFile,logLimit:2048,cueUrls:H_AUDIO_CUES,bgmUrls:H_BGM,cueSettings:H_CUE_SETTINGS,onState:state=>{
  const button=$('feedbackSound'),label=$('feedbackSoundStatus');if(!button||!label)return;
- button.textContent=state.enabled?'효과음 켜짐':'효과음 꺼짐';button.setAttribute('aria-pressed',String(state.enabled));button.dataset.soundState=state.status;button.dataset.played=String(state.played);
- const text=({idle:'첫 터치 후 소리가 준비됩니다',loading:'효과음 준비 중…',ready:'효과음 준비됨',muted:'효과음이 꺼져 있습니다',paused:'다음 터치부터 소리가 재개됩니다',blocked:'소리를 준비하지 못했습니다 · 다시 켜서 시도하세요',unsupported:'이 브라우저는 효과음을 지원하지 않습니다'})[state.status];if(label.textContent!==text)label.textContent=text;
+ button.textContent=state.enabled?'소리 켜짐':'소리 꺼짐';button.setAttribute('aria-pressed',String(state.enabled));button.dataset.soundState=state.status;button.dataset.played=String(state.played);
+ const text=({idle:'첫 터치 후 소리가 준비됩니다',loading:'소리 준비 중…',ready:'소리 준비됨',muted:'소리가 꺼져 있습니다',paused:'다음 터치부터 소리가 재개됩니다',blocked:'소리를 준비하지 못했습니다 · 다시 켜서 시도하세요',unsupported:'이 브라우저는 소리를 지원하지 않습니다'})[state.status];if(label.textContent!==text)label.textContent=text;soundSettings?.render(state);
 }});
-const actionFeedback=createActionFeedback({document,play:kind=>actionAudio.play(kind),reducedMotion:()=>reducedMotion.matches});
-$('feedbackSound').onclick=()=>{actionAudio.setEnabled(!actionAudio.snapshot().enabled);if(actionAudio.snapshot().enabled)void actionAudio.unlock();};
+const actionFeedback=createActionFeedback({document,play:kind=>queueSoundEvent(world,kind,{key:kind+':'+world.sim.tickCount}),reducedMotion:()=>reducedMotion.matches});
+soundSettings=mountAudioSettings(document,{audio:actionAudio});
+const soundLabel=document.querySelector('.feedback-sound .sound-label');if(soundLabel)soundLabel.textContent='소리';
 const unlockActionAudio=event=>{if(event.isTrusted===false)return;void actionAudio.unlock();};
 document.addEventListener('pointerdown',unlockActionAudio,{capture:true,passive:true});
 document.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')unlockActionAudio(event);},true);
-const quietActionFeedback=()=>{lifeHud.clear();actionFeedback.clear();world?.fieldFeedback?.clear();if(world){world.waveNotice=null;world.enemyEncounters?.clear();}void actionAudio.suspend();};
+document.addEventListener('click',event=>{const button=event.target?.closest?.('button,[role=tab]');if(event.isTrusted===false||!button||button.disabled||button.getAttribute('aria-disabled')==='true')return;queueSoundEvent(world,'tap',{key:'tap:'+performance.now()});flushGameSound(world);},true);
+const quietActionFeedback=()=>{void soundRecording?.stop();lifeHud.clear();actionFeedback.clear();world?.fieldFeedback?.clear();if(world){world.waveNotice=null;world.enemyEncounters?.clear();}void actionAudio.suspend();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)quietActionFeedback();});
 window.addEventListener('pagehide',quietActionFeedback);
 
@@ -87,6 +96,7 @@ const artManifestURL=new URL("./assets/manifest.json",import.meta.url);
 const contentBuild=new URL(import.meta.url).searchParams.get("build");
 const replayBuild=/^[a-f0-9]{16}$/.test(window.UZMAP_REPLAY_BUILD??'')?window.UZMAP_REPLAY_BUILD:null;
 if(contentBuild)artManifestURL.searchParams.set("build",contentBuild);
+installLocalSoundReview();
 void sprites.load(artManifestURL.href).then(()=>{
   $("artStatus").textContent=sprites.errors.length?"일부 그림은 기본 도형으로 표시됩니다":"기존 제작 그래픽 연결됨";
   if(sprites.errors.length)console.warn("[art fallback]",...sprites.errors);
@@ -339,6 +349,9 @@ function boot(bytes, presentation, stockProfile, seed) {
   rectEntered = 0; deaths = 0; gatePassed = 0;
   w.recordInput=input=>recordInput(w,input);
   focusPlayer(w);
+  w.soundRouter=createSoundEventRouter({playerId:0});w.soundQueue=[];w.soundCalls=[];w.soundWaveSeen=new Set();w.soundState=null;w.soundDeaths=new Map();
+  w.deathUnsubscribe=sim.observeUnitDeaths?.(death=>{const bounds=w.mobileFields?.[0]?.bounds;if(restoring||loadingRun||runtimeFailed||document.hidden||!bounds||death.unit?.owner!==11||!pointInBattlefield(death.unit,bounds))return;w.soundDeaths.set(death.unitId,death);if(w.soundDeaths.size>128)w.soundDeaths.delete(w.soundDeaths.keys().next().value);});
+  w.soundUnsubscribe=vm.observeSoundCalls?.(call=>{if(!restoring&&!loadingRun&&!runtimeFailed&&!document.hidden){w.soundCalls.push(call);if(w.soundCalls.length>64)w.soundCalls.shift();}});
   w.viewFeedback=actionFeedback;w.cueAudio=actionAudio;w.lifeHud=lifeHud;w.observePlayView=()=>{observeWaveWarnings(w);observeFirstEnemy(w);};
   w.fieldFeedback=createFieldFeedback({reducedMotion:()=>reducedMotion.matches});
   w.firstRunGuide=createFirstRunGuide({storage:()=>window.localStorage,off:sessionQuery.get('tutorial')==='off'});
@@ -469,7 +482,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
  const checkpoint=checkpointRun(world,true);if(checkpoint?.kind==='failed'){flash('현재 진행을 보관하지 못해 이어하기를 중단했습니다 · 현재 게임은 계속할 수 있습니다');return;}
  const before=captureRunView(),savedSelection=$("savedRuns")?.value;let savedCopy,completed=false;
  const rollbackCopy=()=>{if(!savedCopy)return '';try{return savedCopy.rollback()?'':' · 새 복사본이 변경되어 그대로 남겨 두었습니다';}catch{return ' · 새 복사본 정리를 완료하지 못했습니다';}};
- restoring=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
+ restoring=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();void soundRecording?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
   await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   world.restoredView=true;
@@ -763,6 +776,7 @@ function syncDesktopField(w){
 
 }
 function render(w,preservePendingDialog=false) {
+  syncGameSound(w);
   syncDesktopField(w);
   syncPrecisionView(w);
   currentGemTarget(w);
@@ -1333,7 +1347,7 @@ function stepN(w, n) {
       // U-2e: lastPos는 이 루프(사망 전 엔티티만 순회) 직후 "Attacked" 이벤트 처리 *전*에 갱신되므로,
       // 이번 틱에 죽은 타겟은 자연히 갱신에서 빠져 직전 틱의 마지막 생존 위치가 남는다(사망 좌표 폴백,
       // 재구현 0 — 위치 보간·추정 없음).
-      lastPos.set(e.id, { x: e.x, y: e.y, typeId: e.typeId });
+      lastPos.set(e.id, { x: e.x, y: e.y, typeId: e.typeId, owner:e.owner });
     }
     // U-4a: 웨이브 클리어 기반 순차 재점화 — 이번 웨이브가 실제로 크립을 냈었고(waveHasSpawned) 그
     // 크립이 전부 소진(0)됐을 때만 "다음 웨이브 준비 완료"(waveReadyForNext) 플래그를 세운다. 재점화는
@@ -1363,6 +1377,7 @@ function stepN(w, n) {
       else if (ev.kind === "UnitDied") {
         deaths++;
         const hp=prevHp.get(ev.unitId),pos=lastPos.get(ev.unitId);
+        observeConfirmedDeathSound(w,ev);
         if(pos&&hp>0)spawnTextTag(pos.x,pos.y,String(hp)+"!","#d74e3c");
         prevHp.delete(ev.unitId);
       }
@@ -1371,6 +1386,7 @@ function stepN(w, n) {
       else if (ev.kind === "LeakObserved") gatePassed++;
       else if (ev.kind === "GameOver") {
         w.gameOver = { winner: ev.winner, tick: w.sim.tickCount };
+        queueSoundEvent(w,ev.winner===0?'clear':'defeat',{key:'outcome'});
         w.trainingBatch = null;
         playing = false;
         $("play").textContent = "게임 종료";
@@ -1388,7 +1404,7 @@ function stepN(w, n) {
         if (spot) {
           const rolled = [...w.sim.entities.values()].find((e) => e.alive && e.x === spot.x && e.y === spot.y && e.typeId !== "h006" && e.typeId !== "u000");
           flash(rolled ? "설치 완료: " + fullName(w, rolled.typeId) : "건설 완료 · 결과 확인 중");
-          if(rolled)showActionSuccess(w,'place',rolled);
+          if(rolled){showActionSuccess(w,'place',rolled);observeRareGemSound(w,rolled);}
         }
       } else if (ev.kind === "UpgradeFinished") {
         flash("강화 완료: " + fullName(w,ev.targetTypeId));
@@ -1425,7 +1441,7 @@ function stepN(w, n) {
     for (let i = w.pendingCasts.length - 1; i >= 0; i--) {
       const req=w.pendingCasts[i],keptCandidate=w.sim.getUnit(req.unitId);
       const keepNotice=req.abilityId==='A009'?completedKeepNotice({request:req,kept:keptCandidate,chosen:gemTowerPlayerState(w.vm).chosen,rocks:ownedRocks(w),name:keptCandidate?fullName(w,keptCandidate.typeId):''}):null;
-      if(keepNotice){w.guideChoiceConfirmed=true;flash(keepNotice);w.pendingCasts.splice(i,1);continue;}
+      if(keepNotice){w.guideChoiceConfirmed=true;queueSoundEvent(w,'keep',{key:'keep:'+req.unitId});flash(keepNotice);w.pendingCasts.splice(i,1);continue;}
       const observed = observeGemCast(w, req, w.sim.tickCount);
       if (observed.state === "waiting") continue;
       if (observed.result) {
@@ -1433,7 +1449,7 @@ function stepN(w, n) {
         if (w.selectedGemId === req.unitId || w.selectedGemId === null) w.selectedGemId = observed.result.id;
         const combined=["A007","A00R","A03M"].includes(req.abilityId);
         flash((combined?"조합 완료: ":"시전 결과: ") + fullName(w, observed.result.typeId));
-        if(combined){w.guideChoiceConfirmed=true;showActionSuccess(w,'combine',observed.result);}
+        if(combined){w.guideChoiceConfirmed=true;showActionSuccess(w,'combine',observed.result);observeRareGemSound(w,observed.result);}
       } else {
         const kept=w.sim.getUnit(req.unitId);
         flash(req.abilityId==='A009'&&kept?.alive&&kept.owner===0&&gemTowerPlayerState(w.vm).chosen===true?keepResultNotice(fullName(w,kept.typeId),kept.id,req.hand,ownedRocks(w)):"능력 사용됨");
@@ -1442,6 +1458,7 @@ function stepN(w, n) {
     }
     // P-4: 종결 후에도 sim.step()이 계속 도는 것은 무의미(endGame은 멱등이지만 자원 낭비+오버레이 표시
     // 중 배경이 계속 바뀌는 것은 D5 "관측 가능성"과 무관한 잡음) — 즉시 배치 중단.
+    observeGameSoundState(w);flushGameSound(w);
     if (w.gameOver) break;
   }
 }
@@ -1499,6 +1516,63 @@ function requestGemTarget(w,targetUnitId){
  const accepted=issueGemTarget(w,targetUnitId);flash(accepted?'교환 명령을 전달했습니다':'지금은 교환 명령을 전달할 수 없습니다');return accepted;
 }
 
+// Local-only review controls: record the actual battlefield canvas plus the
+// same WebAudio gains sent to the speakers; no microphone or display capture.
+function installLocalSoundReview() {
+ if(!isLocalGameHost(location.hostname))return;
+ const host=$('advancedOptions');if(!host)return;
+ const details=document.createElement('details'),summary=document.createElement('summary'),note=document.createElement('p'),record=document.createElement('button'),stop=document.createElement('button'),show=document.createElement('button'),output=document.createElement('textarea');
+ details.id='soundReview';summary.textContent='소리 점검';note.id='soundReviewStatus';note.className='local-note';note.textContent='이 맥의 전장 화면과 게임 소리만 녹화합니다 · 최대 5분';
+ record.type=stop.type=show.type='button';record.className=stop.className=show.className='sec';record.textContent='전장 녹화 시작';stop.textContent='녹화 마치고 저장';stop.disabled=true;show.textContent='소리 기록 보기';output.id='soundReviewLog';output.readOnly=true;output.rows=10;output.setAttribute('aria-label','소리 재생 기록');
+ const choose=document.createElement('select'),tryCue=document.createElement('button');choose.setAttribute('aria-label','개별 소리 점검');
+ const labels={place:'설치',combine:'조합',upgrade:'강화',waveStart:'웨이브 시작',lifeLoss:'생명 감소',kill:'처치',boss:'보스',air:'공중',keep:'남기기',rare:'희귀 보석',research:'연구 완료',waveGold:'웨이브 골드',tap:'버튼',defeat:'패배',clear:'클리어'};
+ for(const [value,label]of Object.entries(labels)){const option=document.createElement('option');option.value=value;option.textContent=label;choose.append(option);}choose.value='place';tryCue.type='button';tryCue.className='sec';tryCue.textContent='선택한 소리 듣기';
+ tryCue.onclick=async()=>{const kind=choose.value;if(!Object.hasOwn(H_AUDIO_CUES,kind))return;await actionAudio.unlock();const played=actionAudio.play(kind,{origin:'controlled',kind,runId:world?.runId??'review',tick:world?.sim.tickCount??0,key:'controlled:'+Date.now()});note.textContent=played?'개별 소리 점검 · '+labels[kind]:'소리가 꺼져 있거나 준비 중입니다';};
+ details.append(summary,note,record,stop,choose,tryCue,show,output);host.append(details);
+ soundRecording=createGameRecording({canvas:cv,audio:actionAudio,onState:state=>{record.disabled=['recording','starting','stopping'].includes(state.state);stop.disabled=!['recording','starting','ready'].includes(state.state);note.textContent=({idle:'녹화를 시작할 수 있습니다',starting:'소리와 화면을 준비하고 있습니다',recording:'전장 화면과 게임 소리 녹화 중 · 최대 5분',stopping:'녹화 파일을 준비하고 있습니다',ready:'녹화가 끝났습니다',unsupported:'이 브라우저에서 소리 포함 녹화를 준비하지 못했습니다',failed:'녹화를 준비하지 못했습니다 · 게임은 계속할 수 있습니다'})[state.state];}});
+ record.onclick=async()=>{await soundRecording.start();};
+ stop.onclick=async()=>{const blob=await soundRecording.stop();if(!blob?.size)return;const link=document.createElement('a'),url=URL.createObjectURL(blob);link.href=url;link.download='gemtower-sound-'+Date.now()+(blob.type.includes('mp4')?'.mp4':'.webm');link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+ show.onclick=()=>{output.value=JSON.stringify({build:contentBuild,replayBuild,recordedAt:new Date().toISOString(),game:world?{runId:world.runId,tick:world.sim.tickCount,hash:world.sim.stateHash(),state:gemTowerPlayerState(world.vm)}:null,sound:actionAudio.snapshot(),recording:soundRecording.snapshot()},null,2);};
+}
+
+// Sound is an observer of actual source completion, never an input or saved state.
+function queueSoundEvent(w,kind,details={}) {
+ if(!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||(w.viewPlayerId??0)!==0)return false;
+ (w.soundQueue??=[]).push({kind,playerId:0,...details});if(w.soundQueue.length>128)w.soundQueue.shift();return true;
+}
+function observeConfirmedDeathSound(w,ev) {
+ const snapshot=w.soundDeaths?.get(ev.unitId);w.soundDeaths?.delete(ev.unitId);
+ const unit=snapshot?.unit??lastPos.get(ev.unitId),owner=snapshot?.creditedOwner??snapshot?.killer?.owner??w.sim.getUnit(ev.killerUnitId)?.owner,bounds=w.mobileFields?.[0]?.bounds;
+ if(unit?.owner===11&&bounds&&pointInBattlefield(unit,bounds)&&owner===0)queueSoundEvent(w,'kill',{key:'killed-unit:'+ev.unitId,unitId:ev.unitId});
+}
+function observeRareGemSound(w,unit) {
+ const family=gemTowerGemFamily(fullName(w,unit.typeId)),grade=gemGradePresentation(family?.grade),view=gemObjectPresentation(unit.typeId,defOf(w,unit.typeId),family,sprites.aliases[unit.typeId]);
+ if(grade?.rank>=4||view.kind==='special')queueSoundEvent(w,'rare',{key:'rare:'+unit.id,unitId:unit.id,rank:grade?.rank??0,special:view.kind==='special'});
+}
+function observeGameSoundState(w) {
+ const state=sourceWaveState(w),life=gemTowerPlayerState(w.vm).life,gold=w.sim.ledger.gold(0),previous=w.soundState,round=state.round;
+ if(previous&&Number.isFinite(life)&&life<previous.life)queueSoundEvent(w,'life-loss',{key:'life:'+w.sim.tickCount,amount:previous.life-life});
+ if(previous&&round>previous.round&&gold>previous.gold)queueSoundEvent(w,'wave-gold',{key:'wave:'+round,amount:gold-previous.gold});
+ const bounds=w.mobileFields?.[0]?.bounds,enemy=bounds?[...w.sim.entities.values()].find(unit=>unit.alive&&unit.owner===11&&pointInBattlefield(unit,bounds)):null;
+ if(enemy&&!w.soundWaveSeen.has(round)){
+  w.soundWaveSeen.add(round);const role=GEMTOWER_BALANCE.roleTable[enemy.typeId],visual=creepVisualPresentation(role,defOf(w,enemy.typeId));
+  queueSoundEvent(w,'wave-start',{key:'wave:'+round,round});if(visual.airborne)queueSoundEvent(w,'air',{key:'wave:'+round,round});if(visual.band==='boss')queueSoundEvent(w,'boss',{key:'wave:'+round,round});
+ }
+ w.soundState={round,life,gold};
+}
+function flushGameSound(w) {
+ if(!w?.soundRouter)return;const events=w.soundQueue.splice(0),state=sourceWaveState(w);
+ for(const call of w.soundCalls.splice(0)){const source=sourceCueForCall(call);if(!source)continue;events.push({kind:'source-call',call,key:source.kind==='life-loss'?'life:'+call.tick:'wave:'+state.round});}
+ const cueNames={'wave-start':'waveStart','life-loss':'lifeLoss','wave-gold':'waveGold'};
+ for(const event of w.soundRouter.route(events,{runId:w.runId,tick:w.sim.tickCount,speed:tps,restoring:restoring||loadingRun,hidden:document.hidden||(w.viewPlayerId??0)!==0,failed:runtimeFailed})){
+  actionAudio.play(cueNames[event.cue]??event.cue,{...event,playerId:0,round:state.round,sourceCaller:event.source?.caller,sourceLine:event.source?.line,sourceSymbol:event.source?.reference?.symbol,sourceIndex:event.source?.reference?.index});
+ }
+}
+function syncGameSound(w) {
+ const suppressed=!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||w.gameOver||!w.modeDialog?.clicked||!gemTowerPlayerState(w.vm).difficulty;
+ actionAudio.setPhase(suppressed?null:sourceWaveState(w).chosen?'combat':'prepare',{runId:w?.runId,tick:w?.sim.tickCount,playerId:0});
+}
+
 function showActionSuccess(w,kind,unit) {
  if(!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||w.gameOver||!unit?.id)return null;
  if(kind==='combine'&&(w.viewPlayerId??0)===0){const actual=w.sim.getUnit(unit.id);if(actual?.alive)w.fieldFeedback?.emit({kind:'combine',key:`${w.runId}:${w.sim.tickCount}:combine:${unit.id}`,x:actual.x,y:actual.y,space:'world'});}
@@ -1513,7 +1587,7 @@ function loop(now = performance.now()) {
   try{
     const ticks=frameClock.advance(now,Boolean(world&&playing&&!restoring),tps);
     if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);world.viewFeedback?.render(world.selectedGemId);checkpointRun(world);}
-  }catch(error){runtimeFailed=true;playing=false;frameClock.reset();window.showErr('게임 화면 오류',error);}
+  }catch(error){runtimeFailed=true;playing=false;quietActionFeedback();frameClock.reset();window.showErr('게임 화면 오류',error);}
 }
 
 function resize() { resizeCanvasToHost(cv,cv.parentElement.getBoundingClientRect()); }
@@ -1795,6 +1869,7 @@ function requestResearch(w,techId) {
 }
 function observeResearchResult(w,ev) {
  if(ev.playerId!==0||!['ResearchFinished','ResearchRejected'].includes(ev.kind))return;
+ if(ev.kind==='ResearchFinished')queueSoundEvent(w,'research',{key:'research:'+ev.techId+':'+ev.level});
  if(w.pendingResearch?.techId===ev.techId)w.pendingResearch=null;
  w.researchNotice=ev.kind==='ResearchFinished'?`${trainingTechName(w,ev.techId,ev.level)} 연구 완료 · ${ev.level}레벨`:`연구 취소 · ${RESEARCH_REJECT_LABEL[ev.reason]??'연구 조건을 확인하세요'}`;
  flash(w.researchNotice);
