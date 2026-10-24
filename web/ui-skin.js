@@ -172,7 +172,7 @@ export function createSelectionSheet(doc,{panel,meta,body,summary}){
  * handlers, disabled reasons and ordering; combat merely moves them into the
  * already existing information/upgrade disclosure. No command is dispatched. */
 export function createSelectionCard(doc){
- let homes=null,lastCombat=false,lastSelected=null,unitArt=null,unitRole=null,sheet=null;
+ let homes=null,lastCombat=false,lastSelected=null,unitArt=null,unitRole=null,sheet=null,lastDesktop=false,mobileOpen=false;
  const putBack=(node,home)=>{if(node.parentNode!==home.parent)home.parent.insertBefore(node,home.next?.parentNode===home.parent?home.next:null);};
  const remember=node=>({parent:node.parentNode,next:node.nextSibling});
  return {render(snapshot={}){
@@ -186,6 +186,7 @@ export function createSelectionCard(doc){
   if(hint&&hint.textContent!==text)hint.textContent=text;
   const panel=doc.getElementById('gemPanel'),name=doc.querySelector('.bp-name'),meta=doc.querySelector('.gem-meta'),body=meta?.querySelector('.gem-detail-body'),actions=doc.querySelector('.bp-actions'),summary=meta?.querySelector('summary'),badge=doc.getElementById('gemSpecialBadge');
   if(!panel||!name||!meta||!body||!actions||!summary||!close)return;
+  const desktop=snapshot.desktop===true;if(desktop&&!lastDesktop)mobileOpen=meta.open;
   if(!homes)homes={actions:remember(actions),close:remember(close),badge:badge?remember(badge):null,summary:summary.textContent};
   if(!sheet)sheet=createSelectionSheet(doc,{panel,meta,body,summary});
   const portrait=doc.getElementById('selectedGemPortrait');
@@ -220,6 +221,7 @@ export function createSelectionCard(doc){
    putBack(actions,homes.actions);putBack(close,homes.close);if(badge&&homes.badge)putBack(badge,homes.badge);
    if(summary.textContent!==homes.summary)summary.textContent=homes.summary;
   }
+  summary.hidden=desktop;if(desktop)meta.open=true;else if(lastDesktop)meta.open=mobileOpen||interacting;lastDesktop=desktop;
   sheet.update({selected:Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem),interacting});
   // The original keep button can remain enabled after the source transition.
   // Its preparatory focus belongs on the visible summary when combat starts.

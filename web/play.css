@@ -204,7 +204,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 #gameDrawer input[type=text],#gameDrawer textarea,#gameDrawer select{font-size:16px;line-height:1.5;border-color:#7e653e;background:#201a13;color:var(--ui-ink)}
 #gameDrawer input[type=range]{min-height:44px}#gameDrawer button,#gameDrawer summary,#gameDrawer input,#gameDrawer textarea,#gameDrawer select{scroll-margin-top:80px;scroll-margin-bottom:64px}
 #gameDrawer .recipe-filters{gap:8px;margin:12px 0}.recipe-filters button{font-size:13px}.recipe-item>summary{padding:12px 4px;min-height:48px}.recipe-item>p{font-size:13px;line-height:1.85}.save-tools{gap:8px}.save-tools button{min-height:48px}
-#actionFeedback{max-width:calc(100% - 32px);width:max-content;font-size:13px;line-height:1.6;padding:8px 12px;border:1px solid #b9954c;background:#241c13f5;color:#f2dfac;overflow-wrap:anywhere}
+#actionFeedback{max-width:calc(100% - 32px);width:max-content;font-size:13px;line-height:1.6;padding:8px 12px;border:1px solid #b9954c;background:#241c13f5;color:#f2dfac;overflow-wrap:break-word;word-break:keep-all}
 .placement-confirm,.overlap-picker{padding:12px 14px;border-width:1px}.placement-confirm button,.overlap-choice{min-height:48px}.precise-placement{gap:10px;min-height:48px}.precise-placement input{flex:none}
 #trainingStatus,#casinoHint,#casinoTrainingStatus,#casinoResultText,#saveStatus,#savedRunHelp,#automaticSaveStatus{scroll-margin-top:80px;overflow-wrap:anywhere}
 @media(max-width:380px){header{padding-left:8px;padding-right:8px;gap:6px}.app[data-simple-ui=true] #resourceHud{gap:12px}.app[data-simple-ui=true] .statusbar{padding-left:14px;padding-right:14px}.route-legend{font-size:11px;gap:6px}.round-slots{gap:6px}.app[data-simple-ui=true] .bp-actions button{flex-basis:88px}}
@@ -316,7 +316,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 @media(min-width:901px){
  html,body{background:#21160f}
  .app[data-simple-ui=true]{width:100%;max-width:none;margin:0;min-width:0;box-shadow:none}
- .app[data-simple-ui=true] main{grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:minmax(0,1fr)}
+ .app[data-simple-ui=true] main{grid-template-columns:minmax(0,var(--desktop-field-width,55%)) minmax(360px,1fr);grid-template-rows:minmax(0,1fr)}
  .app[data-simple-ui=true] #battlefield{grid-column:1;grid-row:1;min-width:0;min-height:0}
  .app[data-simple-ui=true] #bottomPanel{grid-column:2;grid-row:1;width:100%;height:100%;max-height:none;border-top:0;border-left:2px solid #8c6c35;overflow-y:auto;overflow-x:hidden}
  .app[data-simple-ui=true] #gemPanel{flex-direction:column;align-items:stretch;gap:12px;padding:12px}
@@ -332,3 +332,34 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
  .app[data-simple-ui=true] .gem-detail-body .gem-stats .stat{flex:1 1 80px;min-width:0}
  .app[data-simple-ui=true] .placement-confirm{width:100%;margin:0}
 }
+
+/* Source facts reuse the sidebar, leaving the mobile field unchanged. */
+.next-wave-preview{display:none}
+@media(min-width:901px){
+ .next-wave-preview{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:16px;margin:12px;padding:16px 12px;border-bottom:1px solid #806337;min-height:132px;background:#302419}
+ .next-wave-preview h2{font-size:16px;color:#cdb47d;margin:0 0 8px}.next-wave-preview strong{font-size:21px;word-break:keep-all}.next-wave-preview p{font-size:15px;line-height:1.55;margin:7px 0;word-break:keep-all}.next-wave-preview p:last-child{color:#edc3a2}
+ .app[data-simple-ui=true] #gemPanel{min-height:440px}.app[data-simple-ui=true] .gem-meta{margin-top:14px}
+ .app[data-simple-ui=true] #gemPanel[data-selection-sheet=true] .gem-detail-body{max-height:none;margin:0;font-size:16px}
+ .app[data-simple-ui=true] .gem-detail-body .gem-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.app[data-simple-ui=true] .gem-detail-body .gem-stats .stat{padding:10px 2px;min-width:0}
+}
+
+@media(min-width:901px){
+ .app[data-simple-ui=true] #gemPanel .bp-name{flex-direction:column;align-items:stretch;gap:12px}
+ .app[data-simple-ui=true] #gemPanel[data-selection-sheet=true][data-combat-card] .bp-name>.gem-meta[open]{flex:0 0 auto;width:100%;margin:0;align-self:stretch}
+ .app[data-simple-ui=true] #gemPanel .gem-meta>summary[hidden]{display:none!important}
+ .app[data-simple-ui=true] #gemPanel .gem-detail-body{width:100%;align-self:stretch}
+}
+
+.life-loss-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:36;image-rendering:pixelated}
+
+/* The reason stays visible even when a source renderer resets button text. */
+.button-disabled-reason{display:block;font-size:12px;line-height:1.5;color:#edc59d;margin:4px 2px 8px;word-break:keep-all;overflow-wrap:anywhere}
+.button-disabled-reason[hidden],.round-slots-help[hidden]{display:none!important}
+.bp-actions>.button-disabled-reason{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);padding:0;margin:0}
+.app[data-simple-ui=true] .bp-actions>button[data-disabled-reason]:not([data-reason-in-text=true])::after{content:attr(data-disabled-reason);display:block;white-space:normal;font-size:11px;font-weight:400;line-height:1.4;color:#d8c5a8;margin-top:3px}
+.round-slots-help{display:block;padding:3px 12px 5px;color:#cbb98d;font-size:11px;line-height:1.4}
+.research>.button-disabled-reason{grid-column:1/-1;flex-basis:100%;margin-top:0}
+.menu-controls>.button-disabled-reason{flex-basis:100%;margin:0}
+.app[data-simple-ui=true][data-control-gate=true] .phasebar{position:relative}
+.app[data-simple-ui=true][data-control-gate=true] .route-legend{visibility:hidden}
+.app[data-simple-ui=true][data-control-gate=true] .run-state{display:block;position:absolute;inset:0 8px;align-content:center;padding:0 4px;border:0;color:#edc59d;font-size:12px;line-height:1.4;background:#211b13;pointer-events:none}
