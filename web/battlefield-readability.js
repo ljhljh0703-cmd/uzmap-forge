@@ -30,10 +30,17 @@ export function nextWaveView({state={},total,typeId=null,name='',count=null,def=
  const round=Math.max(1,Number(state.round)||1)+(state.chosen?1:0);if(round>total)return null;
  return {round,typeId,name:name||'적 정보 확인 중',count:Number.isSafeInteger(count)&&count>0?count:null,life:Number.isFinite(def?.pointValue)&&def.pointValue>=0?def.pointValue:null,motion:airborne===true?'공중':airborne===false?'지상':'확인 중'};
 }
+/** Compact rendering of the same source facts used by the PC card. */
+export function formatNextWaveLine(model){
+ if(!model)return '';
+ return ['다음 '+model.round+'웨이브',model.name,model.count===null?'마리 수 확인 중':model.count+'마리',model.motion,model.band==='boss'?'보스':'',model.life===null?'도착 피해 확인 중':'1마리 도착 = 생명 '+model.life+' 감소'].filter(Boolean).join(' · ');
+}
 export function mountNextWave(doc,draw){
+ const phone=doc.createElement('p');phone.id='phoneWavePreview';phone.className='phone-wave-preview';phone.hidden=true;doc.querySelector('.phasebar')?.prepend(phone);
  const host=doc.getElementById('bottomPanel'),section=doc.createElement('section'),title=doc.createElement('h2'),art=doc.createElement('canvas'),name=doc.createElement('strong'),facts=doc.createElement('p'),risk=doc.createElement('p');
  section.id='nextWavePreview';section.className='next-wave-preview';section.setAttribute('aria-label','다음 웨이브');art.width=64;art.height=64;art.setAttribute('aria-hidden','true');const text=doc.createElement('div');text.append(title,name,facts,risk);section.append(art,text);host.insertBefore(section,doc.getElementById('gemNone'));let signature='';
- return {render(model){
+ return {render(model,{visible=true}={}){
+  phone.hidden=!model||!visible;const line=formatNextWaveLine(model);if(phone.textContent!==line)phone.textContent=line;
   const key=JSON.stringify([model,Boolean(draw?.ready?.())]);if(key===signature)return;signature=key;
   title.textContent=model?'다음 웨이브 · '+model.round:'마지막 웨이브';name.textContent=model?.name??'마지막 적을 막아 주세요';facts.textContent=model?[model.motion,model.count===null?'마리 수 확인 중':model.count+'마리'].join(' · '):'';
   risk.textContent=model?model.life===null?'광산 도착 피해 확인 중':'광산 도착 시 한 마리마다 생명 '+model.life+' 감소':'';

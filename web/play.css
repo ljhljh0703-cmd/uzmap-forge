@@ -363,3 +363,36 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .app[data-simple-ui=true][data-control-gate=true] .phasebar{position:relative}
 .app[data-simple-ui=true][data-control-gate=true] .route-legend{visibility:hidden}
 .app[data-simple-ui=true][data-control-gate=true] .run-state{display:block;position:absolute;inset:0 8px;align-content:center;padding:0 4px;border:0;color:#edc59d;font-size:12px;line-height:1.4;background:#211b13;pointer-events:none}
+
+/* G2: one source research shortcut above the existing five gems. */
+.research-shortcut{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:6px;padding:6px 8px;flex:none}
+.research-shortcut[hidden]{display:none!important}.research-shortcut button{min-height:44px;min-width:0;white-space:normal;word-break:keep-all;font-size:13px;line-height:1.35}
+.research-shortcut-detail{grid-column:1/-1;margin:0;color:var(--dim);font-size:12px;line-height:1.5;word-break:keep-all}
+
+.source-help,.training-help{display:block;margin:5px 0 0;font-size:12px;line-height:1.5;font-weight:400;word-break:keep-all;color:inherit}.source-help[hidden],.training-help[hidden]{display:none!important}
+.research>.source-help{grid-column:1/-1;flex-basis:100%}
+
+/* G4 reuses the same five slots and the existing source handbook. */
+.research-shortcut{grid-template-columns:minmax(0,1fr) 44px 64px}.hand-combination-notice{margin:0;padding:3px 12px;color:#c3ecaa;font-size:12px;line-height:1.5;word-break:keep-all}.hand-combination-notice[hidden]{display:none!important}
+.slot-combination{position:absolute;z-index:3;bottom:6px;left:6px;padding:0 2px;background:#18270f;color:#c5f3a5;font:10px/1.4 system-ui;white-space:nowrap}.slot-combination[hidden]{display:none!important}.recipe-available{color:#bde79e}
+
+/* G5: source wave facts above the field; notices reuse the route strip. */
+.app[data-simple-ui=true],.app[data-simple-ui=true][data-mode=classic]{grid-template-rows:44px 64px auto minmax(0,1fr)}
+.phasebar{height:auto;min-height:36px;display:flex;flex-direction:column;align-items:stretch}.route-legend{position:relative;min-height:36px}
+.phone-wave-preview{margin:0;padding:3px 9px;font-size:11px;line-height:1.45;word-break:keep-all;color:#e4d0a7}.phone-wave-preview[hidden]{display:none!important}
+.wave-attention{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:2px 8px;background:#2b2115;color:#f6dfa0;font-size:12px;line-height:1.35;word-break:keep-all}.wave-attention[hidden]{display:none!important}
+.route-legend[data-attention=true]:not([data-preview=true])>.entry-legend,.route-legend[data-attention=true]:not([data-preview=true])>.exit-legend{visibility:hidden}.route-legend[data-preview=true]>.wave-attention{display:none}
+@media(min-width:901px){.phone-wave-preview{display:none}}
+
+.wave-attention{gap:6px;white-space:normal}.wave-attention canvas{width:28px;height:28px;flex:none;image-rendering:pixelated}.wave-attention canvas[hidden]{display:none}.wave-attention span{min-width:0;word-break:keep-all}
+
+/* G1: a dismissible adjacent guide, never a blocking layer. */
+.first-run-guide{flex:none;margin:5px 8px;padding:3px 9px 7px;border:1px solid #d1ad59;background:#2b2419;color:#f0dfb2}.first-run-guide[hidden]{display:none!important}.first-run-guide-head{display:flex;align-items:center;gap:6px;justify-content:flex-end}.first-run-guide-head strong{margin-right:auto;font-size:12px;white-space:nowrap}.first-run-guide-head button{min-height:44px;padding:5px 8px;font-size:12px}.first-run-guide p{margin:0;white-space:pre-line;word-break:keep-all;font-size:12px;line-height:1.6}.tutorial-target{outline:2px solid #f2d47d;outline-offset:2px}.build-cell.tutorial-target{opacity:1;outline-offset:-2px;background:#eacf7528}
+
+/* Keep the existing reason sibling from displacing either shortcut control. */
+#quickResearch{grid-column:1;grid-row:1;min-height:52px}#quickResearchInfo{grid-column:2;grid-row:1}#quickRecipes{grid-column:3;grid-row:1}
+.research-shortcut>.button-disabled-reason{grid-column:1/-1;grid-row:2;margin:0;font-size:11px;line-height:1.35;overflow-wrap:break-word}#quickResearchDetail{grid-row:3}
+
+/* A brief wave notice outranks hover text; the path preview on the field stays visible. */
+.route-legend[data-attention=true]>.entry-legend,.route-legend[data-attention=true]>.exit-legend,.route-legend[data-attention=true]>#buildPreviewStatus{visibility:hidden}
+.route-legend[data-attention=true]>.wave-attention{display:flex}

@@ -1,3 +1,8 @@
+import {createFirstRunGuide} from './first-run-guide.js';
+import {createWaveWarnings,createEnemyEncounters} from './wave-notices.js';
+import {combinationHints} from './combination-hints.js';
+import {sourceButtonHelp} from './source-help.js';
+import {researchShortcutModel,mountResearchShortcut,mountFirstRunGuide} from './first-run-ui.js';
 import {createButtonReasonView,unavailableReason} from './button-reasons.js';
 import {desktopFieldLayout,sourceWaveCounts,nextWaveView,mountNextWave,attackRangeModels,drawAttackRanges,isExitThreat,creepStatusIcons,hasEnemySlowAura,drawCreepStatus,drawExitThreat,mountHudLifeCue} from './battlefield-readability.js';
 import {parseJass} from './dist/jass/parser.js';
@@ -56,6 +61,10 @@ const recipeGuide=mountRecipeBook(document);
 const gameMenu=mountGameMenu(document);
 const buttonReasons=createButtonReasonView(document);
 const roundSlotsHelp=document.createElement('small');roundSlotsHelp.id='roundSlotsHelp';roundSlotsHelp.className='round-slots-help';roundSlotsHelp.hidden=true;$('roundTray').append(roundSlotsHelp);
+const researchShortcut=mountResearchShortcut(document,{purchase:techId=>requestResearch(world,techId),reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches});
+const firstRunView=mountFirstRunGuide(document,{skip:()=>{world?.firstRunGuide?.skip();if(world)render(world);},next:()=>{world?.firstRunGuide?.next();if(world)render(world);}});
+const showFirstRunGuide=document.createElement('button');showFirstRunGuide.id='showFirstRunGuide';showFirstRunGuide.type='button';showFirstRunGuide.className='sec';showFirstRunGuide.textContent='안내 다시 보기';showFirstRunGuide.disabled=true;showFirstRunGuide.onclick=()=>{if(world){world.firstRunGuide.openManual();setDrawer(false);render(world);}};$('menuPanelSettings').insertBefore(showFirstRunGuide,$('advancedOptions'));
+const quickRecipes=document.createElement('button');quickRecipes.id='quickRecipes';quickRecipes.type='button';quickRecipes.className='sec';quickRecipes.textContent='조합표';quickRecipes.onclick=()=>{setDrawer(true);gameMenu.reveal('recipeOptions');};$('researchShortcut').insertBefore(quickRecipes,$('quickResearchDetail'));
 const nextWaveCard=mountNextWave(document,Object.assign((context,model,x,y,size)=>drawMineCreep(context,{sprites,typeId:model.typeId,band:model.band,airborne:model.motion==='공중',x,y,groundY:y,size,tick:0,reducedMotion:true}),{ready:()=>sprites.ready}));
 const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
@@ -70,7 +79,7 @@ $('feedbackSound').onclick=()=>{actionAudio.setEnabled(!actionAudio.snapshot().e
 const unlockActionAudio=event=>{if(event.isTrusted===false)return;void actionAudio.unlock();};
 document.addEventListener('pointerdown',unlockActionAudio,{capture:true,passive:true});
 document.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')unlockActionAudio(event);},true);
-const quietActionFeedback=()=>{lifeHud.clear();actionFeedback.clear();world?.fieldFeedback?.clear();void actionAudio.suspend();};
+const quietActionFeedback=()=>{lifeHud.clear();actionFeedback.clear();world?.fieldFeedback?.clear();if(world){world.waveNotice=null;world.enemyEncounters?.clear();}void actionAudio.suspend();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)quietActionFeedback();});
 window.addEventListener('pagehide',quietActionFeedback);
 
@@ -330,8 +339,9 @@ function boot(bytes, presentation, stockProfile, seed) {
   rectEntered = 0; deaths = 0; gatePassed = 0;
   w.recordInput=input=>recordInput(w,input);
   focusPlayer(w);
-  w.viewFeedback=actionFeedback;w.cueAudio=actionAudio;w.lifeHud=lifeHud;
+  w.viewFeedback=actionFeedback;w.cueAudio=actionAudio;w.lifeHud=lifeHud;w.observePlayView=()=>{observeWaveWarnings(w);observeFirstEnemy(w);};
   w.fieldFeedback=createFieldFeedback({reducedMotion:()=>reducedMotion.matches});
+  w.firstRunGuide=createFirstRunGuide({storage:()=>window.localStorage,off:sessionQuery.get('tutorial')==='off'});
   return w;
 }
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -462,6 +472,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
  restoring=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
   await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
+  world.restoredView=true;
   if((world.sourceVersion??null)!==(trace.sourceVersion??null))throw Error('원작 자료 버전이 달라 이어할 수 없습니다');
   let cursor=0;while(world.sim.tickCount<trace.tick||cursor<trace.actions.length){
    if(restoreCancelled)throw Error('복원을 취소했습니다');
@@ -629,13 +640,14 @@ function precisionPointer(w,kind,event){
 /** Reuses the original rejection and prices. This adapter never enables a command. */
 function buttonBlockReason(w,button){
  if(!button.disabled)return '';
- const id=button.id??'',state=w?gemTowerPlayerState(w.vm):{},command=/^(cast|rs)/.test(id)||Boolean(button.dataset?.upgradeTarget)||id==='chatSend';
+ const id=button.id??'',state=w?gemTowerPlayerState(w.vm):{},command=id==='quickResearch'||/^(cast|rs)/.test(id)||Boolean(button.dataset?.upgradeTarget)||id==='chatSend';
  if(restoring)return '저장한 판을 복원하고 있어요';
  if(command&&(w?.viewPlayerId??0)!==0)return '내 전장으로 돌아오세요';
  if(w?.gameOver)return unavailableReason('game-over');
  if(runtimeFailed)return '오류로 멈췄어요 · 메뉴에서 진행을 저장하세요';
+ if(id==='showFirstRunGuide'&&!w)return '맵을 먼저 열어 주세요';
  if(['play','speedCycle','menuPlay','stepBtn','reset'].includes(id)&&$('sourceFiles')?.hidden===false)return '맵과 능력 자료를 먼저 열어 주세요';
- const research=id.match(/^rs(R000|R001|R002)Btn$/)?.[1];
+ const research=id==='quickResearch'?button.dataset.techId:id.match(/^rs(R000|R001|R002)Btn$/)?.[1];
  if(research&&w){
   const spec=GEMTOWER_BALANCE.researches?.[research],level=w.sim.getResearchLevel(0,research);
   if(!spec)return unavailableReason('missing-data');
@@ -677,13 +689,78 @@ function syncDisabledReasons(w){
  $('gameApp').dataset.controlGate=String(Boolean(headerReason));if(headerReason)header.textContent=headerReason;
 }
 
+function renderSourceDescriptions(w){
+ for(const techId of ['R000','R001','R002']){
+  const button=$('rs'+techId+'Btn');if(!button)continue;
+  let help=$('help'+techId);if(!help){help=document.createElement('small');help.id='help'+techId;help.className='source-help';button.closest('.research').append(help);}
+  const source=w.sim.mapIr?.objectMods?.some(object=>object.kind==='upgrade'&&(object.newId??object.baseId)===techId),text=source?sourceButtonHelp(techId):'';
+  if(help.textContent!==text)help.textContent=text;help.hidden=!text;
+  const refs=(button.getAttribute('aria-describedby')??'').split(/\s+/).filter(id=>id&&id!==help.id);if(text)refs.push(help.id);button.setAttribute('aria-describedby',[...new Set(refs)].join(' '));
+ }
+}
+
+function renderFirstRunGuide(w){
+ const button=$('showFirstRunGuide');if(button)button.disabled=restoring;
+ if(restoring){firstRunView.render(null);return;}
+ const state=gemTowerPlayerState(w.vm),wave=sourceWaveState(w),own=(w.viewPlayerId??0)===0,prepared=!wave.chosen&&wave.round>0&&!w.gameOver;
+ const model=w.firstRunGuide?.observe({ready:Boolean(w.modeDialog?.clicked)&&Boolean(state.difficulty)&&!runtimeFailed&&!loadingRun&&!w.gameOver,fresh:!w.restoredView,restoring:false,own,prepared,buildCount:state.buildCount??0,choiceConfirmed:w.guideChoiceConfirmed===true,combatSeen:Boolean(w.firstCombatSeen),firstWaveEnded:Boolean(w.waveHasSpawned&&w.waveReadyForNext),round:wave.round,life:state.life,gold:w.sim.ledger.gold(0),researchLevel:w.sim.getResearchLevel(0,'R000'),researchCost:researchCostForLevel(GEMTOWER_BALANCE.researches.R000,1)});
+ firstRunView.render(own?model:null);
+}
+
+function renderResearchShortcut(w,state){
+ const rows=['R000','R001'].flatMap(techId=>{const spec=GEMTOWER_BALANCE.researches?.[techId],button=$('rs'+techId+'Btn');if(!spec||!button)return [];const level=w.sim.getResearchLevel(0,techId);return [{techId,level,maxLevel:spec.maxLevel,cost:researchCostForLevel(spec,level+1),disabled:button.disabled,reason:buttonBlockReason(w,button)}];});
+ researchShortcut.render(researchShortcutModel(rows,{ready:Boolean(w.modeDialog?.clicked)&&state.round>0&&!state.chosen&&!w.gameOver&&!restoring&&!runtimeFailed,own:(w.viewPlayerId??0)===0}),{runId:w.runId,suppressed:restoring||Boolean(w.restoredView&&!w.researchCuePrimed)});
+ if(!restoring)w.researchCuePrimed=true;
+}
+
+function sourceWaveState(w,player=0){
+ if(w.vm.getGlobal('Be').v===2)return gemTowerPlayerState(w.vm,player);
+ const round=w.vm.getGlobal('a'),ready=w.vm.getGlobal('E');return {round:round.t==='int'?round.v:0,chosen:ready.t==='bool'?!ready.v:false};
+}
+function sourceWaveAt(w,round,player=0){
+ if(!Number.isInteger(round)||round<1||round>TOTAL_WAVES)return null;
+ const raw=w.vm.getGlobalIndexed('b',round),id=raw.t==='int'&&raw.v?fourCC(raw.v):null,def=id?defOf(w,id):null,visual=def?creepVisualPresentation(GEMTOWER_BALANCE.roleTable[id],def):null;
+ const count=w.vm.getGlobal('Be').v===2?w.waveCounts?.race[player]:w.waveCounts?.classic;
+ const model=nextWaveView({state:{round,chosen:false},total:TOTAL_WAVES,typeId:id,name:id?fullName(w,id):'',count,def,airborne:visual?.airborne??null});return model&&{...model,band:visual?.band};
+}
+function countAirDefenders(w){
+ let count=0;for(const id of new Set(gemTowerPlayerGemIds(w.vm,0))){const unit=w.sim.getUnit(id);if(!unit?.alive)continue;const def=defOf(w,unit.typeId);if([def?.attack,def?.secondaryAttack].some(attack=>attack&&(attack.targetsMask&2)))count++;}return count;
+}
+function observeWaveWarnings(w){
+ const state=sourceWaveState(w),suppressed=restoring||document.hidden||(w.viewPlayerId??0)!==0||Boolean(w.gameOver);
+ w.waveWarnings??=createWaveWarnings({waveAt:round=>sourceWaveAt(w,round),total:TOTAL_WAVES,airCount:()=>countAirDefenders(w)});
+ const notice=w.waveWarnings.observe({round:state.round,prepared:Boolean(w.modeDialog?.clicked)&&Boolean(gemTowerPlayerState(w.vm).difficulty)&&state.round>0&&!state.chosen,suppressed});
+ if(notice)w.waveNotice={...notice,until:performance.now()+5000};
+}
+function observeFirstEnemy(w){
+ const bounds=w.mobileFields?.[0]?.bounds;if(!bounds)return;
+ const entities=[...w.sim.entities.values()];w.firstCombatSeen||=entities.some(entity=>entity.alive&&entity.owner===11&&pointInBattlefield(entity,bounds));
+ w.enemyEncounters??=createEnemyEncounters();w.enemyEncounters.observe({entities,bounds,suppressed:restoring||document.hidden||(w.viewPlayerId??0)!==0||Boolean(w.gameOver)});
+}
+function renderWaveAttention(w){
+ const legend=document.querySelector('.route-legend');if(!legend)return;
+ let host=$('waveAttention');if(!host){host=document.createElement('div');host.id='waveAttention';host.className='wave-attention';host.setAttribute('role','status');host.hidden=true;const art=document.createElement('canvas');art.id='firstEnemyArt';art.width=32;art.height=32;art.setAttribute('aria-hidden','true');const text=document.createElement('span');text.id='waveAttentionText';host.append(art,text);legend.append(host);}
+ const suppressed=restoring||document.hidden||(w.viewPlayerId??0)!==0||Boolean(w.gameOver);if(suppressed){w.enemyEncounters?.clear();w.waveNotice=null;}
+ const encounter=suppressed?null:w.enemyEncounters?.snapshot(),notice=w.waveNotice,warning=!suppressed&&notice&&notice.until>performance.now();
+ const art=$('firstEnemyArt'),text=$('waveAttentionText'),show=Boolean(encounter||warning);host.hidden=!show;legend.dataset.attention=String(show);art.hidden=!encounter;if(!show)return;
+ let message=notice?.text??'';host.dataset.kind=encounter?'enemy':'warning';
+ if(encounter){
+  const def=defOf(w,encounter.typeId),visual=creepVisualPresentation(GEMTOWER_BALANCE.roleTable[encounter.typeId],def),object=w.sim.mapIr.objectMods.find(o=>o.kind==='unit'&&(o.newId??o.baseId)===encounter.typeId),raw=object?.mods.findLast(mod=>mod.field==='utub')?.value;
+  const description=typeof raw==='string'?sourceText(w,raw).split(/\n/)[0].trim():'';
+  message=[fullName(w,encounter.typeId),def?(visual.airborne?'공중':'지상'):'이동 방식 확인 중',/TRIGSTR_/.test(description)?'':description].filter(Boolean).join(' · ');
+  const context=art.getContext('2d');if(context){context.clearRect(0,0,32,32);drawMineCreep(context,{sprites,typeId:encounter.typeId,band:visual.band,airborne:visual.airborne,x:16,y:18,groundY:18,size:28,tick:0,reducedMotion:true});}
+ }
+ if(text.textContent!==message)text.textContent=message;
+}
+
+
 function syncDesktopField(w){
  const host=surface.closest('main'),box=host.getBoundingClientRect(),bounds=w.mobileFields?.[w.viewPlayerId??0]?.bounds??w.viewBounds,layout=desktopFieldLayout(bounds,box.width,box.height);
  if(layout){const width=layout.fieldWidth+'px';if(host.style.getPropertyValue('--desktop-field-width')!==width){host.style.setProperty('--desktop-field-width',width);resize();}}
- const race=w.vm.getGlobal('Be').v===2,classicRound=w.vm.getGlobal('a'),classicReady=w.vm.getGlobal('E'),state=race?gemTowerPlayerState(w.vm,w.viewPlayerId??0):{round:classicRound.t==='int'?classicRound.v:1,chosen:classicReady.t==='bool'?!classicReady.v:false};
- const round=Math.max(1,state.round??1)+(state.chosen?1:0),raw=w.vm.getGlobalIndexed('b',round),id=raw.t==='int'&&raw.v?fourCC(raw.v):null,def=id?defOf(w,id):null,visual=def?creepVisualPresentation(GEMTOWER_BALANCE.roleTable[id],def):null;
- const model=nextWaveView({state,total:TOTAL_WAVES,typeId:id,name:id?fullName(w,id):'',count:race?w.waveCounts?.race[w.viewPlayerId??0]:w.waveCounts?.classic,def,airborne:visual?.airborne??null});
- nextWaveCard.render(model&&{...model,band:visual?.band});
+ const state=sourceWaveState(w,w.viewPlayerId??0),round=Math.max(1,state.round??1)+(state.chosen?1:0);
+ nextWaveCard.render(sourceWaveAt(w,round,w.viewPlayerId??0),{visible:Boolean(w.modeDialog?.clicked)&&!restoring&&!runtimeFailed&&!w.gameOver});
+ renderWaveAttention(w);
+
 }
 function render(w,preservePendingDialog=false) {
   syncDesktopField(w);
@@ -1123,17 +1200,24 @@ function render(w,preservePendingDialog=false) {
    const name=fullName(w,entity.typeId),family=gemTowerGemFamily(name),visual=gemObjectPresentation(entity.typeId,defOf(w,entity.typeId),family,sprites.aliases[entity.typeId]);
    return {slot,id:entity.id,name,alive:true,logical:visual.logical,kind:visual.kind,grade:gemGradePresentation(family?.grade),roleLabel:visual.label+(family?' · '+family.grade:''),tint:visual.kind==='stone'||visual.kind==='slate'?undefined:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
   };
-  recipeGuide.setBook(w.recipeBook);
-  gemSkin.render({casino:{...gemTowerCasinoState(w.vm,w.sim),feedback:w.casinoFeedback?.snapshot()},round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,
+  const handIds=Array.from({length:Math.min(5,sourceHand.buildCount??0)},(_,i)=>w.vm.getGlobalIndexed('I',i+1)).filter(handle=>handle.t==='handle'&&handle.v!==null).map(handle=>handle.v);
+  const combinations=combinationHints(w,handIds,{ready:!sourceHand.chosen&&!restoring&&Boolean(sourceHand.difficulty),playerId:w.viewPlayerId??0});
+  recipeGuide.setBook(w.recipeBook);recipeGuide.setPriority(combinations.priorityRecipeIds);
+  const specialName=combinations.specialType?fullName(w,combinations.specialType):'';
+
+  gemSkin.render({specialMessage:specialName&&specialName!==combinations.specialType?'이번 5개로 '+specialName+' 만들 수 있어요':'',casino:{...gemTowerCasinoState(w.vm,w.sim),feedback:w.casinoFeedback?.snapshot()},round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,
    desktop:window.innerWidth>900,targetActions:(w.targetActionViews=w.selectedGemId===null?[]:targetGemActions(w,w.selectedGemId)),pendingTarget:w.pendingTargetAbility??null,
    combatActive:sourceHand.chosen===true&&!w.prepActive&&!w.gameOver,pendingPoint:Boolean(w.pendingPointAbility),
    selectedGem:skinGem(w.selectedGemId===null?null:w.sim.getUnit(w.selectedGemId),null),
    candidates:Array.from({length:5},(_,i)=>{
     const slot=i+1;if(slot>(sourceHand.buildCount??0))return null;
     const handle=w.vm.getGlobalIndexed('I',slot);
-    return skinGem(handle.t==='handle'&&handle.v!==null?w.sim.getUnit(handle.v):null,slot);
+    const item=skinGem(handle.t==='handle'&&handle.v!==null?w.sim.getUnit(handle.v):null,slot);return item?{...item,combinable:combinations.combinableIds.includes(item.id)}:null;
    })});
   renderFieldView(w);
+  renderSourceDescriptions(w);
+  renderResearchShortcut(w,sourceHand);
+  renderFirstRunGuide(w);
   syncDisabledReasons(w);
   lifeHud.draw();
   document.documentElement.dataset.gameReady='true';
@@ -1197,7 +1281,7 @@ function renderTraining(w){
   for(const host of hosts){let next=host.firstElementChild;
   for(const{row,count,key}of desired.filter(item=>item.host===host)){
    let button=buttons.get(key);
-   if(!button){button=document.createElement('button');button.className='sec training-option';button.dataset.producerId=String(row.producerId);button.dataset.trainType=row.typeId;button.dataset.trainCount=String(count);const label=document.createElement('span'),reason=document.createElement('small');label.className='training-label';reason.className='training-reason';reason.id=`training-reason-${row.producerId}-${row.typeId}-${count}`;button.setAttribute('aria-describedby',reason.id);button.append(label,reason);buttons.set(key,button);}
+   if(!button){button=document.createElement('button');button.className='sec training-option';button.dataset.producerId=String(row.producerId);button.dataset.trainType=row.typeId;button.dataset.trainCount=String(count);const label=document.createElement('span'),reason=document.createElement('small'),help=document.createElement('small');label.className='training-label';help.className='training-help';help.id=`training-help-${row.producerId}-${row.typeId}-${count}`;help.textContent=sourceButtonHelp(row.typeId);help.hidden=!help.textContent;reason.className='training-reason';reason.id=`training-reason-${row.producerId}-${row.typeId}-${count}`;button.setAttribute('aria-describedby',[help.hidden?'':help.id,reason.id].filter(Boolean).join(' '));button.append(label,help,reason);buttons.set(key,button);}
    const view=trainingOptionView(row,{name:fullName(w,row.typeId),count,life,gold,ready,paused:!playing,batch:Boolean(w.trainingBatch),spinning:sourceSpinning.has(row.producerId)&&['h044','h046'].includes(row.typeId)});
    button.querySelector('.training-label').textContent=view.label;button.querySelector('.training-reason').textContent=view.reason;button.disabled=view.disabled;button.title=view.reason;
    if(button!==next){const focused=document.activeElement===button;host.insertBefore(button,next);if(focused)button.focus();}
@@ -1334,14 +1418,14 @@ function stepN(w, n) {
     const vmEvents=w.vm.drainEvents();
     for(const event of vmEvents)if(event.kind==='ThreadCrashed')w.runtimeCrashes.push(event);
     for(const result of w.casinoFeedback?.observe(gemTowerCasinoState(w.vm,w.sim),vmEvents,w.sim.tickCount)??[])if(!restoring)flash(result.message);
-    flushModeChoice(w);advanceStartupChoice(w);
+    flushModeChoice(w);advanceStartupChoice(w);w.observePlayView?.();
     if (!w.cameraFocused) focusPlayer(w);
     // A race wave is started by the actual gem choice/combine trigger, not the timer shim.
     if (w.vm.getGlobal("Be").v === 2 && gemTowerPlayerState(w.vm).chosen === true) w.prepActive = false;
     for (let i = w.pendingCasts.length - 1; i >= 0; i--) {
       const req=w.pendingCasts[i],keptCandidate=w.sim.getUnit(req.unitId);
       const keepNotice=req.abilityId==='A009'?completedKeepNotice({request:req,kept:keptCandidate,chosen:gemTowerPlayerState(w.vm).chosen,rocks:ownedRocks(w),name:keptCandidate?fullName(w,keptCandidate.typeId):''}):null;
-      if(keepNotice){flash(keepNotice);w.pendingCasts.splice(i,1);continue;}
+      if(keepNotice){w.guideChoiceConfirmed=true;flash(keepNotice);w.pendingCasts.splice(i,1);continue;}
       const observed = observeGemCast(w, req, w.sim.tickCount);
       if (observed.state === "waiting") continue;
       if (observed.result) {
@@ -1349,7 +1433,7 @@ function stepN(w, n) {
         if (w.selectedGemId === req.unitId || w.selectedGemId === null) w.selectedGemId = observed.result.id;
         const combined=["A007","A00R","A03M"].includes(req.abilityId);
         flash((combined?"조합 완료: ":"시전 결과: ") + fullName(w, observed.result.typeId));
-        if(combined)showActionSuccess(w,'combine',observed.result);
+        if(combined){w.guideChoiceConfirmed=true;showActionSuccess(w,'combine',observed.result);}
       } else {
         const kept=w.sim.getUnit(req.unitId);
         flash(req.abilityId==='A009'&&kept?.alive&&kept.owner===0&&gemTowerPlayerState(w.vm).chosen===true?keepResultNotice(fullName(w,kept.typeId),kept.id,req.hand,ownedRocks(w)):"능력 사용됨");

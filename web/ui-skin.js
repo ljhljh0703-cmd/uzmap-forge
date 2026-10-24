@@ -67,7 +67,7 @@ const QUALITY_MATERIALS=['slot-grey','slot-green','slot-blue','slot-purple','slo
 export function qualityMaterialForFrame(frame){return QUALITY_MATERIALS[frame]??QUALITY_MATERIALS[0];}
 const NEGATIVE_BUTTONS=new Set(['reset']);
 export function approvedButtonMaterial({id='',primary=false,action=false,disabled=false,pressed=false}={}){
- const color=id==='play'?null:primary?'gold':NEGATIVE_BUTTONS.has(id)?'red':action||id.startsWith('cast')?'green':null;
+ const color=id==='play'?null:primary?'gold':NEGATIVE_BUTTONS.has(id)?'red':action||id==='quickResearch'||id.startsWith('cast')?'green':null;
  return color?`button-${color}-${disabled?'disabled':pressed?'pressed':'normal'}`:null;
 }
 const QUALITY_COLORS=['#ada99c','#46a250','#368ac6','#a66ec7','#e6bb46'];
@@ -237,7 +237,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const tray=doc.createElement('section');tray.id='roundTray';tray.setAttribute('aria-label','이번 라운드 보석 다섯 개');
  const heading=doc.createElement('div');heading.className='round-heading';
  const title=doc.createElement('b');title.textContent='이번 보석';const state=doc.createElement('span');state.id='roundSlotStatus';heading.append(title,state);
- const slots=doc.createElement('div');slots.className='round-slots';tray.append(heading,slots);
+ const slots=doc.createElement('div');slots.className='round-slots';const comboNotice=doc.createElement('p');comboNotice.id='handCombinationNotice';comboNotice.className='hand-combination-notice';comboNotice.setAttribute('role','status');comboNotice.hidden=true;tray.append(heading,comboNotice,slots);
  const bottom=doc.getElementById('bottomPanel'),roster=bottom.querySelector('.roster-bar');bottom.prepend(tray);
  const explorer=doc.createElement('details');explorer.id='ownedExplorer';const summary=doc.createElement('summary');summary.textContent='보유 보석';explorer.append(summary);doc.querySelector('.header-actions').prepend(explorer);explorer.append(roster);
  roster.addEventListener('click',event=>{if(event.target.closest('button[data-unit-id]'))explorer.open=false;});
@@ -245,7 +245,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const buttons=Array.from({length:5},(_,index)=>{
   const button=doc.createElement('button');button.type='button';button.className='round-slot';button.dataset.slot=String(index+1);button.setAttribute('aria-pressed','false');
   const frame=doc.createElement('canvas');frame.className='slot-material';frame.setAttribute('aria-hidden','true');const art=doc.createElement('canvas');art.className='slot-gem';art.width=64;art.height=64;art.setAttribute('aria-hidden','true');
-  const number=doc.createElement('span');number.className='slot-number';number.textContent=String(index+1);const grade=doc.createElement('span');grade.className='slot-grade';grade.setAttribute('aria-hidden','true');grade.hidden=true;button.append(frame,art,number,grade);slots.append(button);
+  const number=doc.createElement('span');number.className='slot-number';number.textContent=String(index+1);const grade=doc.createElement('span');grade.className='slot-grade';grade.setAttribute('aria-hidden','true');grade.hidden=true;const combo=doc.createElement('span');combo.className='slot-combination';combo.setAttribute('aria-hidden','true');combo.textContent='● 조합';combo.hidden=true;button.append(frame,art,number,grade,combo);slots.append(button);
   button.addEventListener('click',()=>{const id=Number(button.dataset.unitId);if(Number.isSafeInteger(id)&&id>0)selectUnit(id);});return button;
  });
  const targetPanel=doc.createElement('section');targetPanel.id='gemTargetAbilities';targetPanel.hidden=true;targetPanel.setAttribute('aria-label','보조 능력');
@@ -266,7 +266,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const casinoChoiceSummary=doc.createElement('summary');casinoChoiceSummary.textContent='다른 기계 · 당첨금 비교';
  const casinoComparisonNote=doc.createElement('p');casinoComparisonNote.className='casino-comparison-note';casinoComparisonNote.textContent='기계마다 같은 모양이 나왔을 때 받는 골드가 달라요. 왼쪽부터 연속으로 일치해야 당첨됩니다.';
  const casinoOtherList=doc.createElement('ul');casinoOtherList.id='casinoOtherStationList';casinoOtherList.setAttribute('aria-label','다른 빠칭코 기계');casinoChoices.append(casinoChoiceSummary,casinoComparisonNote,casinoOtherList);
- const casinoHelp=doc.createElement('p');casinoHelp.className='casino-help';casinoHelp.textContent='입장하면 이곳에 코인 투입과 나가기가 표시됩니다.';
+ const casinoHelp=doc.createElement('p');casinoHelp.className='casino-help';casinoHelp.id='casinoEntryHelp';casinoHelp.textContent='입장하면 이곳에 코인 투입과 나가기가 표시됩니다.';
  const casinoResult=doc.createElement('section');casinoResult.id='casinoResult';casinoResult.className='casino-result';casinoResult.hidden=true;casinoResult.setAttribute('aria-label','최근 추첨 결과');
  const resultLabel=doc.createElement('span');resultLabel.textContent='최근 추첨 결과';const resultText=doc.createElement('p');resultText.id='casinoResultText';resultText.setAttribute('role','status');resultText.setAttribute('aria-live','polite');
  const recent=doc.createElement('details');recent.id='casinoRecent';const recentSummary=doc.createElement('summary');recentSummary.textContent='최근 결과';const recentList=doc.createElement('ol');recentList.id='casinoResultHistory';recent.append(recentSummary,recentList);casinoResult.append(resultLabel,resultText,recent);
@@ -297,7 +297,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
    if(host.children[position]!==row.element){movedActive||=Boolean(active&&row.element.contains(active));host.insertBefore(row.element,host.children[position]??null);}
    row.title.textContent=model.title;row.status.textContent=model.status;row.payoutPreview.textContent=model.payoutSummary;row.element.dataset.state=model.state;row.element.dataset.spinning=String(model.spinning);
    for(let i=0;i<model.payoutRows.length;i++){const prize=model.payoutRows[i];row.payoutItems[i].textContent=`${prize.label}: ${prize.amount} (${prize.formula}) · ${prize.condition}`;}
-   row.button.disabled=model.disabled||typeof approachCasino!=='function';row.button.textContent=model.buttonText;row.button.title=model.reasonText||'타짜가 이 기계로 이동해 입장합니다';row.button.setAttribute('aria-label',`${row.title.textContent} · ${model.buttonText}`);row.button.dataset.reason=model.reason??'';
+   row.button.disabled=model.disabled||typeof approachCasino!=='function';row.button.textContent=model.buttonText;row.button.title=model.reasonText||'타짜가 이 기계로 이동해 입장합니다';row.button.setAttribute('aria-label',`${row.title.textContent} · ${model.buttonText}`);row.button.dataset.reason=model.reason??'';if(!(row.button.getAttribute('aria-describedby')??'').split(/\s+/).includes('casinoEntryHelp'))row.button.setAttribute('aria-describedby',((row.button.getAttribute('aria-describedby')??'')+' casinoEntryHelp').trim());
    if(active===row.button&&row.button.disabled)focusTarget=row.payoutTitle;
   }
   for(const[key,row]of casinoRows)if(!keep.has(key)){row.element.remove();casinoRows.delete(key);}
@@ -378,10 +378,11 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const cell=Math.max(44,Math.min(max,Math.floor((available-gap*4)/5)));
   slots.style.gridTemplateColumns=`repeat(5, ${cell}px)`;slots.style.justifyContent='start';slots.style.paddingLeft=Math.max(0,Math.floor((available-cell*5-gap*4)/2))+'px';
   summary.textContent='보유 '+doc.getElementById('rosterCount').textContent;
-  latest=snapshot;const key=JSON.stringify([models,snapshot.round,snapshot.buildCount,snapshot.chosen,snapshot.selectedId,snapshot.selectedGem]);
+  latest=snapshot;const key=JSON.stringify([models,snapshot.round,snapshot.buildCount,snapshot.chosen,snapshot.selectedId,snapshot.selectedGem,snapshot.specialMessage]);
+  comboNotice.hidden=!snapshot.specialMessage;comboNotice.textContent=snapshot.specialMessage??'';
   state.textContent=snapshot.chosen?'보석을 남겼습니다':`${Math.min(5,snapshot.buildCount??0)} / 5`;
   title.textContent=snapshot.chosen?'이번 선택':'이번 보석';
-  if(signature!==key||selectedPortrait.dataset.artReady==='false'||(!tray.hidden&&buttons.some(b=>b.dataset.artReady==='false'))){signature=key;for(let i=0;i<5;i++){const item=models[i],button=buttons[i];button.dataset.unitId=item.id??'';button.disabled=!item.id;button.setAttribute('aria-pressed',String(item.selected));button.setAttribute('aria-label',`보석 ${i+1} · ${item.name}`);button.title=item.name;button.style.setProperty('--quality-color',FIELD_GRADE_COLORS[fieldGradeIndex(item.name)]??QUALITY_COLORS[item.frame]);if(!tray.hidden)paintSlot(button,item);}
+  if(signature!==key||selectedPortrait.dataset.artReady==='false'||(!tray.hidden&&buttons.some(b=>b.dataset.artReady==='false'))){signature=key;for(let i=0;i<5;i++){const item=models[i],button=buttons[i];button.dataset.unitId=item.id??'';button.disabled=!item.id;button.setAttribute('aria-pressed',String(item.selected));button.setAttribute('aria-label',`보석 ${i+1} · ${item.name}${item.combinable?' · 조합 가능':''}`);button.title=item.name;const combo=button.querySelector('.slot-combination');combo.hidden=!item.combinable;button.style.setProperty('--quality-color',FIELD_GRADE_COLORS[fieldGradeIndex(item.name)]??QUALITY_COLORS[item.frame]);if(!tray.hidden)paintSlot(button,item);}
    const selected=snapshot.selectedGem??models.find(m=>m.selected);const p=selectedPortrait.getContext('2d');p.clearRect(0,0,64,64);selectedPortrait.dataset.unitId=selected?.id??'';selectedPortrait.dataset.artReady=String(!selected||Boolean(drawGem(p,selected,32,34,64)));
   }
   const targeted=snapshot.targetActions?.find(action=>action.abilityId==='A05L'),selecting=Boolean(snapshot.pendingTarget);
