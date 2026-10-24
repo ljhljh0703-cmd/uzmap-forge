@@ -74,5 +74,6 @@ export function extractRecipeBook(ir,options={}){
 export function recipeBookRows(book,options={}){
  const rows=Array.isArray(book?.rows)?book.rows:[],category=options?.category??'all',query=typeof options?.query==='string'?searchable(options.query):'';
  if(!['all','gem','slate'].includes(category))return [];
- return rows.filter(row=>row&&typeof row.title==='string'&&typeof row.description==='string'&&(category==='all'||row.category===category)&&(!query||searchable(row.title+' '+row.description).includes(query)));
+ const selected=rows.filter(row=>row&&typeof row.title==='string'&&typeof row.description==='string'&&(category==='all'||row.category===category)&&(!query||searchable(row.title+' '+row.description).includes(query)));
+ const priority=new Set(Array.isArray(options?.priorityIds)?options.priorityIds:[]);return selected.filter(row=>priority.has(row.id)).concat(selected.filter(row=>!priority.has(row.id)));
 }

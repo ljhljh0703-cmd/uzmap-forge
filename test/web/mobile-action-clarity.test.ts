@@ -78,3 +78,5 @@ it('missing source identity hides the art header and clears old labels instead o
 it('ordinary keep focus collapses on combat entry even while the source button is still enabled',()=>{
  const f=fixture();f.render();f.keep.focus();assert.equal(f.keep.disabled,false);f.render({chosen:true,combatActive:true});assert.equal(f.meta.open,false);assert.equal(f.doc.activeElement,f.summary);f.meta.open=true;f.ability.focus();f.render({chosen:true,combatActive:true});assert.equal(f.meta.open,true);assert.equal(f.doc.activeElement,f.ability);
 });
+
+it('desktop exposes the same selected stats and commands throughout combat and returns to the mobile disclosure policy',()=>{const f=fixture();f.render({desktop:true,chosen:true,combatActive:true});assert.equal(f.meta.open,true);assert.equal(f.summary.hidden,true);assert.equal(f.actions.parentNode,f.body);f.meta.open=false;f.render({desktop:true,chosen:true,combatActive:true});assert.equal(f.meta.open,true);f.render({desktop:false,chosen:true,combatActive:true});assert.equal(f.summary.hidden,false);assert.equal(f.meta.open,false);});
