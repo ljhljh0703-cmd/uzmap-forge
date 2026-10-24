@@ -370,6 +370,20 @@ export interface NativeCallContext {
   readonly threadMeta: Record<string, JassValue>;
 }
 
+/** Optional view observation of an actually evaluated JASS sound call. Sound
+ * handles stay the existing zero-valued stubs; this never joins VmEvent/hash data. */
+export interface ObservedSoundCall {
+  readonly kind: "PlaySoundBJ";
+  readonly caller: string | null;
+  readonly line: number;
+  readonly tick: number;
+  readonly threadId: number;
+  readonly sequence: number;
+  readonly reference: Readonly<{symbol: string | null; index: number | null}>;
+  readonly playerId?: number;
+  readonly sourceUnitId?: number;
+}
+
 export type NativeFn = (ctx: NativeCallContext, args: JassValue[]) => JassValue;
 
 export interface JassVmOptions {
@@ -403,6 +417,10 @@ export class JassVm {
   private sim: Sim | undefined;
 
   private readonly eventQueue: VmEvent[] = [];
+  private readonly soundCallObservers = new Set<(call: ObservedSoundCall) => void>();
+  private readonly soundCallFrames = new WeakMap<Scope, string>();
+  private soundCallSequence = 0;
+
   /** R-207: threadId===-1(동기 문맥, 예: 트리거 조건 평가)일 때 참조되는 임시 이벤트 메타. */
   private syncMeta: Record<string, JassValue> = {};
   /** R-3: boolexpr(kind:"generic" 핸들 트리, Condition/Filter/GetBooleanAnd/Or/Not이 만든다) 평가 훅.
@@ -532,6 +550,41 @@ export class JassVm {
     const slot = this.ensureGlobalSlot(name);
     if (!slot.array) slot.array = new Map();
     slot.array.set(Math.trunc(index), value);
+  }
+
+  /** Subscribe only to original call-site metadata. Listener failures cannot
+   * interrupt source evaluation; unsubscribe does not change any game state. */
+  observeSoundCalls(listener: (call: ObservedSoundCall) => void): () => void {
+    this.soundCallObservers.add(listener);
+    return () => { this.soundCallObservers.delete(listener); };
+  }
+
+  private soundIndex(expr: Expr, frame: Scope | null): number | null {
+    if (expr.kind === "IntLiteral") return Number.isSafeInteger(expr.value) ? expr.value : null;
+    if (expr.kind !== "VarExpr" && expr.kind !== "ArrayIndexExpr") return null;
+    const slot = frame?.get(expr.name) ?? this.globals.get(expr.name);
+    const index = expr.kind === "ArrayIndexExpr" ? this.soundIndex(expr.index, frame) : null;
+    const value = expr.kind === "ArrayIndexExpr" ? index === null ? undefined : slot?.array?.get(index) : slot?.value;
+    return value?.t === "int" && Number.isSafeInteger(value.v) ? value.v : null;
+  }
+
+  private observeSoundCall(expr: Expr | undefined, frame: Scope | null, runCtx: RunCtx, line: number): void {
+    const reference = Object.freeze({
+      symbol: expr?.kind === "VarExpr" || expr?.kind === "ArrayIndexExpr" ? expr.name : null,
+      index: expr?.kind === "ArrayIndexExpr" ? this.soundIndex(expr.index, frame) : null,
+    });
+    const meta = runCtx.threadId === -1 ? this.syncMeta : this.threads.get(runCtx.threadId)?.meta;
+    const player = meta?.player, unit = meta?.unit;
+    const playerHandle = player?.t === "handle" && player.v !== null ? this.handles.get(player.v) : undefined;
+    const unitHandle = unit?.t === "handle" && unit.v !== null ? this.handles.get(unit.v) : undefined;
+    const playerId = playerHandle?.kind === "player" && Number.isSafeInteger(playerHandle.data.index) ? playerHandle.data.index as number : undefined;
+    const call: ObservedSoundCall = Object.freeze({kind: "PlaySoundBJ", caller: frame ? this.soundCallFrames.get(frame) ?? null : null,
+      line, tick: this.tickCount, threadId: runCtx.threadId, sequence: ++this.soundCallSequence, reference,
+      ...(playerId !== undefined ? {playerId} : {}), ...(unitHandle?.kind === "unit" ? {sourceUnitId: unitHandle.id} : {}),
+    });
+    for (const listener of [...this.soundCallObservers]) {
+      try { listener(call); } catch { /* Audio/view failure must not alter source outputs or diagnostics. */ }
+    }
   }
 
   /** 등록된 native 이름 목록(커버리지 리포트용 — R-210). */
@@ -676,6 +729,7 @@ export class JassVm {
     this.enterCall(runCtx);
     try {
       const frame: Scope = new Map();
+      this.soundCallFrames.set(frame, fn.name);
       for (let i = 0; i < fn.takes.length; i++) {
         const p = fn.takes[i]!;
         frame.set(p.name, { type: p.type, isArray: false, value: args[i] ?? defaultForType(p.type) });
@@ -726,7 +780,7 @@ export class JassVm {
         return;
       }
       case "CallStmt": {
-        yield* this.evalCall(s.name, s.args, frame, runCtx);
+        yield* this.evalCall(s.name, s.args, frame, runCtx, s.line);
         return;
       }
       case "IfStmt": {
@@ -859,7 +913,7 @@ export class JassVm {
       case "BinaryExpr":
         return yield* this.evalBinary(e.op, e.left, e.right, frame, runCtx);
       case "CallExpr":
-        return yield* this.evalCall(e.name, e.args, frame, runCtx);
+        return yield* this.evalCall(e.name, e.args, frame, runCtx, e.line);
       default: {
         const _exhaustive: never = e;
         throw new JassRuntimeError(`unknown expr ${JSON.stringify(_exhaustive)}`);
@@ -973,10 +1027,11 @@ export class JassVm {
   }
 
   // ---- 함수 호출 디스패치 (TSA/ExecuteFunc는 VM 특수처리 → 사용자함수 → native → 스텁) ----
-  private *evalCall(name: string, argExprs: Expr[], frame: Scope | null, runCtx: RunCtx): Generator<Yielded, JassValue, void> {
+  private *evalCall(name: string, argExprs: Expr[], frame: Scope | null, runCtx: RunCtx, line = 0): Generator<Yielded, JassValue, void> {
     // 인자는 언제나 좌→우 평가(부수효과 순서 결정론).
     const args: JassValue[] = [];
     for (const a of argExprs) args.push(yield* this.evalExpr(a, frame, runCtx));
+    if (name === "PlaySoundBJ" && this.soundCallObservers.size) this.observeSoundCall(argExprs[0], frame, runCtx, line);
 
     if (name === "TriggerSleepAction") {
       const seconds = args[0]?.t === "real" ? args[0].v : args[0]?.t === "int" ? args[0].v : 0;

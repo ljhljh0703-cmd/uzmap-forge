@@ -43,17 +43,17 @@ it('snapshots record the world seed even while a different URL seed is still act
 });
 
 function restoration({mismatch=false,cancel=false}={}){
- const original={seed:6,runId:'original-run001'},saved=trace(77),loaded:any[]=[];let commits=0,paints=0;const nodes:any=new Proxy({}, {get(target:any,key:string){return target[key]??= {disabled:false,textContent:'',style:{},focus(){}};}});
- const context:any={world:original,sessionSeed:6,restoring:false,restoreCancelled:false,playing:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},contentBuild:build,replayBuild:null,isRunCompatible,validateInputReplay:actions.validateInputReplay,restoredRunId:(t:any)=>t.runId,$:(id:string)=>nodes[id],captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{context.world=before.world;},renderControls(){},performance:{now:()=>0},frameClock:{reset(){}},setDrawer(){},flash(){},gemTowerPlayerState:()=>({}),textTags:[],goldTags:[],attackFx:[],render(){paints++;},commitSessionSeed:(seed:number)=>{assert.equal(context.world.sim.stateHash(),saved.stateHash,'publish only a verified replay');context.sessionSeed=seed;commits++;}};
+ const original={seed:6,runId:'original-run001'},saved=trace(77),loaded:any[]=[];let commits=0,paints=0,recordingStops=0;const nodes:any=new Proxy({}, {get(target:any,key:string){return target[key]??= {disabled:false,textContent:'',style:{},focus(){}};}});
+ const context:any={soundRecording:{stop(){recordingStops++;}},world:original,sessionSeed:6,restoring:false,restoreCancelled:false,playing:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},contentBuild:build,replayBuild:null,isRunCompatible,validateInputReplay:actions.validateInputReplay,restoredRunId:(t:any)=>t.runId,$:(id:string)=>nodes[id],captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{context.world=before.world;},renderControls(){},performance:{now:()=>0},frameClock:{reset(){}},setDrawer(){},flash(){},gemTowerPlayerState:()=>({}),textTags:[],goldTags:[],attackFx:[],render(){paints++;},commitSessionSeed:(seed:number)=>{assert.equal(context.world.sim.stateHash(),saved.stateHash,'publish only a verified replay');context.sessionSeed=seed;commits++;}};
  context.loadFromUrl=async(seed:number,options:any)=>{loaded.push({seed,options});assert.equal(context.sessionSeed,6,'URL seed stays unchanged during candidate boot');assert.equal(commits,0);context.world={seed,sim:{tickCount:0,stateHash:()=>mismatch?'fedcba98':'01234567',getUnit:()=>undefined},sourceVersion:null,runtimeCrashes:[],inputLog:[]};if(cancel)context.restoreCancelled=true;return true;};
  vm.runInNewContext(declaration('restoreRun'),context);
- return {context,saved,original,loaded,stats:()=>({commits,paints})};
+ return {context,saved,original,loaded,stats:()=>({commits,paints,recordingStops})};
 }
 it('strict restore boots the saved seed and publishes it only after validation succeeds',async()=>{
- const f=restoration();await f.context.restoreRun(f.saved);assert.equal(f.loaded.length,1);assert.equal(f.loaded[0].seed,77);assert.equal(f.loaded[0].options?.publishSeed,false);assert.equal(f.context.sessionSeed,77);assert.equal(f.context.world.runId,f.saved.runId);assert.equal(f.stats().commits,1);
+ const f=restoration();await f.context.restoreRun(f.saved);assert.equal(f.loaded.length,1);assert.equal(f.loaded[0].seed,77);assert.equal(f.loaded[0].options?.publishSeed,false);assert.equal(f.context.sessionSeed,77);assert.equal(f.context.world.runId,f.saved.runId);assert.equal(f.stats().commits,1);assert.equal(f.stats().recordingStops,1);
 });
 it('mismatched and cancelled restores retain the old world and URL seed',async()=>{
- for(const options of [{mismatch:true},{cancel:true}]){const f=restoration(options);await f.context.restoreRun(f.saved);assert.equal(f.loaded.length,1);assert.equal(f.context.world,f.original);assert.equal(f.context.sessionSeed,6);assert.equal(f.stats().commits,0);}
+ for(const options of [{mismatch:true},{cancel:true}]){const f=restoration(options);await f.context.restoreRun(f.saved);assert.equal(f.loaded.length,1);assert.equal(f.context.world,f.original);assert.equal(f.context.sessionSeed,6);assert.equal(f.stats().commits,0);assert.equal(f.stats().recordingStops,1);}
 });
 
 it('publishing a verified seed keeps unrelated query fields and the URL fragment',()=>{
