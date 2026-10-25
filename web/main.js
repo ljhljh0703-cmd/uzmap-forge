@@ -721,7 +721,7 @@ function syncDisabledReasons(w){
  for(const {button,visible} of buttons){
   if(!visible||!button.disabled){buttonReasons.clear(button);delete button.dataset.reasonInText;continue;}
   const text=buttonBlockReason(w,button),slot=button.classList.contains('round-slot'),top=['play','speedCycle'].includes(button.id);
-  const existing=slot?roundSlotsHelp:top?header:button.querySelector('.training-reason,.upgrade-condition');
+  const existing=slot?roundSlotsHelp:top?header:button.querySelector('.training-reason,.upgrade-condition')??button.closest('.upgrade-option')?.querySelector('.upgrade-condition');
   buttonReasons.set(button,text,existing??undefined);button.dataset.reasonInText=String(Boolean(text&&button.textContent.includes(text)));
   if(slot)empty=true;
  }
