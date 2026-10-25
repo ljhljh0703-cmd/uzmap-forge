@@ -144,3 +144,21 @@ export function drawAirborneMark(ctx,{x,y,size,airborne}={}){
  ctx.save();ctx.beginPath();ctx.moveTo(x-half,cy+2);ctx.lineTo(x-half/2,cy);ctx.lineTo(x,cy+2);ctx.lineTo(x+half/2,cy);ctx.lineTo(x+half,cy+2);
  ctx.lineWidth=3;ctx.strokeStyle='#17241f';ctx.stroke();ctx.lineWidth=1;ctx.strokeStyle='#8ad8ef';ctx.stroke();ctx.restore();return true;
 }
+
+/** Enlarge the already-rendered field beside the touch; the map camera never changes. */
+export function placementLoupeBox({width,height,fingerX,fingerY}={}){
+ if(![width,height,fingerX,fingerY].every(Number.isFinite)||width<=0||height<=0)return null;
+ const x=Math.max(0,Math.min(width,fingerX)),y=Math.max(0,Math.min(height,fingerY));
+ const size=Math.floor(Math.min(120,width-16,height-40,Math.max(x,width-x)-28));if(size<48)return null;
+ const left=Math.max(8,Math.min(width-size-8,x<width/2?x+20:x-size-20));
+ const top=Math.max(8,Math.min(height-size-32,y-size-24));return {left,top,size};
+}
+export function drawPlacementLoupe(ctx,source,point,{cellPixels=0}={}){
+ const size=ctx?.canvas?.width;if(!ctx||!source||![size,source.width,source.height,point?.x,point?.y].every(Number.isFinite)||size<=0||source.width<=0||source.height<=0||point.x<0||point.y<0||point.x>source.width||point.y>source.height)return null;
+ const side=Math.min(size/3,source.width,source.height),sx=Math.max(0,Math.min(source.width-side,point.x-side/2)),sy=Math.max(0,Math.min(source.height-side,point.y-side/2)),scale=size/side;
+ const x=(point.x-sx)*scale,y=(point.y-sy)*scale;
+ ctx.save();ctx.clearRect(0,0,size,size);ctx.globalAlpha=1;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,sx,sy,side,side,0,0,size,size);
+ ctx.strokeStyle='#ffe08a';ctx.lineWidth=2;if(Number.isFinite(cellPixels)&&cellPixels>0){const span=cellPixels*scale;ctx.strokeRect(x-span/2,y-span/2,span,span);}
+ ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x+5,y);ctx.moveTo(x,y-5);ctx.lineTo(x,y+5);ctx.stroke();ctx.restore();
+ return {crop:{x:sx,y:sy,size:side},point:{x,y},scale};
+}

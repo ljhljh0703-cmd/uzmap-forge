@@ -97,3 +97,5 @@ describe('G1 nonblocking source-observed first-run guide',()=>{
   const g=fixture(),input=Object.freeze({...g.input,run:{rng:6,actions:Object.freeze([])}}),before=JSON.stringify(input);for(let i=0;i<40;i++)g.guide.observe(input);assert.equal(JSON.stringify(input),before);assert.equal(g.calls.length,2);
  });
 });
+
+it('first-view guide helpers share one implementation while previous module URLs preserve their APIs',async()=>{const guide=await import('../../web/first-run-guide.js'),wave=await import('../../web/wave-notices.js'),help=await import('../../web/source-help.js'),ui=await import('../../web/first-run-ui.js');for(const [api,old] of [['createWaveWarnings',wave],['createEnemyEncounters',wave],['sourceButtonHelp',help],['researchShortcutModel',ui],['mountResearchShortcut',ui],['mountFirstRunGuide',ui]] as const)assert.equal((guide as any)[api],(old as any)[api]);});

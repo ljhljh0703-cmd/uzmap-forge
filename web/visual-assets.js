@@ -1,6 +1,6 @@
 /** Reuses ClaudeCraft's manifest -> cached Image -> atlas frame -> drawImage/fallback flow.
  * Adapted for the existing GemTower view; gameplay never imports this module.
- * Existing art is copied byte-for-byte. Colour variants are view-only cached Canvas composites.
+ * Asset derivation is recorded separately. Runtime tint variants are cached Canvas composites.
  */
 export function resolveVisualKey(entries, aliases, input) {
   const key=aliases?.[input]??input;
@@ -27,28 +27,41 @@ export function spriteFrame(spec,tick=0){
 }
 const browserImage=src=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('sprite load failed: '+src));image.src=src;});
 export class SpriteBank{
- constructor(options={}){this.fetch=options.fetch??globalThis.fetch?.bind(globalThis);this.loadImage=options.loadImage??browserImage;this.entries={};this.aliases={};this.loaded=new Map();this.images=new Map();this.tints=new Map();this.errors=[];this.drawn=0;this.ready=false;}
- async load(url){
+ constructor(options={}){this.fetch=options.fetch??globalThis.fetch?.bind(globalThis);this.loadImage=options.loadImage??browserImage;this.onRevision=options.onRevision??(()=>{});this.entries={};this.aliases={};this.loaded=new Map();this.images=new Map();this.tints=new Map();this.catalog=new Map();this.bySrc=new Map();this.fileJobs=new Map();this.errors=[];this.drawn=0;this.ready=false;this.revision=0;this.epoch=0;}
+ _notify(src,keys,kind){this.revision++;this.tints.clear();try{this.onRevision({src,keys:[...keys],revision:this.revision,kind});}catch{}}
+ _request(src){
+  if(this.fileJobs.has(src))return this.fileJobs.get(src);
+  const epoch=this.epoch,records=this.bySrc.get(src)??[];
+  if(!this.images.has(src)){let promise;try{promise=Promise.resolve(this.loadImage(src));}catch(error){promise=Promise.reject(error);}this.images.set(src,promise);}
+  const job=this.images.get(src).then(image=>{
+   if(epoch!==this.epoch)return;
+   const width=image.naturalWidth??image.width,height=image.naturalHeight??image.height,keys=[];
+   if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw Error('invalid sprite image');
+   for(const {key,spec,f,count}of records){if(f.x+f.w*count>width||f.y+f.h>height){this.errors.push(key+': atlas out of bounds');continue;}this.loaded.set(key,{spec,image,key,src});keys.push(key);}
+   this._notify(src,keys,keys.length?'loaded':'error');
+  }).catch(error=>{if(epoch!==this.epoch)return;for(const {key}of records)this.errors.push(key+': '+error.message);this._notify(src,[],'error');});
+  this.fileJobs.set(src,job);return job;
+ }
+ async ensure(keys=[]){const files=new Set();for(const input of typeof keys==='string'?[keys]:keys){const key=resolveVisualKey(this.entries,this.aliases,input),item=key&&this.catalog.get(key);if(item)files.add(item.src);}await Promise.all([...files].map(src=>this._request(src)));return this;}
+ async load(url,{lazy=false,preload}={}){
+  const epoch=++this.epoch;this.ready=false;this.loaded.clear();this.catalog.clear();this.bySrc.clear();this.fileJobs.clear();this.errors=[];
   try{
    const res=await this.fetch(url);if(!res.ok)throw Error('sprite manifest HTTP error');const manifest=await res.json();
+   if(epoch!==this.epoch)return this;
    if(manifest.version!==1||!manifest.entries||typeof manifest.entries!=='object')throw Error('invalid sprite manifest');
    this.entries=manifest.entries;this.aliases=manifest.aliases??{};
-   await Promise.all(Object.entries(this.entries).map(async([key,spec])=>{try{
+   for(const [key,spec]of Object.entries(this.entries)){try{
     if(typeof spec.src!=='string'||!/^sprites\/[a-zA-Z0-9_/-]+\.png$/.test(spec.src)||spec.src.includes('..'))throw Error('invalid sprite path');
-    const {f,count}=spriteSpec(spec),imageURL=new URL(spec.src,url);
-    const build=new URL(url).searchParams.get('build');if(build)imageURL.searchParams.set('build',build);
-    const src=imageURL.href;
-    if(!this.images.has(src))this.images.set(src,this.loadImage(src));
-    const image=await this.images.get(src),width=image.naturalWidth??image.width,height=image.naturalHeight??image.height;
-    if(f.x+f.w*count>width||f.y+f.h>height)throw Error('atlas out of bounds');
-    this.loaded.set(key,{spec,image,key,src});
-   }catch(error){this.errors.push(key+': '+error.message);}}));
-  }catch(error){this.errors.push(error.message);}
-  this.ready=true;return this;
+    const {f,count}=spriteSpec(spec),imageURL=new URL(spec.src,url),build=new URL(url).searchParams.get('build');if(build)imageURL.searchParams.set('build',build);
+    const src=imageURL.href,record={key,spec,f,count,src};this.catalog.set(key,record);if(!this.bySrc.has(src))this.bySrc.set(src,[]);this.bySrc.get(src).push(record);
+   }catch(error){this.errors.push(key+': '+error.message);}}
+   const required=lazy?(preload??manifest.preload??[]):Object.keys(this.entries);await this.ensure(Array.isArray(required)?required:[]);
+  }catch(error){if(epoch===this.epoch)this.errors.push(error.message);}
+  if(epoch===this.epoch){this.ready=true;this._notify(null,[],'ready');}return this;
  }
- get(key){const resolved=resolveVisualKey(this.entries,this.aliases,key);return resolved?this.loaded.get(resolved)??null:null;}
+ get(key){const resolved=resolveVisualKey(this.entries,this.aliases,key);if(!resolved)return null;const item=this.loaded.get(resolved);if(item)return item;const entry=this.catalog.get(resolved);if(entry)void this._request(entry.src);return null;}
  draw(ctx,key,x,y,size,options={}){
-  const sprite=this.get(key);if(!sprite||!Number.isFinite(size)||size<=0)return false;
+  if(!Number.isFinite(size)||size<=0)return false;const sprite=this.get(key);if(!sprite)return false;
   const frame=spriteFrame(sprite.spec,options.tick??0);let source=sprite.image,rect=frame;
   if(options.tint){
    const cacheKey=sprite.src+JSON.stringify(frame)+options.tint;

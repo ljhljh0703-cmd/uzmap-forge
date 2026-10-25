@@ -71,10 +71,11 @@ export function approvedButtonMaterial({id='',primary=false,action=false,disable
  return color?`button-${color}-${disabled?'disabled':pressed?'pressed':'normal'}`:null;
 }
 const QUALITY_COLORS=['#ada99c','#46a250','#368ac6','#a66ec7','#e6bb46'];
+const materialListeners=new Set();
 const materialImages=new Map();
-function imageAt(src){if(!materialImages.has(src)){const image=new Image();image.src=new URL(src,import.meta.url).href;materialImages.set(src,image);}return materialImages.get(src);}
+function imageAt(src){if(!materialImages.has(src)){const image=new Image(),notify=()=>{for(const listener of materialListeners)listener();};image.addEventListener('load',notify,{once:true});image.addEventListener('error',notify,{once:true});image.src=new URL(src,import.meta.url).href;materialImages.set(src,image);}return materialImages.get(src);}
 // Atlas rectangles describe source rasters. Cropping is ordinary runtime sprite rendering;
-// original files, including their transparent padding, remain byte-for-byte intact.
+// F lossless re-encodes keep decoded approved pixels and padding identical.
 const MATERIALS={};
 const preparedRasters=new Map();
 function preparedRaster(spec){
@@ -328,7 +329,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const host=doc.querySelectorAll('.gem-stats .stat>span')[index];if(!host)continue;
   const label=doc.createElement('span');label.className='stat-label-text';label.textContent=host.textContent;host.parentElement?.setAttribute('role','group');host.parentElement?.setAttribute('aria-label',label.textContent);host.setAttribute('aria-hidden','true');host.textContent='';host.append(label);addIcon(host,key);
  }
- function paintIcons(){for(const {canvas,key}of icons){const prepared=preparedRaster(MATERIALS[key]);if(!prepared)continue;const c=canvas.getContext('2d');c.clearRect(0,0,32,32);c.imageSmoothingEnabled=false;c.drawImage(prepared.image,Math.floor((32-prepared.image.width)/2),Math.floor((32-prepared.image.height)/2));canvas.dataset.artReady='true';}}
+ function paintIcons(){for(const {canvas,key}of icons){if(canvas.getClientRects&&!canvas.getClientRects().length)continue;const prepared=preparedRaster(MATERIALS[key]);if(!prepared)continue;const c=canvas.getContext('2d');c.clearRect(0,0,32,32);c.imageSmoothingEnabled=false;c.drawImage(prepared.image,Math.floor((32-prepared.image.width)/2),Math.floor((32-prepared.image.height)/2));canvas.dataset.artReady='true';}}
  const notice=doc.getElementById('actionFeedback');
  function paintFrames(){for(const[e,p]of panels){if(!e.getClientRects().length)continue;const w=Math.round(e.clientWidth),h=Math.round(e.clientHeight);if(w<1||h<1)continue;const paintKey=JSON.stringify([w,h,MATERIALS[p.kind]]);if(p.paintedKey===paintKey)continue;if(p.canvas.width!==w||p.canvas.height!==h){p.canvas.width=w;p.canvas.height=h;}const spec=MATERIALS[p.kind];if(rasterNineSlice(p.canvas.getContext('2d'),spec,w,h,p.corner))p.paintedKey=paintKey;}}
  function paintButtons(){
@@ -400,9 +401,10 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  function repaint(){signature='';for(const p of panels.values())p.paintedKey='';if(latest)render(latest);else paintFrames();}
  const queueRepaint=createFrameTask(repaint);
  const resizeObserver=new ResizeObserver(queueRepaint);resizeObserver.observe(bottom);resizeObserver.observe(app);
- void materialsReady().then(()=>{for(const spec of Object.values(MATERIALS)){const im=imageAt(spec.file);if(!im.complete)im.addEventListener('load',repaint,{once:true});}repaint();}).catch(error=>{app.dataset.skinError='materials';console.warn('[UI material]',error.message);});
+ materialListeners.add(queueRepaint);
+ void materialsReady().then(repaint).catch(error=>{app.dataset.skinError='materials';console.warn('[UI material]',error.message);});
  app.dataset.uiSkin='walnut-brass';app.dataset.uiAssets='claude-approved-23';
- return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
+ return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){materialListeners.delete(queueRepaint);resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
 }
 
 export function primaryActionId(snapshot={},available=[]){

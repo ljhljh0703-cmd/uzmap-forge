@@ -1,12 +1,13 @@
+import {FIRST_RUN_TIPS} from './first-run-guide.js';
 import {H_AUDIO_CUES,H_BGM,H_CUE_SETTINGS} from './audio-catalog.js';
 import {mountAudioSettings} from './audio-settings.js';
 import {createGameRecording} from './audio-recording.js';
 import {createSoundEventRouter,sourceCueForCall} from './sound-events.js';
 import {createFirstRunGuide} from './first-run-guide.js';
-import {createWaveWarnings,createEnemyEncounters} from './wave-notices.js';
+import {createWaveWarnings,createEnemyEncounters} from './first-run-guide.js';
 import {combinationHints} from './combination-hints.js';
-import {sourceButtonHelp} from './source-help.js';
-import {researchShortcutModel,mountResearchShortcut,mountFirstRunGuide} from './first-run-ui.js';
+import {sourceButtonHelp} from './first-run-guide.js';
+import {researchShortcutModel,mountResearchShortcut,mountFirstRunGuide} from './first-run-guide.js';
 import {createButtonReasonView,unavailableReason} from './button-reasons.js';
 import {desktopFieldLayout,sourceWaveCounts,nextWaveView,mountNextWave,attackRangeModels,drawAttackRanges,isExitThreat,creepStatusIcons,hasEnemySlowAura,drawCreepStatus,drawExitThreat,mountHudLifeCue} from './battlefield-readability.js';
 import {parseJass} from './dist/jass/parser.js';
@@ -19,8 +20,8 @@ import {mountEffectIcons,drawFieldEffectMarks,createFieldFeedback} from './field
 import {keepResultNotice,completedKeepNotice,sourceDifficultyChoices,sourceDifficultyLabel,requestStartupChoice,advanceStartupChoice} from './first-minute.js';
 import {createActionFeedback,createCueAudio} from './action-feedback.js';
 import {createBuildPreview} from './dist/runtime/build-preview.js';
-import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth,drawGemGrade,drawObjectKindMark,drawAirborneMark} from './field-art.js';
-import {createFrameTask,resizeCanvasToHost} from './browser-runtime.js';
+import {terrainPixel,drawFieldRim,drawBuildRoute,drawFieldGround,drawCreepHealth,drawGemGrade,drawObjectKindMark,drawAirborneMark,placementLoupeBox,drawPlacementLoupe} from './field-art.js';
+import {createFrameTask,resizeCanvasToHost,mountLoadingScreen,readResponseBytes,isShortTouchLandscape,isDesktopPlayLayout,smallCellNeedsConfirmation} from './browser-runtime.js';
 import {createRunCheckpoint} from './run-checkpoint.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
@@ -49,9 +50,10 @@ import { createFrameClock } from "./dist/sim/ticks.js";
 import { PLAYER_STATE_RESOURCE_LUMBER, ALLIANCE_TYPES } from "./dist/sim/playerstate.js";
 
 const $ = (id) => document.getElementById(id);
+const loadingScreen=mountLoadingScreen(document,{tips:FIRST_RUN_TIPS});
 const cv = $("cv"), ctx = cv.getContext("2d");
 const surface=cv.parentElement;
-const sprites = new SpriteBank();
+const sprites = new SpriteBank({onRevision:meta=>{invalidateSpriteViews(world,meta);if(meta.kind==='error')$('artStatus').textContent='일부 그림은 기본 도형으로 표시됩니다';}});
 const effectIcons=mountEffectIcons({document,host:$('gemEffectIcons'),sprites});
 const gemSkin=mountGemSkin({document,
  drawGem:(context,item,x,y,size)=>item.kind==='stone'?drawFieldStone(context,{sprites,x,y,size}):item.kind==='slate'?drawFieldSlate(context,{sprites,logical:item.logical,x,y,size}):drawFieldGem(context,{sprites,logical:item.logical,x,y,size,grade:item.name,selected:item.selected,tint:item.tint,tick:0}),
@@ -69,9 +71,10 @@ const researchShortcut=mountResearchShortcut(document,{purchase:techId=>requestR
 const firstRunView=mountFirstRunGuide(document,{skip:()=>{world?.firstRunGuide?.skip();if(world)render(world);},next:()=>{world?.firstRunGuide?.next();if(world)render(world);}});
 const showFirstRunGuide=document.createElement('button');showFirstRunGuide.id='showFirstRunGuide';showFirstRunGuide.type='button';showFirstRunGuide.className='sec';showFirstRunGuide.textContent='안내 다시 보기';showFirstRunGuide.disabled=true;showFirstRunGuide.onclick=()=>{if(world){world.firstRunGuide.openManual();setDrawer(false);render(world);}};$('menuPanelSettings').insertBefore(showFirstRunGuide,$('advancedOptions'));
 const quickRecipes=document.createElement('button');quickRecipes.id='quickRecipes';quickRecipes.type='button';quickRecipes.className='sec';quickRecipes.textContent='조합표';quickRecipes.onclick=()=>{setDrawer(true);gameMenu.reveal('recipeOptions');};$('researchShortcut').insertBefore(quickRecipes,$('quickResearchDetail'));
-const nextWaveCard=mountNextWave(document,Object.assign((context,model,x,y,size)=>drawMineCreep(context,{sprites,typeId:model.typeId,band:model.band,airborne:model.motion==='공중',x,y,groundY:y,size,tick:0,reducedMotion:true}),{ready:()=>sprites.ready}));
+const nextWaveCard=mountNextWave(document,Object.assign((context,model,x,y,size)=>drawMineCreep(context,{sprites,typeId:model.typeId,band:model.band,airborne:model.motion==='공중',x,y,groundY:y,size,tick:0,reducedMotion:true}),{ready:()=>sprites.ready?sprites.revision:0}));
 const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
+const coarsePointer=matchMedia("(pointer:coarse)");
 const lifeHud=mountHudLifeCue({document,sprites,feedback:createFieldFeedback({reducedMotion:()=>reducedMotion.matches}),reducedMotion:()=>reducedMotion.matches});
 $('gameApp').dataset.audioRequests='0';
 const fetchAudioFile=url=>{$('gameApp').dataset.audioRequests=String(Number($('gameApp').dataset.audioRequests)+1);return fetch(url);};
@@ -82,7 +85,7 @@ const actionAudio=createCueAudio({fetch:fetchAudioFile,logLimit:2048,cueUrls:H_A
  const text=({idle:'첫 터치 후 소리가 준비됩니다',loading:'소리 준비 중…',ready:'소리 준비됨',muted:'소리가 꺼져 있습니다',paused:'다음 터치부터 소리가 재개됩니다',blocked:'소리를 준비하지 못했습니다 · 다시 켜서 시도하세요',unsupported:'이 브라우저는 소리를 지원하지 않습니다'})[state.status];if(label.textContent!==text)label.textContent=text;soundSettings?.render(state);
 }});
 const actionFeedback=createActionFeedback({document,play:kind=>queueSoundEvent(world,kind,{key:kind+':'+world.sim.tickCount}),reducedMotion:()=>reducedMotion.matches});
-soundSettings=mountAudioSettings(document,{audio:actionAudio});
+soundSettings=mountAudioSettings(document,{audio:actionAudio,muted:new URLSearchParams(location.search).get('muted')==='1'});
 const soundLabel=document.querySelector('.feedback-sound .sound-label');if(soundLabel)soundLabel.textContent='소리';
 const unlockActionAudio=event=>{if(event.isTrusted===false)return;void actionAudio.unlock();};
 document.addEventListener('pointerdown',unlockActionAudio,{capture:true,passive:true});
@@ -97,9 +100,10 @@ const contentBuild=new URL(import.meta.url).searchParams.get("build");
 const replayBuild=/^[a-f0-9]{16}$/.test(window.UZMAP_REPLAY_BUILD??'')?window.UZMAP_REPLAY_BUILD:null;
 if(contentBuild)artManifestURL.searchParams.set("build",contentBuild);
 installLocalSoundReview();
-void sprites.load(artManifestURL.href).then(()=>{
+const visualReady=sprites.load(artManifestURL.href,{lazy:true}).then(()=>{
   $("artStatus").textContent=sprites.errors.length?"일부 그림은 기본 도형으로 표시됩니다":"기존 제작 그래픽 연결됨";
   if(sprites.errors.length)console.warn("[art fallback]",...sprites.errors);
+  $("gameApp").dataset.artCriticalReady=String(sprites.ready&&sprites.errors.length===0);
   gemSkin.refresh();
 });
 const NEUTRAL_GC = { armorFactorPm: 60, strHitPointBonus: 0, agiDefenseBonusPm: 0, intManaBonusPm: 0 };
@@ -319,7 +323,7 @@ function boot(bytes, presentation, stockProfile, seed) {
   const modeDialog = modeButtons && modeButtons.length === 2
     ? { dialogId: modeDialogObj.id, classicButtonId: modeButtons[0], raceButtonId: modeButtons[1], clicked: false }
     : null;
-  const w = { mobileFields:mobile?.fields, seed, runId:createRunId(),runMode:null,vm, sim, registry, defStore, pm, roundTimer, modeDialog, defCache: new Map(), terrain: null, hover: null,
+  const w = { syncDeviceView:()=>syncRotationGate(),uiPointerType:event=>virtualTouchActive()?"touch":event.pointerType,confirmSmallPlacement:(kind,rect)=>smallPlacementAtCurrentZoom(w,kind,rect),placementLoupe:null,mobileFields:mobile?.fields, seed, runId:createRunId(),runMode:null,vm, sim, registry, defStore, pm, roundTimer, modeDialog, defCache: new Map(), terrain: null, hover: null,
     // U-6c: 병합 이름 원장(fullName()이 조회). loadFromUrl()이 fetch해 넘긴다 — 실패 시 {} 폴백.
     waveCounts:sourceWaveCounts(loaded.ir.script.source,parseJass),recipeBook:extractRecipeBook(loaded.ir,{strings:loaded.strings}),casinoFeedback:createCasinoFeedback(),
     strings:loaded.strings,sourceVersion:stockProfile?.sourceVersion,inputLog:[],runtimeCrashes:initialVmEvents.filter(event=>event.kind==='ThreadCrashed'),
@@ -358,6 +362,11 @@ function boot(bytes, presentation, stockProfile, seed) {
   return w;
 }
 function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+function invalidateSpriteViews(w,meta={}) {
+ if(!w)return;for(const key of ['rosterSignature','trainingSignature','upgradeSignature'])delete w[key];
+ if(meta.keys?.some(key=>key.startsWith('ground:')))w.terrain=null;
+}
 
 function defOf(w, typeId) {
   let d = w.defCache.get(typeId);
@@ -484,7 +493,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
  const rollbackCopy=()=>{if(!savedCopy)return '';try{return savedCopy.rollback()?'':' · 새 복사본이 변경되어 그대로 남겨 두었습니다';}catch{return ' · 새 복사본 정리를 완료하지 못했습니다';}};
  restoring=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();void soundRecording?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
  try{
-  await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
+  const opened=await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(opened!==true||runtimeFailed)throw Error('게임을 새로 열지 못했습니다');if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   world.restoredView=true;
   if((world.sourceVersion??null)!==(trace.sourceVersion??null))throw Error('원작 자료 버전이 달라 이어할 수 없습니다');
   let cursor=0;while(world.sim.tickCount<trace.tick||cursor<trace.actions.length){
@@ -768,7 +777,7 @@ function renderWaveAttention(w){
 
 
 function syncDesktopField(w){
- const host=surface.closest('main'),box=host.getBoundingClientRect(),bounds=w.mobileFields?.[w.viewPlayerId??0]?.bounds??w.viewBounds,layout=desktopFieldLayout(bounds,box.width,box.height);
+ const host=surface.closest('main'),box=host.getBoundingClientRect(),bounds=w.mobileFields?.[w.viewPlayerId??0]?.bounds??w.viewBounds,layout=desktopFieldLayout(bounds,box.width,box.height,20,{compactLandscape:isDesktopPlayLayout({width:window.innerWidth,height:window.innerHeight})});
  if(layout){const width=layout.fieldWidth+'px';if(host.style.getPropertyValue('--desktop-field-width')!==width){host.style.setProperty('--desktop-field-width',width);resize();}}
  const state=sourceWaveState(w,w.viewPlayerId??0),round=Math.max(1,state.round??1)+(state.chosen?1:0);
  nextWaveCard.render(sourceWaveAt(w,round,w.viewPlayerId??0),{visible:Boolean(w.modeDialog?.clicked)&&!restoring&&!runtimeFailed&&!w.gameOver});
@@ -1207,6 +1216,7 @@ function render(w,preservePendingDialog=false) {
   ctx.restore();
   w.fieldFeedback?.draw(ctx,sprites,point=>pointInBattlefield(point,fieldBounds)?{x:W2SX(point.x),y:W2SY(point.y)}:null);
   if(fieldBounds)drawFieldRim(ctx,{left:W2SX(fieldBounds.minX),top:W2SY(fieldBounds.maxY),width:(fieldBounds.maxX-fieldBounds.minX)*z,height:(fieldBounds.maxY-fieldBounds.minY)*z},sprites);
+  renderPlacementLoupe(w);
   renderRouteCues(w);
   const sourceHand=gemTowerPlayerState(w.vm);
   const skinGem=(entity,slot)=>{
@@ -1220,7 +1230,7 @@ function render(w,preservePendingDialog=false) {
   const specialName=combinations.specialType?fullName(w,combinations.specialType):'';
 
   gemSkin.render({specialMessage:specialName&&specialName!==combinations.specialType?'이번 5개로 '+specialName+' 만들 수 있어요':'',casino:{...gemTowerCasinoState(w.vm,w.sim),feedback:w.casinoFeedback?.snapshot()},round:sourceHand.round,buildCount:sourceHand.buildCount,chosen:sourceHand.chosen,selectedId:w.selectedGemId,
-   desktop:window.innerWidth>900,targetActions:(w.targetActionViews=w.selectedGemId===null?[]:targetGemActions(w,w.selectedGemId)),pendingTarget:w.pendingTargetAbility??null,
+   desktop:isDesktopPlayLayout({width:window.innerWidth,height:window.innerHeight}),targetActions:(w.targetActionViews=w.selectedGemId===null?[]:targetGemActions(w,w.selectedGemId)),pendingTarget:w.pendingTargetAbility??null,
    combatActive:sourceHand.chosen===true&&!w.prepActive&&!w.gameOver,pendingPoint:Boolean(w.pendingPointAbility),
    selectedGem:skinGem(w.selectedGemId===null?null:w.sim.getUnit(w.selectedGemId),null),
    candidates:Array.from({length:5},(_,i)=>{
@@ -1581,10 +1591,28 @@ function showActionSuccess(w,kind,unit) {
 
 function flash(t) { flashMsg = ""; flashUntil = performance.now() + 1800;gemSkin.notify(t); }
 
+function virtualTouchActive(){return isLocalGameHost(location.hostname.replace(/\.$/,''))&&$('qaTouchDevice')?.checked===true;}
+function syncRotationGate(){
+ const screen=$('rotateScreen');if(!screen)return false;
+ const qa=virtualTouchActive(),active=document.activeElement;
+ const editing=Boolean(active?.isContentEditable||active?.tagName==='TEXTAREA'||active?.tagName==='INPUT'&&!['checkbox','radio','range','button','submit','reset','file','color','hidden'].includes(active.type));
+ const physical=window.screen?.orientation?.type??(typeof window.orientation==='number'?(Math.abs(window.orientation)===90?'landscape':'portrait'):null);
+ const blocked=!restoring&&isShortTouchLandscape({touch:qa||coarsePointer.matches||navigator.maxTouchPoints>0,width:window.innerWidth,height:window.innerHeight,orientation:qa?null:physical,editing});
+ const root=document.documentElement,changed=root.dataset.rotationBlocked!==String(blocked);
+ if(changed)root.dataset.rotationBlocked=String(blocked);if(screen.hidden!==!blocked)screen.hidden=!blocked;
+ if(blocked&&(playing||changed)){playing=false;frameClock.reset();interruptUiOrders(world);checkpointRun(world,true);if(world)renderControls(world);}
+ if(blocked&&root.dataset.loadState==='ready'&&active!==screen&&!active?.closest?.('#qaDevicePanel'))screen.focus({preventScroll:true});
+ return blocked;
+}
+
 function loop(now = performance.now()) {
   requestAnimationFrame(loop);
-  if(runtimeFailed||loadingRun)return;
+  // loadFromUrl holds playing=false until the new source world accepts startup.
+  // Then let its existing fixed-step startup delay overlap art loading. Inputs,
+  // sound and checkpoints remain guarded by loadingRun and the loading overlay.
+  if(runtimeFailed||loadingRun&&!playing)return;
   try{
+    world?.syncDeviceView?.();
     const ticks=frameClock.advance(now,Boolean(world&&playing&&!restoring),tps);
     if(world&&!restoring){if(ticks>0)stepN(world,ticks);render(world);world.viewFeedback?.render(world.selectedGemId);checkpointRun(world);}
   }catch(error){runtimeFailed=true;playing=false;quietActionFeedback();frameClock.reset();window.showErr('게임 화면 오류',error);}
@@ -1593,6 +1621,7 @@ function loop(now = performance.now()) {
 function resize() { resizeCanvasToHost(cv,cv.parentElement.getBoundingClientRect()); }
 const queueResize=createFrameTask(resize);
 window.addEventListener("resize",queueResize);
+window.addEventListener("resize",()=>world?.syncDeviceView?.());
 new ResizeObserver(queueResize).observe(cv.parentElement);
 
 // P8 original 1.28 UnitData + 4x4SimpleSolid pathing image: h006/h00G occupy
@@ -1706,7 +1735,7 @@ function selectMapGem(w,x,y,visualOnly=false){
 }
 
 function clearPlacement(w){
- if(!w)return;if(w.precisionCamera)resetPrecisionView(w);w.pendingPlacement=null;w.hover=null;w.hoverGemId=null;
+ if(!w)return;if(w.precisionCamera)resetPrecisionView(w);if(w.placementLoupe)w.placementLoupe=null;w.pendingPlacement=null;w.hover=null;w.hoverGemId=null;
 }
 function previewPlacement(w,x,y){
  const block=w.pm&&buildBlockAt(w.pm,x,y,buildGridCells(w)),state=gemTowerPlayerState(w.vm);
@@ -1715,10 +1744,24 @@ function previewPlacement(w,x,y){
  w.pendingPlacement=point;w.overlapPick=null;w.hover={cx:point.x,cy:point.y,...block};w.hoverGemId=null;
  flash('길과 위치를 확인한 뒤 아래 건설을 누르세요');return true;
 }
+function smallPlacementAtCurrentZoom(w,pointerType,rect){
+ if(!w?.pm||!cv.width)return false;
+ return smallCellNeedsConfirmation({pointerType,cellCssPx:buildGridCells(w)*w.pm.cellSize*cam.zoom*rect.width/cv.width});
+}
 function renderPlacement(w){
  if(w.pendingPlacement&&(w.gameOver||(w.viewPlayerId??0)!==0||w.pendingTargetAbility||w.pendingPointAbility||gemTowerPlayerState(w.vm).chosen||remainingBuildSlots(gemTowerPlayerState(w.vm),w.pendingBuilds)===0))clearPlacement(w);
- const point=w.pendingPlacement;$("placementConfirm").hidden=!point;
+ const point=w.pendingPlacement,confirm=$("placementConfirm");if(confirm.hidden!==!point)confirm.hidden=!point;
+ const app=$('gameApp');const small=String(Boolean(point&&w.placementLoupe));if(app&&app.dataset.smallPlacement!==small)app.dataset.smallPlacement=small;
+ if(point){confirm.dataset.x=String(point.x);confirm.dataset.y=String(point.y);}
  if(point)$("placementHint").textContent='길과 위치 확인 중 · 사거리는 건설 후 확정돼요';
+}
+function renderPlacementLoupe(w){
+ const host=$('placementLoupe'),point=w.pendingPlacement,anchor=w.placementLoupe;if(!host)return;
+ host.hidden=!point||!anchor;if(host.hidden)return;
+ const rect=cv.getBoundingClientRect(),box=placementLoupeBox({width:rect.width,height:rect.height,fingerX:anchor.clientX-rect.left,fingerY:anchor.clientY-rect.top});
+ if(!box){host.hidden=true;return;}host.style.left=box.left+'px';host.style.top=box.top+'px';host.style.width=box.size+'px';
+ const image=$('placementLoupeImage');if(image.width!==box.size)image.width=box.size;if(image.height!==box.size)image.height=box.size;
+ if(!drawPlacementLoupe(image.getContext('2d'),cv,{x:W2SX(point.x),y:W2SY(point.y)},{cellPixels:buildGridCells(w)*w.pm.cellSize*cam.zoom}))host.hidden=true;
 }
 $("confirmPlacement").onclick=()=>{if(!world?.pendingPlacement)return;const point=world.pendingPlacement;clearPlacement(world);placeTower(world,point.x,point.y);render(world);};
 $("precisePlacement").onchange=()=>{if(world){world.precisePlacement=$("precisePlacement").checked;clearPlacement(world);render(world);}};
@@ -1740,7 +1783,7 @@ surface.addEventListener("pointerdown", (ev) => {
   if(ev.isPrimary===false){drag.on=false;return;}
   drag.cell=ev.target.closest?.(".build-cell")??null;
   if(world?.pm&&drag.cell&&!world.pendingPlacement){world.hoverGemId=null;const block=buildBlockAt(world.pm,Number(drag.cell.dataset.x),Number(drag.cell.dataset.y),buildGridCells(world));world.hover={cx:Number(drag.cell.dataset.x),cy:Number(drag.cell.dataset.y),...block};render(world);}
-  drag.on=true;drag.moved=false;drag.id=ev.pointerId;drag.sx=ev.clientX;drag.sy=ev.clientY;drag.pointerType=ev.pointerType;drag.startedAt=ev.timeStamp;
+  drag.on=true;drag.moved=false;drag.id=ev.pointerId;drag.sx=ev.clientX;drag.sy=ev.clientY;drag.pointerType=world?.uiPointerType?.(ev)??ev.pointerType;drag.startedAt=ev.timeStamp;
 });
 surface.addEventListener("pointerup", (ev) => {
   if(precisionPointer(world,'up',ev))return;
@@ -1757,8 +1800,11 @@ surface.addEventListener("pointerup", (ev) => {
     else if(!selectMapGem(world,wx,wy,Boolean(drag.cell))){
       world.overlapPick=null;const x=drag.cell?Number(drag.cell.dataset.x):wx,y=drag.cell?Number(drag.cell.dataset.y):wy;
       if(!drag.cell&&gemNear(world,wx,wy))world.selectedGemId=gemNear(world,wx,wy).id;
-      else if(gesture==='preview'||world.precisePlacement)previewPlacement(world,x,y);
-      else{world.pendingPlacement=null;placeTower(world,x,y);}
+      else{
+       const small=world.confirmSmallPlacement?.(drag.pointerType??ev.pointerType,r)===true;
+       if(gesture==='preview'||world.precisePlacement||small){const shown=previewPlacement(world,x,y);if(shown&&small)world.placementLoupe={clientX:ev.clientX,clientY:ev.clientY};else if(world.placementLoupe)world.placementLoupe=null;}
+       else{world.pendingPlacement=null;placeTower(world,x,y);}
+      }
     }
     render(world);
   }
@@ -1933,14 +1979,22 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false}={
   const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
   loadingRun=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();playing=false;frameClock.reset();
   runtimeFailed=false;document.documentElement.dataset.gameReady='false';
+  const readBytes=(response,id)=>readResponseBytes(response,id,(...values)=>{if(!restoring)loadingScreen.receive(...values);});
+  const reading=async()=>{if(!restoring)await loadingScreen.reading();};
+  if(!restoring)loadingScreen.begin();
   try {
     setMsg("맵 로딩 중…");
     // U-6c(DISPATCH_SONNET_U6_INFOARCH §2 U-6c) — 맵과 이름 원장(gems_special+towers_full)을 병렬 fetch.
     // 이름 원장 실패는 loadNameMap() 내부에서 흡수(빈 맵 폴백) — 맵 로딩 자체를 막지 않는다.
-    if(!selectedSource&&!localSourceMode){selectedSource=await loadHostedPlayFiles(globalThis.fetch.bind(globalThis),parseStockProfile);if(!selectedSource){showSourceFiles();return false;}}
+    if(!selectedSource&&!localSourceMode){selectedSource=await loadHostedPlayFiles(globalThis.fetch.bind(globalThis),parseStockProfile,{readBytes,onReading:reading});if(!selectedSource){if(!restoring)showSourceFiles();return false;}}
     let buf,nameMap,stockProfile;
     if(selectedSource){buf=selectedSource.mapBytes;stockProfile=selectedSource.stockProfile;nameMap=extractGemPresentation();}
-    else {const [res,names,profile]=await Promise.all([fetch(MAP_URL),loadNameMap(),loadLocalStockProfile()]);if(!res.ok)throw Error("맵 fetch 실패 HTTP "+res.status);buf=await res.arrayBuffer();nameMap=names;stockProfile=profile;}
+    else {
+      const mapJob=fetch(MAP_URL).then(async response=>{if(!response.ok)throw Error("맵 fetch 실패 HTTP "+response.status);return readBytes(response,'map');});
+      const [bytes,names,profile]=await Promise.all([mapJob,loadNameMap(),loadLocalStockProfile({readBytes,beforeParse:async()=>{await mapJob;await reading();}})]);
+      buf=bytes;nameMap=names;stockProfile=profile;
+    }
+    await reading();
     setMsg("파싱·부팅 중…");
     frameClock.reset();
     drag.on=false; delete $("gameApp").dataset.mode;
@@ -1957,16 +2011,30 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false}={
     let returning=true;try{returning=listRunRecords(localStorage,contentBuild,replayBuild).some(r=>r.trace);}catch{ /* Storage access failure keeps the explicit choice screen. */ }
     if(!restoring&&!showSetup&&!returning)chooseStartup('race',0);
     render(world);
+    if(!restoring){await visualReady;if(document.fonts?.ready)await document.fonts.ready;}
+    if(!restoring)world?.syncDeviceView?.();
+    if(runtimeFailed||world?.runtimeCrashes?.length)throw Error('게임 화면을 준비하지 못했습니다. 다시 열어 주세요.');
+    if(!restoring)loadingScreen.finish();
     if(publishSeed)commitSessionSeed(seed);
     loaded=true;return true;
   } catch (e) {
+    const alreadyFailed=runtimeFailed;
+    playing=false;frameClock.reset();document.documentElement.dataset.gameReady='false';
+    // An already-created candidate is unusable after a completion-stage failure.
+    // Preserve prior-world health only for failures that occurred before replacement.
+    if(world!==priorWorld)runtimeFailed=true;
     console.error(e);
+    if(restoring)return false;
+    if(world!==priorWorld){if(!alreadyFailed)window.showErr('게임 준비 오류',e);loadingScreen.error(e?.message??String(e));return false;}
     if(!localSourceMode){showSourceFiles(e?.message??String(e));return false;}
     setMsg(`게임을 열지 못했습니다\n${e?.message??e}\n\n‘보석타워 실행.command’로 다시 여세요.\n원작 맵·능력 자료와 게임 빌드가 같은 폴더에 필요합니다.\n기본 주소는 127.0.0.1:8097입니다.`);
+    if(!restoring)loadingScreen.error(e?.message??String(e));
+    return false;
   } finally {loadingRun=false;if(!loaded&&world===priorWorld)runtimeFailed=priorFailure;}
 }
 
 function showSourceFiles(message='두 파일을 선택하면 게임을 열 수 있습니다.'){
+ if(!restoring)loadingScreen.intake($("sourceFiles"));
  $("sourceFiles").hidden=false;$("msg").style.display="none";$("sourceFilesStatus").textContent=message;
  $("play").disabled=true;$("reset").disabled=true;$("runState").textContent='자료 선택';
  syncDisabledReasons(world);
@@ -1975,7 +2043,7 @@ function updateSourceFiles(){const ready=Boolean($("mapFile").files[0]&&$("profi
 $("mapFile").addEventListener('change',updateSourceFiles);$("profileFile").addEventListener('change',updateSourceFiles);
 $("openSourceFiles").addEventListener('click',async()=>{
  const button=$("openSourceFiles");button.disabled=true;$("sourceFilesStatus").textContent='자료를 확인하는 중…';
- try{const source=await readPlayFiles($("mapFile").files[0],$("profileFile").files[0],parseStockProfile);selectedSource=source;await loadFromUrl();}
+ try{loadingScreen.begin();await loadingScreen.reading();const source=await readPlayFiles($("mapFile").files[0],$("profileFile").files[0],parseStockProfile);selectedSource=source;await loadFromUrl();}
  catch(error){showSourceFiles(error.message);}
  finally{updateSourceFiles();}
 });

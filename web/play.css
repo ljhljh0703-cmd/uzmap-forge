@@ -1,5 +1,6 @@
-@font-face{font-family:Galmuri11;src:url('./assets/fonts/Galmuri11.woff2') format('woff2');font-style:normal;font-weight:400;font-display:block}
-@font-face{font-family:Galmuri11;src:url('./assets/fonts/Galmuri11-Bold.woff2') format('woff2');font-style:normal;font-weight:700;font-display:block}
+@font-face{font-family:Galmuri11;src:url('./assets/fonts/Galmuri11-f.woff2?sha=f528f85004dfa022ec874936a6bc41952ffc816fafa91c2a3d2fc77c5933c3a5') format('woff2');font-style:normal;font-weight:400;font-display:block}
+@font-face{font-family:Galmuri11;src:url('./assets/fonts/Galmuri11-Bold-f.woff2?sha=b460b10fe461d3f0cc907e183073c92ed5fd0f4ded773106945c3c0bb7e47523') format('woff2');font-style:normal;font-weight:700;font-display:block}
+@font-face{font-family:Galmuri11;src:url('./assets/fonts/Galmuri11-f.woff2?sha=f528f85004dfa022ec874936a6bc41952ffc816fafa91c2a3d2fc77c5933c3a5') format('woff2');font-style:normal;font-weight:700;font-display:block;unicode-range:U+2212,U+222A,U+2248,U+24D8,U+6B7B}
 :root{--bg:#1a110c;--panel:#281c13;--line:#75522d;--txt:#f0dfb2;--dim:#b7a47d;--accent:#e6bd55;--ok:#71a86a;--warn:#d3973f;--bad:#d75e4a;color-scheme:dark}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font:12px/1.5 Galmuri11}button,input,textarea,select{font:inherit}button{position:relative;min-width:44px;min-height:44px;padding:8px 12px;border:2px solid #80613d;border-radius:0;background:#352519;color:var(--txt);font-weight:700;cursor:pointer;touch-action:manipulation;white-space:normal;word-break:keep-all;image-rendering:pixelated}button.sec{background:#2d2119;color:#e6d6ae}button:hover:not(:disabled){filter:brightness(1.15)}button:active:not(:disabled){transform:translateY(2px) scale(.92);filter:brightness(.8)}button:disabled{color:#96896d;filter:saturate(.25) brightness(.7);cursor:not-allowed}button[data-primary=true]{background:#d3a53a;color:#21150b;border-color:#f1d476}button:focus-visible,input:focus-visible,summary:focus-visible,canvas:focus-visible{outline:2px solid #f7db85;outline-offset:2px}button svg{width:16px;height:16px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:2}
 .app{height:100dvh;width:min(1120px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:48px 72px 36px minmax(0,1fr) 56px;position:relative;min-width:320px;background:#21160f}header{display:flex;align-items:center;justify-content:space-between;padding:2px 16px;gap:12px;background:#21160f;border-bottom:2px solid #9a733b}.brand{display:flex;align-items:center;gap:8px}.brand>svg{width:24px;height:28px;fill:none;stroke:#d0ae66;stroke-width:2}.brand h1{font-size:24px;margin:0;line-height:1.25}.brand small,.local-label{display:none}.header-actions{display:flex;align-items:center;gap:8px}#researchToggle{padding:6px 12px;font-size:12px}
@@ -313,7 +314,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 #gameDrawer.skin-framed .drawer-head{position:relative;top:auto;margin:0 0 8px;padding:0 0 8px;background:transparent;border:0}
 #gemPanel[data-selection-sheet=true] .gem-detail-body.skin-framed{border:0;border-radius:0;background:#2b2117;box-shadow:none;padding:20px}
 /* Desktop keeps the full field tall and puts the existing controls beside it. */
-@media(min-width:901px){
+@media(min-width:901px), (min-width:700px) and (min-height:500px) and (orientation:landscape){
  html,body{background:#21160f}
  .app[data-simple-ui=true]{width:100%;max-width:none;margin:0;min-width:0;box-shadow:none}
  .app[data-simple-ui=true] main{grid-template-columns:minmax(0,var(--desktop-field-width,55%)) minmax(360px,1fr);grid-template-rows:minmax(0,1fr)}
@@ -335,7 +336,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 
 /* Source facts reuse the sidebar, leaving the mobile field unchanged. */
 .next-wave-preview{display:none}
-@media(min-width:901px){
+@media(min-width:901px), (min-width:700px) and (min-height:500px) and (orientation:landscape){
  .next-wave-preview{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:16px;margin:12px;padding:16px 12px;border-bottom:1px solid #806337;min-height:132px;background:#302419}
  .next-wave-preview h2{font-size:16px;color:#cdb47d;margin:0 0 8px}.next-wave-preview strong{font-size:21px;word-break:keep-all}.next-wave-preview p{font-size:15px;line-height:1.55;margin:7px 0;word-break:keep-all}.next-wave-preview p:last-child{color:#edc3a2}
  .app[data-simple-ui=true] #gemPanel{min-height:440px}.app[data-simple-ui=true] .gem-meta{margin-top:14px}
@@ -343,7 +344,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
  .app[data-simple-ui=true] .gem-detail-body .gem-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.app[data-simple-ui=true] .gem-detail-body .gem-stats .stat{padding:10px 2px;min-width:0}
 }
 
-@media(min-width:901px){
+@media(min-width:901px), (min-width:700px) and (min-height:500px) and (orientation:landscape){
  .app[data-simple-ui=true] #gemPanel .bp-name{flex-direction:column;align-items:stretch;gap:12px}
  .app[data-simple-ui=true] #gemPanel[data-selection-sheet=true][data-combat-card] .bp-name>.gem-meta[open]{flex:0 0 auto;width:100%;margin:0;align-self:stretch}
  .app[data-simple-ui=true] #gemPanel .gem-meta>summary[hidden]{display:none!important}
@@ -382,7 +383,7 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .phone-wave-preview{margin:0;padding:3px 9px;font-size:11px;line-height:1.45;word-break:keep-all;color:#e4d0a7}.phone-wave-preview[hidden]{display:none!important}
 .wave-attention{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:2px 8px;background:#2b2115;color:#f6dfa0;font-size:12px;line-height:1.35;word-break:keep-all}.wave-attention[hidden]{display:none!important}
 .route-legend[data-attention=true]:not([data-preview=true])>.entry-legend,.route-legend[data-attention=true]:not([data-preview=true])>.exit-legend{visibility:hidden}.route-legend[data-preview=true]>.wave-attention{display:none}
-@media(min-width:901px){.phone-wave-preview{display:none}}
+@media(min-width:901px), (min-width:700px) and (min-height:500px) and (orientation:landscape){.phone-wave-preview{display:none}}
 
 .wave-attention{gap:6px;white-space:normal}.wave-attention canvas{width:28px;height:28px;flex:none;image-rendering:pixelated}.wave-attention canvas[hidden]{display:none}.wave-attention span{min-width:0;word-break:keep-all}
 
@@ -404,3 +405,29 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .sound-volume input{width:100%;min-width:0;height:44px;accent-color:#d6b565}
 .sound-volume output{text-align:right;font-variant-numeric:tabular-nums}
 #soundReview button{width:100%;margin:4px 0}#soundReview textarea{width:100%;min-width:0}
+
+/* Existing palette and text assets; no new imagery or game layout changes. */
+#loadingScreen{isolation:isolate;overflow:auto;background:#17180f;color:#f3dda0;padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+#loadingScreen .loading-content{width:min(440px,calc(100vw - 48px));min-width:0;margin:auto;line-height:1.6}
+#loadingScreen h1{font-family:Galmuri11,monospace;margin:8px 0 24px;line-height:1.3;font-size:clamp(28px,8vw,40px)}
+#loadingScreen .loading-eyebrow{color:#bb9c5d;letter-spacing:.16em;font-size:12px}
+#loadingStage{font-weight:700;margin:12px 0 8px}#loadingBytes{color:#c9bea3;font-size:13px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#loadingProgress{display:block;width:100%;height:16px;accent-color:#d4ad56}#loadingTip{min-height:3.2em;color:#d4c8a9;font-size:13px;word-break:keep-all;overflow-wrap:break-word}
+#loadingError{color:#f0af99;white-space:pre-wrap;overflow-wrap:anywhere}#loadingError[hidden],#loadingTip[hidden],#loadingProgress[hidden]{display:none!important}
+#loadingRecovery:empty{display:none}#loadingRecovery{max-height:70dvh;overflow:auto;overscroll-behavior:contain}
+#loadingRecovery>#sourceFiles,#loadingRecovery>#msg{position:static!important;inset:auto!important;width:100%;padding:12px 0;background:transparent;max-height:none;white-space:pre-wrap;text-align:left;transform:none;box-sizing:border-box}
+#loadingRecovery>#sourceFiles{display:block!important}#loadingRecovery>#sourceFiles[hidden]{display:none!important}#loadingRecovery>#sourceFiles>.mode-card{width:100%;padding:12px;max-height:none}
+#loadingRecovery>#msg{flex-direction:column;align-items:stretch;gap:12px}#loadingRecovery button,#loadingRecovery input{max-width:100%;box-sizing:border-box}
+
+/* Short touch landscapes retain the fitted field and pause behind a rotation instruction. */
+.rotate-screen{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;background:#17180f;color:#f3dda0;text-align:center}.rotate-screen[hidden]{display:none}.rotate-screen>div{max-width:400px}.rotate-screen h2{font:24px/1.5 Galmuri11,monospace;margin:0 0 16px}.rotate-screen p{font:16px/1.7 system-ui;margin:0}.rotate-screen:focus{outline:none}html[data-rotation-blocked=true] #gameApp{visibility:hidden;pointer-events:none}html:not([data-load-state=ready]) #rotateScreen{visibility:hidden;pointer-events:none}
+
+/* Portrait tablets use the available width while keeping the approved fixed camera. */
+@media(min-width:600px) and (max-width:900px) and (orientation:portrait){.app,.app[data-mode=classic],.app[data-simple-ui=true]{width:100%;max-width:none;margin:0;box-shadow:none}}
+
+.placement-loupe{position:absolute;z-index:8;pointer-events:none;background:#1a2015;border:2px solid #d9bd65;box-shadow:0 3px 12px #0009;box-sizing:border-box;color:#ffe5a0;text-align:center}.placement-loupe[hidden]{display:none}.placement-loupe canvas{display:block;width:100%;height:auto;image-rendering:pixelated}.placement-loupe span{display:block;font-size:12px;line-height:20px}
+.app[data-small-placement=true] #placementConfirm{position:fixed;left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(calc(100vw - 16px),420px);z-index:40;margin:0;box-sizing:border-box;box-shadow:0 4px 20px #0009}
+
+/* Keep a full 16px construction footprint on tall phones even while the
+ * first-run guide is open; the existing bottom sheet remains scrollable. */
+@media(min-width:381px) and (max-width:600px) and (min-height:700px){#bottomPanel{max-height:31dvh}}
