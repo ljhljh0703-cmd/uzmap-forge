@@ -12,8 +12,8 @@ import {createButtonReasonView,unavailableReason} from './button-reasons.js';
 import {desktopFieldLayout,sourceWaveCounts,nextWaveView,mountNextWave,attackRangeModels,drawAttackRanges,isExitThreat,creepStatusIcons,hasEnemySlowAura,drawCreepStatus,drawExitThreat,mountHudLifeCue} from './battlefield-readability.js';
 import {parseJass} from './dist/jass/parser.js';
 import {fourCC} from './dist/ir/fourcc.js';
-import {drawFieldGem,drawFieldStone,drawFieldSlate,drawFieldPlacement,drawMineCreep} from './field-units.js';
-import {drawGroundRoute,drawFieldLandmarks} from './field-ground.js';
+import {drawFieldGem,drawFieldStone,drawFieldSlate,drawFieldPlacement,drawMineCreep,creepHealthPresentation} from './field-units.js';
+import {createRouteIntro,drawFieldLandmarks} from './field-ground.js';
 import {createPrecisionCamera} from './precision-camera.js';
 import {mountGameMenu} from './game-menu.js';
 import {mountEffectIcons,drawFieldEffectMarks,createFieldFeedback} from './field-effects.js';
@@ -26,7 +26,7 @@ import {createRunCheckpoint} from './run-checkpoint.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
-import {mountGemSkin,selectionStageHint} from "./ui-skin.js";
+import {mountGemSkin,selectionStageHint,upgradeOptionNode} from "./ui-skin.js";
 import {createCasinoFeedback} from "./casino-feedback.js";
 import {extractRecipeBook} from "./recipe-book.js";
 import {mountRecipeBook} from "./recipe-view.js";
@@ -189,7 +189,7 @@ function renderFieldView(w){
  }
  $('fieldOther').hidden=w.sim.playerState.getSlotState(1)!==1;
  $('fieldOtherState').textContent=w.sim.playerState.getSlotState(1)===1?'관전':'미접속';
- $('cv').setAttribute('aria-label',other?'상대 전장 관전. 내 전장 탭으로 돌아가 건설하세요':'내 전장. 빈칸을 눌러 건설하고, 누른 동안 지상 예상 길을 확인하세요. 보석을 누르면 선택합니다');
+ $('cv').setAttribute('aria-label',other?'상대 전장 관전. 내 전장 탭으로 돌아가 건설하세요':'내 전장. 표시된 빈칸을 눌러 건설하세요. 돌 바닥은 건설할 수 없습니다. 길게 누르면 건설 위치를 확인합니다. 보석을 누르면 선택합니다');
  $('combatCount').hidden=other&&!connected;
  $('spectatorBanner').hidden=!other;$('spectatorBanner').textContent=connected?'상대 전장 · 관전 중':'상대 미접속 · 두 번째 전장';
  $('spectatorActions').hidden=!other;$('bottomPanel').inert=other||restoring;
@@ -328,7 +328,7 @@ function boot(bytes, presentation, stockProfile, seed) {
     waveCounts:sourceWaveCounts(loaded.ir.script.source,parseJass),recipeBook:extractRecipeBook(loaded.ir,{strings:loaded.strings}),casinoFeedback:createCasinoFeedback(),
     strings:loaded.strings,sourceVersion:stockProfile?.sourceVersion,inputLog:[],runtimeCrashes:initialVmEvents.filter(event=>event.kind==='ThreadCrashed'),
     nameMap: presentation.names || {}, knownGemIds:presentation.gemIds || new Set(),
-    precisePlacement:$("precisePlacement").checked,pendingPlacement:null,overlapPick:null,viewPlayerId:0,cameraMode:"fit",routeSegments:new Map(), prepActive: true, cameraFocused: false, observedAttacks: 0,
+    precisePlacement:$("precisePlacement").checked,pendingPlacement:null,overlapPick:null,viewPlayerId:0,cameraMode:"fit", prepActive: true, cameraFocused: false, observedAttacks: 0,
     pendingBuilds: [],
     // P-3(젬 UI, PLAYABLE §4): 선택 상태 + castAbility 큐 대응 기록(빌드와 동일 정신 — 값·판정 0, 좌표
     // 상관용 부기일 뿐). selectedGemId=null이면 패널 숨김.
@@ -534,6 +534,15 @@ function trainingTechName(w,id,level=1){
  return name&&name!==id&&!/^TRIGSTR_\d+$/.test(name)?name:'필요 연구';
 }
 
+function renderGemUpgradeOptions(w,selected,upgrades){
+ const root=$('gemUpgrades'),signature=JSON.stringify([selected.id,selected.typeId,upgrades]);root.hidden=!upgrades.length;
+ if(w.upgradeSignature===signature)return;w.upgradeSignature=signature;root.replaceChildren();
+ for(const row of upgrades){
+  const target=defOf(w,row.typeId),name=target?.name?fullName(w,row.typeId):'강화 정보 없음';
+  root.append(upgradeOptionNode(document,{typeId:row.typeId,name,cost:row.cost,preview:upgradeAttackSummary(target,DT),status:row.reason===null?`강화 가능 · ${((target?.buildTimeTicks??0)*DT).toFixed(1)}초`:row.condition,condition:row.condition,disabled:Boolean(row.reason)}));
+ }
+}
+
 function fullName(w, typeId) {
   const name = defOf(w, typeId)?.name || w.nameMap?.[typeId];
   return name ? sourceText(w,name) : gemLabel(typeId);
@@ -574,21 +583,28 @@ function renderRouteCues(w){
 
 function renderBuildPreview(w){
  const target=$('buildPreviewStatus'),state=gemTowerPlayerState(w.vm),field=w.mobileFields?.[w.viewPlayerId??0];
- const ready=Boolean(field&&w.pm&&w.hover&&(w.hoverGemId===null||w.hoverGemId===undefined)&&(w.viewPlayerId??0)===0&&w.modeDialog?.clicked&&state.difficulty&&!state.chosen&&!w.gameOver&&!restoring&&!w.pendingTargetAbility&&!w.pendingPointAbility&&remainingBuildSlots(state,w.pendingBuilds)>0);
- if(target){target.hidden=!ready;target.parentElement.dataset.preview=String(ready);}
- if(restoring||!field||!w.pm||!w.modeDialog?.clicked||!state.difficulty){w.buildPreviewResult=null;return;}
- const point=ready?{x:w.hover.cx,y:w.hover.cy}:null,last=field.waypoints.at(-1),exit={x:field.bounds.maxX-w.pm.cellSize/2,y:(last.minY+last.maxY)/2};
- w.previewSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
- const input={entities:w.sim.entities.values(),bounds:field.bounds,start:field.spawn,waypoints:[...field.waypoints.map(r=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2})),exit],waypointBounds:[...field.waypoints,null],pending:w.pendingBuilds.map(p=>({typeId:'h006',...p})),candidate:point?{typeId:'h006',...point}:null};
- const preview=w.previewSearch.evaluate(input),project=p=>({x:W2SX(p.x),y:W2SY(p.y)});
- let current=preview;
- if(ready){w.baseRouteSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});current=w.baseRouteSearch.evaluate({...input,entities:w.sim.entities.values(),candidate:null});}
- const roadPainted=drawGroundRoute(ctx,{preview:current,project,cellSize:w.pm.cellSize,widthPixels:Math.max(30,Math.min(56,w.pm.cellSize*buildGridCells(w)*cam.zoom*1.15)),sprites});
+ const eligible=Boolean(field&&w.pm&&(w.viewPlayerId??0)===0&&w.modeDialog?.clicked&&state.difficulty&&!state.chosen&&!w.gameOver&&!restoring&&!loadingRun&&!w.pendingTargetAbility&&!w.pendingPointAbility);
+ const ready=Boolean(eligible&&w.hover&&(w.hoverGemId===null||w.hoverGemId===undefined)&&remainingBuildSlots(state,w.pendingBuilds)>0);
+ w.routeIntro??=createRouteIntro();
+ const showRoute=w.routeIntro.visible({eligible,suppressed:loadingRun||document.hidden||document.documentElement.dataset.rotationBlocked==='true'||$('gameDrawer')?.hidden===false,ended:restoring||Boolean(w.gameOver)||state.chosen===true||(state.round??1)>1});
+ if(target){target.hidden=!ready&&!showRoute;target.parentElement.dataset.preview=String(ready||showRoute);}
+ w.buildPreviewResult=null;w.groundRoute=null;
+ if(restoring||!field||!w.pm||!w.modeDialog?.clicked||!state.difficulty)return;
+ const project=p=>({x:W2SX(p.x),y:W2SY(p.y)});
  drawFieldLandmarks(ctx,{field,project,span:w.pm.cellSize*buildGridCells(w),sprites});
- w.buildPreviewResult=ready?preview:null;w.groundRoute=preview;
- if(!ready){if(!roadPainted)drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}),{alpha:.3,dashed:false});return;}
- if(target){target.dataset.state=preview.status;target.textContent=preview.status==='open'?'배치 후 지상 예상 길':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침';}
- drawBuildRoute(ctx,preview,p=>({x:W2SX(p.x),y:W2SY(p.y)}));
+ if(!ready&&!showRoute)return;
+ const point=ready?{x:w.hover.cx,y:w.hover.cy}:null,last=field.waypoints.at(-1),exit={x:field.bounds.maxX-w.pm.cellSize/2,y:(last.minY+last.maxY)/2};
+ const input={entities:[...w.sim.entities.values()],bounds:field.bounds,start:field.spawn,waypoints:[...field.waypoints.map(r=>({x:(r.minX+r.maxX)/2,y:(r.minY+r.maxY)/2})),exit],waypointBounds:[...field.waypoints,null],pending:w.pendingBuilds.map(p=>({typeId:'h006',...p})),candidate:null};
+ if(showRoute){
+  w.baseRouteSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
+  w.groundRoute=w.baseRouteSearch.evaluate(input);
+  drawBuildRoute(ctx,w.groundRoute,project,{alpha:.8,dashed:false});
+  if(target){target.dataset.state=w.groundRoute.status;target.textContent='실선: 지상 이동 경로';}
+ }
+ if(!ready)return;
+ w.previewSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
+ const preview=w.previewSearch.evaluate({...input,candidate:{typeId:'h006',...point}});w.buildPreviewResult=preview;
+ if(target){target.dataset.state=preview.status;target.textContent=preview.status==='open'?'건설 가능':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침';}
  const ok=canPlaceBlock(w,w.hover.blockCol,w.hover.blockRow,buildGridCells(w)),size=w.pm.cellSize*buildGridCells(w)*cam.zoom;
  ctx.save();ctx.fillStyle=ok?(preview.status==='blocked'?'#e0ab6b50':'#d8d99d40'):'#dc8e8155';ctx.fillRect(W2SX(point.x)-size/2,W2SY(point.y)-size/2,size,size);
  ctx.strokeStyle=ok?'#dacb98':'#e09b8b';ctx.lineWidth=1;ctx.strokeRect(W2SX(point.x)-size/2+1,W2SY(point.y)-size/2+1,Math.max(1,size-2),Math.max(1,size-2));
@@ -596,6 +612,7 @@ function renderBuildPreview(w){
 }
 
 function renderCreeps(w,footprintPx,z) {
+  const healthState=w.vm?.getGlobal&&w.vm?.getGlobalIndexed?{...gemTowerPlayerState(w.vm,w.viewPlayerId??0),sourceMode:w.vm.getGlobal('Be').v}:null;
   let creeps=0;w.exitThreatViews=[];
   const exitRect=sourceRect(w,(w.viewPlayerId??0)===0?'Ax':'Fx'),exit=exitRect?{x:(exitRect.minX+exitRect.maxX)/2,y:(exitRect.minY+exitRect.maxY)/2}:null;
   const slowSources=[...w.sim.entities.values()].filter(entity=>entity.alive).flatMap(entity=>(w.sim.abilityEffects?.effects(entity.abilities)??[]).filter(effect=>effect.kind==='enemySlowAura').map(effect=>({entity,effect})));
@@ -629,7 +646,8 @@ function renderCreeps(w,footprintPx,z) {
     // 호드 가독성). 임계값 색상(>.5/>.25 초록·주황·빨강)은 기존 로직 그대로 재사용(재발명 0). 만피 시
     // 미표시는 기존 조건 유지(P-3/기존 "화면 소음 감소" 관례 — 항상 표시로 바꾸지 않음, 전제 반증 참조).
     drawAirborneMark(ctx,{x:px,y:py,size:spriteSize,airborne:visual.airborne});
-    drawCreepHealth(ctx,{x:px,y:py-hover,size:spriteSize,hp:e.hp,maxHp:e.hpMax,boss:band==='boss'});
+    const health=healthState?creepHealthPresentation(e,healthState,role):{hp:e.hp,maxHp:e.hpMax};
+    drawCreepHealth(ctx,{x:px,y:py-hover,size:spriteSize,hp:health.hp,maxHp:health.maxHp,boss:band==='boss'});
     drawCreepStatus(ctx,{sprites,kinds:creepStatusIcons(w.sim.status.get(e.id),hasEnemySlowAura(e,defOf(w,e.typeId),slowSources,allied)),x:px,y:py-hover,size:spriteSize,boss:band==='boss'});
     if(isExitThreat(e,{bounds:w.viewBounds,exit}))w.exitThreatViews.push({x:px,y:py-hover,size:spriteSize});
   }
@@ -894,7 +912,7 @@ function render(w,preservePendingDialog=false) {
       // U-6c(DISPATCH_SONNET_U6_INFOARCH §2 U-6c, U-5 흡수) — specialGem 종류명 라벨. 병합 nameMap(81/81
       // 커버, 위 loadNameMap() 참조)에서 그대로 읽는다 — 이전엔 SPECIALGEM_NAMES(28/45)만 커버해 17종이
       // 라벨 생략이었으나, 이제 45종 전원이 이름을 갖는다(원장 그대로, 발명 0).
-      const nm = w.nameMap && w.nameMap[e.typeId];
+      const nm = fullName(w,e.typeId);
       if (nm) {
         ctx.textAlign = "center";
         ctx.font = "12px system-ui";
@@ -982,12 +1000,7 @@ function render(w,preservePendingDialog=false) {
     }
     effectText.hidden=!effects.length;effectText.textContent=effects.length?"보유 효과"+effects.map(text=>"\n• "+text).join(""):"";
     const upgrades=(d?.upgradesTo??[]).map(typeId=>{const cost=w.sim.unitUpgradeCost(selected.id,typeId),reason=w.sim.validateUnitUpgrade(0,selected.id,typeId);return {typeId,cost,reason,condition:reason==='insufficient-gold'?unavailableReason(reason,{cost,gold:w.sim.ledger.gold(selected.owner)}):upgradeConditionText(reason,selected.owner)};});
-    const upgradeSignature=JSON.stringify([selected.id,selected.typeId,upgrades]);
-    $("gemUpgrades").hidden=!upgrades.length;
-    if(w.upgradeSignature!==upgradeSignature){w.upgradeSignature=upgradeSignature;$("gemUpgrades").replaceChildren();for(const u of upgrades){
-      const button=document.createElement('button');button.className='sec';button.dataset.upgradeTarget=u.typeId;button.disabled=Boolean(u.reason);const target=defOf(w,u.typeId);const name=target?.name?fullName(w,u.typeId):'강화 정보 없음';button.textContent=`${name} 강화 · ${u.cost??'—'} 골드`;const preview=document.createElement('small');preview.className='upgrade-preview';preview.textContent=upgradeAttackSummary(target,DT);button.append(preview);
-      const condition=u.condition;button.title=condition;const status=document.createElement('small');status.className='upgrade-condition';status.textContent=u.reason===null?`강화 가능 · ${((target?.buildTimeTicks??0)*DT).toFixed(1)}초`:condition;button.append(status);$("gemUpgrades").append(button);
-    }}
+    renderGemUpgradeOptions(w,selected,upgrades);
     const pending=w.sim.pendingUpgrades.get(selected.id);$("upgradeStatus").textContent=pending?`강화 중 · ${(pending.remainingTicks*DT).toFixed(1)}초`:upgrades.some(u=>u.reason==='not-owner')&&selected.owner===9?'이번 보석을 남긴 뒤 전투 중에 강화할 수 있어요':'';
     // Reflect the same ownership/ability checks used by the engine command path.
     const actions = gemActions(w, selected.id);w.gemActionViews=actions;
@@ -1343,13 +1356,7 @@ function stepN(w, n) {
     for (const e of w.sim.entities.values()) {
       if (e.owner === 11) {
         creepsAliveNow++;
-        const role=GEMTOWER_BALANCE.roleTable[e.typeId];
-        if(e.orderActive && (role?.kind==="creep"||role?.archetype==="eventBoss")){
-          const size=w.pm?.cellSize??32;
-          const ax=Math.round(e.prevX/size)*size,ay=Math.round(e.prevY/size)*size,bx=Math.round(e.x/size)*size,by=Math.round(e.y/size)*size;
-          const key=`${ax},${ay}:${bx},${by}`;
-          if((ax!==bx||ay!==by)&&!w.routeSegments.has(key)){w.routeSegments.set(key,{x:ax,y:ay,toX:bx,toY:by});if(w.routeSegments.size>4096)w.routeSegments.delete(w.routeSegments.keys().next().value);}
-        }
+
       }
       const before = prevHp.has(e.id) ? prevHp.get(e.id) : e.hp;
       if (e.hp < before) spawnTextTag(e.x, e.y, String(before - e.hp) + "!", "#d74e3c"); // "{n}!" 원문 3형 중 특수뎀 형

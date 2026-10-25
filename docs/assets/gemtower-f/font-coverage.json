@@ -917,6 +917,7 @@
       45784,
       45787,
       45796,
+      45797,
       45800,
       45803,
       45804,
@@ -1378,7 +1379,7 @@
       55180,
       55192
     ],
-    "uiGlyphHash": "5c6e4359bcb256a622d8bf36c20329ea3547a2526589e238d7a3b86187e241d7",
+    "uiGlyphHash": "6f4ecc1c8626688b8694f1edd457336bc446db1b6314074a99bf85f6f2041e15",
     "uiFiles": [
       "web/index.html",
       "web/play.css",

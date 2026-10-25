@@ -70,6 +70,24 @@ export function approvedButtonMaterial({id='',primary=false,action=false,disable
  const color=id==='play'?null:primary?'gold':NEGATIVE_BUTTONS.has(id)?'red':action||id==='quickResearch'||id.startsWith('cast')?'green':null;
  return color?`button-${color}-${disabled?'disabled':pressed?'pressed':'normal'}`:null;
 }
+/** Present caller-resolved upgrade facts without issuing or validating a command.
+ * The existing delegated button retains the target; information is ordinary text. */
+export function upgradeOptionNode(doc,{typeId,name,cost,preview,status,condition,disabled}={}){
+ const target=String(typeId??''),label=String(name??'강화 정보 없음'),price=String(cost??'—');
+ const base='upgrade-option-'+encodeURIComponent(target);let id=base,serial=1;
+ while(doc.getElementById?.(id))id=base+'-'+serial++;
+ const card=doc.createElement('div');card.className='upgrade-option';card.id=id;
+ const info=doc.createElement('div');info.className='upgrade-option-info';
+ const title=doc.createElement('strong');title.className='upgrade-target-name';title.id=id+'-name';title.textContent=label;info.append(title);
+ const descriptions=[];
+ const describe=(className,value,suffix)=>{if(value==null||String(value)==='')return;const line=doc.createElement('p');line.className=className;line.id=id+'-'+suffix;line.textContent=String(value);info.append(line);descriptions.push(line.id);};
+ describe('upgrade-preview',preview,'preview');describe('upgrade-condition',status,'status');
+ if(condition!==status)describe('upgrade-requirement',condition,'condition');
+ const button=doc.createElement('button');button.type='button';button.className='sec upgrade-action';button.dataset.upgradeTarget=target;button.disabled=Boolean(disabled);button.title=String(condition??'');button.textContent=`강화 · ${price}골드`;
+ button.setAttribute('aria-label',`${label} 강화 · ${price}골드`);
+ if(descriptions.length)button.setAttribute('aria-describedby',descriptions.join(' '));
+ card.append(info,button);return card;
+}
 const QUALITY_COLORS=['#ada99c','#46a250','#368ac6','#a66ec7','#e6bb46'];
 const materialListeners=new Set();
 const materialImages=new Map();
@@ -108,7 +126,7 @@ function rasterNineSlice(ctx,spec,width,height){
 /** Shared wording only; pending build/placement prompts keep priority at the caller. */
 export function selectionStageHint(snapshot={}){
  const count=Math.max(0,Math.min(5,Number(snapshot.buildCount)||0));
- return snapshot.chosen===true?'보석을 눌러 능력과 강화를 확인하세요':count<5?`빈칸을 눌러 보석 ${5-count}개 더 건설 · 길게 눌러 지상 길 확인`:'다섯 보석 중 하나를 고르고 ‘이 보석 남기기’를 누르세요';
+ return snapshot.chosen===true?'보석을 눌러 능력과 강화를 확인하세요':count<5?`빈칸에 보석 ${5-count}개 더 건설 · 돌 바닥은 건설 불가`:'다섯 보석 중 하나를 고르고 ‘이 보석 남기기’를 누르세요';
 }
 /** Local disclosure gestures and fixed overlay anchors only. The battlefield
  * remains the same DOM host; no game input, command or camera is dispatched. */
@@ -215,7 +233,7 @@ export function createSelectionCard(doc){
    else if(!lastCombat||lastSelected!==snapshot.selectedId)meta.open=false;
    const upgrades=doc.getElementById('gemUpgrades'),targetPanel=doc.getElementById('gemTargetAbilities'),targetButton=doc.getElementById('castA05L');
    const ready=Array.from(actions.children).filter(button=>button.tagName==='BUTTON'&&button!==close&&!button.hidden&&!button.disabled).length
-    +(!upgrades?.hidden?Array.from(upgrades?.children??[]).filter(button=>button.tagName==='BUTTON'&&!button.hidden&&!button.disabled).length:0)
+    +(!upgrades?.hidden?Array.from(upgrades?.querySelectorAll?.('button')??upgrades?.children??[]).filter(button=>button.tagName==='BUTTON'&&!button.hidden&&!button.disabled).length:0)
     +(targetPanel&&!targetPanel.hidden&&targetButton&&!targetButton.hidden&&!targetButton.disabled?1:0);
    const label='능력·강화'+(ready?` ${ready}개`:'');if(summary.textContent!==label)summary.textContent=label;
   }else{

@@ -59,11 +59,10 @@ export function fieldGroundPlan(grid,bounds,{landmarkRects=[]}={}){
 }
 function paintGroundTexture(ctx,plan,texture,grass=[]){
  if(grass.every(Boolean)&&grass.length===4){
-  for(const landmark of [false,true]){
-   const runs=plan.runs.filter(run=>landmark?run.landmark:run.kind==='build');if(!runs.length)continue;
-   // Only authored landmark NO_BUILD cells cover the old base raster opaquely.
-   // Their original path kind/flags and no-build boundary remain unchanged.
-   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=landmark?1:.55;
+  const runs=plan.runs.filter(run=>run.kind==='build');
+  if(runs.length){
+   // Checkpoints retain their source NO_BUILD paving. Only buildable cells get grass.
+   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=.55;
    const tile=GROUND_CELL_PX*4,startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
    for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile){const col=Math.floor((plan.minCol+x/GROUND_CELL_PX)/4),row=Math.floor((plan.maxRow-y/GROUND_CELL_PX)/4),index=(Math.imul(col,374761393)^Math.imul(row,668265263))>>>0,t=grass[index%4],f=t.spec.frame;ctx.drawImage(t.image,f.x,f.y,f.w,f.h,x,y,tile,tile);}
    ctx.restore();
@@ -74,7 +73,7 @@ function paintGroundTexture(ctx,plan,texture,grass=[]){
  // Reuse the loaded, unmodified raster. Build ground receives only fine grain;
  // pale no-build cells become worn paving; walls retain their darker source colour.
  for(const [kind,alpha] of [['build',.035],['path',.48],['wall',.32]]){
-  const runs=plan.runs.filter(run=>run.kind===kind&&!run.landmark);if(!runs.length)continue;
+  const runs=plan.runs.filter(run=>run.kind===kind);if(!runs.length)continue;
   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=alpha;
   const startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
   for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile)ctx.drawImage(texture.image,f.x,f.y,f.w,f.h,x,y,tile,tile);

@@ -431,3 +431,12 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 /* Keep a full 16px construction footprint on tall phones even while the
  * first-run guide is open; the existing bottom sheet remains scrollable. */
 @media(min-width:381px) and (max-width:600px) and (min-height:700px){#bottomPanel{max-height:31dvh}}
+
+/* Descriptions belong to the upgrade card; only its compact action uses green raster. */
+#gemUpgrades{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+#gemUpgrades .upgrade-option{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;min-width:0;max-width:680px;padding:12px;border:1px solid #604b30;background:#2b2117}
+.upgrade-option-info{min-width:0}.upgrade-target-name{display:block;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}
+#gemUpgrades .upgrade-option-info p{margin:4px 0 0;font-size:12px;font-weight:400;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
+#gemUpgrades .upgrade-requirement{color:var(--dim)}
+#gemUpgrades .upgrade-option>button{width:auto;max-width:100%;min-width:44px;min-height:44px;justify-self:start;white-space:nowrap;line-height:1.5;padding:10px 14px;text-align:center}
+@media(max-width:600px){#gemUpgrades .upgrade-option{grid-template-columns:minmax(0,1fr)}}
