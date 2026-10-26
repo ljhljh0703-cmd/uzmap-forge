@@ -546,3 +546,9 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
  * content cannot paint through the old8px gap above it. PC flow is unchanged. */
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body.skin-framed{padding-top:20px}
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body>#selectionSheetHandle{top:-20px;margin-top:-20px}
+
+/* The bottom20px are already reserved inside the mobile frame. Reuse its
+ * approved72px source slices at the same18px decoded border size over the
+ * outgoing scroll content, keeping the existing top handle above this edge.
+ * This non-interactive sticky decoration does not change the viewport size. */
+.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body.skin-framed::after{content:'';position:sticky;bottom:-20px;z-index:2;order:99;align-self:stretch;flex:0 0 20px;box-sizing:border-box;width:calc(100% + 40px);min-height:20px;height:20px;margin:0 -20px -20px;pointer-events:none;background:#2b2117;border-style:solid;border-color:transparent;border-width:0 18px 18px;border-image-source:url(./assets/ui/approved/frame-panel.png);border-image-slice:72;border-image-width:0 18px 18px 18px;border-image-repeat:stretch;image-rendering:pixelated}
