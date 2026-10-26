@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {trainingInterruptionText} from '../../web/play-ui.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,7 +18,7 @@ function fixture(){
  const callbacks:Record<string,()=>void>={};let steps=0;
  const context:any={world:{sim:{}},playing:true,restoring:false,restoreCancelled:false,runtimeFailed:false,loadingRun:false,checkpointRun(){},tps:1,frameClock:{reset(){},advance(){return 1;}},$:(id:string)=>nodes[id],document:{hidden:true,querySelectorAll:()=>[],addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn},window:{addEventListener:(type:string,fn:()=>void)=>callbacks[type]=fn,showErr(){}},requestAnimationFrame(){},render(){},stepN(){steps++;},performance:{now:()=>0}};
  context.trainingInterruptionText=trainingInterruptionText;context.drag={on:false};const interruption=['clearPlacement','interruptUiOrders'].map(name=>source.match(new RegExp('^function '+name+'\\([^\\n]*\\{[\\s\\S]*?\\n\\}','m'))?.[0]??'').join('\n');
- vm.runInNewContext(interruption+'\n'+controls+'\n'+visibility+'\n'+fatal+'\n'+loop,context);
+ vm.runInNewContext(interruption+'\n'+controls+'\n'+visibility+'\n'+fatal+'\n'+loop,Object.assign(context,domState));
  return {context,nodes,callbacks,steps:()=>steps};
 }
 it('a fatal game error stays visible and non-resumable across hide, return and later control refresh',()=>{
@@ -40,7 +41,7 @@ it('pending mode input keeps save locked through training paint and unlocks afte
  const base=f.context.$;f.context.$=(id:string)=>extraNodes[id]??base(id);
  Object.assign(f.context,{trainingActions:()=>[],gemTowerPlayerState:()=>({life:15,difficulty:1}),gemTowerCasinoState:()=>({stations:[]})});
  Object.assign(f.context.world,{sim:{ledger:{gold:()=>10},pendingTrainings:new Map()},trainingSignature:JSON.stringify([[],15,true,10,true,undefined,[],[]])});
- vm.runInNewContext(training,f.context);f.context.renderTraining(f.context.world);f.context.renderControls(f.context.world);assert.equal(f.nodes.saveRun.disabled,true);
+ vm.runInNewContext(training,Object.assign(f.context,domState));f.context.renderTraining(f.context.world);f.context.renderControls(f.context.world);assert.equal(f.nodes.saveRun.disabled,true);
  f.context.renderTraining(f.context.world);assert.equal(f.nodes.saveRun.disabled,true,'training must not re-enable an unsafe save');
  delete f.context.world.modeDialog.pendingButtonId;f.context.renderTraining(f.context.world);f.context.renderControls(f.context.world);assert.equal(f.nodes.saveRun.disabled,false);
 });

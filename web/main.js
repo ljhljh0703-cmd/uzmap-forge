@@ -1,3 +1,4 @@
+import {setHidden,setText,setData,setStyle,setProperty,setAttribute} from './dom-state.js';
 import {createRecordBook,createResultStats,sourceExitActor,koreanDate,dailySeed,challengeFromQuery,challengeURL,shareChallenge} from './result-records.js';
 import {mountResultView} from './result-view.js';
 import {FIRST_RUN_TIPS} from './first-run-guide.js';
@@ -55,7 +56,7 @@ const $ = (id) => document.getElementById(id);
 const loadingScreen=mountLoadingScreen(document,{tips:FIRST_RUN_TIPS});
 const cv = $("cv"), ctx = cv.getContext("2d");
 const surface=cv.parentElement;
-const sprites = new SpriteBank({onRevision:meta=>{invalidateSpriteViews(world,meta);if(meta.kind==='error')$('artStatus').textContent='일부 그림은 기본 도형으로 표시됩니다';}});
+const sprites = new SpriteBank({onRevision:meta=>{invalidateSpriteViews(world,meta);if(meta.kind==='error')setText($('artStatus'),'일부 그림은 기본 도형으로 표시됩니다');}});
 const effectIcons=mountEffectIcons({document,host:$('gemEffectIcons'),sprites});
 const gemSkin=mountGemSkin({document,
  drawGem:(context,item,x,y,size)=>item.kind==='stone'?drawFieldStone(context,{sprites,x,y,size}):item.kind==='slate'?drawFieldSlate(context,{sprites,logical:item.logical,x,y,size}):drawFieldGem(context,{sprites,logical:item.logical,x,y,size,grade:item.name,selected:item.selected,tint:item.tint,tick:0}),
@@ -70,36 +71,36 @@ const gameMenu=mountGameMenu(document);
 const playPreferences=createPlayPreferences(()=>globalThis.localStorage);
 $('precisePlacement').checked=playPreferences.snapshot().precision;
 const damageLabel=document.createElement('label'),damageToggle=document.createElement('input');damageLabel.className='damage-option';damageToggle.id='showDamageNumbers';damageToggle.type='checkbox';damageToggle.checked=playPreferences.snapshot().damageNumbers;damageLabel.append(damageToggle,document.createTextNode('몬스터 피해 숫자'));$('menuPanelSettings').insertBefore(damageLabel,$('advancedOptions'));damageToggle.addEventListener('change',()=>{playPreferences.set({damageNumbers:damageToggle.checked});textTags.length=0;});
-const goldGain=document.createElement('span');goldGain.id='goldGain';goldGain.className='gold-gain';goldGain.hidden=true;goldGain.setAttribute('aria-hidden','true');$('hudGold').parentElement.append(goldGain);
+const goldGain=document.createElement('span');goldGain.id='goldGain';goldGain.className='gold-gain';setHidden(goldGain,true);setAttribute(goldGain,'aria-hidden','true');$('hudGold').parentElement.append(goldGain);
 const recordBook=createRecordBook(()=>globalThis.localStorage);
-const resultView=mountResultView(document,{same:model=>startChallenge(model.profile),today:()=>startChallenge({seed:dailySeed(koreanDate()),dailyDate:koreanDate(),mode:'race',difficulty:0}),share:model=>shareChallenge(navigator,{title:'보석타워',text:`보석타워 ${model.profile.dailyDate?'오늘의 판 ':''}${model.wave}웨이브 · 같은 시작 조건으로 도전하기`,url:challengeURL(location.href,model.profile)})});
+const resultView=mountResultView(document,{same:model=>startChallenge(model.profile),today:()=>{const date=koreanDate();return startChallenge({seed:dailySeed(date),dailyDate:date,mode:'race',difficulty:0});},share:model=>shareChallenge(navigator,{title:'보석타워',text:`보석타워 ${model.profile.dailyDate?'일일 도전 ':''}${model.wave}웨이브 · 같은 시작 조건으로 도전하기`,url:challengeURL(location.href,model.profile)})});
 const buttonReasons=createButtonReasonView(document);
-const roundSlotsHelp=document.createElement('small');roundSlotsHelp.id='roundSlotsHelp';roundSlotsHelp.className='round-slots-help';roundSlotsHelp.hidden=true;$('roundTray').append(roundSlotsHelp);
+const roundSlotsHelp=document.createElement('small');roundSlotsHelp.id='roundSlotsHelp';roundSlotsHelp.className='round-slots-help';setHidden(roundSlotsHelp,true);$('roundTray').append(roundSlotsHelp);
 const researchShortcut=mountResearchShortcut(document,{purchase:techId=>requestResearch(world,techId),reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches});
 const firstRunView=mountFirstRunGuide(document,{skip:()=>{world?.firstRunGuide?.skip();if(world)render(world);},next:()=>{world?.firstRunGuide?.next();if(world)render(world);}});
-const showFirstRunGuide=document.createElement('button');showFirstRunGuide.id='showFirstRunGuide';showFirstRunGuide.type='button';showFirstRunGuide.className='sec';showFirstRunGuide.textContent='안내 다시 보기';showFirstRunGuide.disabled=true;showFirstRunGuide.onclick=()=>{if(world){world.firstRunGuide.openManual();setDrawer(false);render(world);}};$('menuPanelSettings').insertBefore(showFirstRunGuide,$('advancedOptions'));
-const quickRecipes=document.createElement('button');quickRecipes.id='quickRecipes';quickRecipes.type='button';quickRecipes.className='sec';quickRecipes.textContent='조합표';quickRecipes.onclick=()=>{setDrawer(true);gameMenu.reveal('recipeOptions');};$('researchShortcut').insertBefore(quickRecipes,$('quickResearchDetail'));
+const showFirstRunGuide=document.createElement('button');showFirstRunGuide.id='showFirstRunGuide';showFirstRunGuide.type='button';showFirstRunGuide.className='sec';setText(showFirstRunGuide,'안내 다시 보기');setProperty(showFirstRunGuide,"disabled",true);showFirstRunGuide.onclick=()=>{if(world){world.firstRunGuide.openManual();setDrawer(false);render(world);}};$('menuPanelSettings').insertBefore(showFirstRunGuide,$('advancedOptions'));
+const quickRecipes=document.createElement('button');quickRecipes.id='quickRecipes';quickRecipes.type='button';quickRecipes.className='sec';setText(quickRecipes,'조합표');quickRecipes.onclick=()=>{setDrawer(true);gameMenu.reveal('recipeOptions');};$('researchShortcut').insertBefore(quickRecipes,$('quickResearchDetail'));
 const nextWaveCard=mountNextWave(document,Object.assign((context,model,x,y,size)=>drawMineCreep(context,{sprites,typeId:model.typeId,band:model.band,airborne:model.motion==='공중',x,y,groundY:y,size,tick:0,reducedMotion:true}),{ready:()=>sprites.ready?sprites.revision:0}));
 const overlapPicker=mountOverlapPicker(document,id=>{if(world)selectOverlapGem(world,id);});
 const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
 const coarsePointer=matchMedia("(pointer:coarse)");
 const lifeHud=mountHudLifeCue({document,sprites,feedback:createFieldFeedback({reducedMotion:()=>reducedMotion.matches}),reducedMotion:()=>reducedMotion.matches});
-$('gameApp').dataset.audioRequests='0';
-const fetchAudioFile=url=>{$('gameApp').dataset.audioRequests=String(Number($('gameApp').dataset.audioRequests)+1);return fetch(url);};
+setData($('gameApp'),"audioRequests",'0');
+const fetchAudioFile=url=>{setData($('gameApp'),"audioRequests",String(Number($('gameApp').dataset.audioRequests)+1));return fetch(url);};
 let soundSettings=null,soundRecording=null;
 const actionAudio=createCueAudio({fetch:fetchAudioFile,logLimit:2048,cueUrls:H_AUDIO_CUES,bgmUrls:H_BGM,cueSettings:H_CUE_SETTINGS,onState:state=>{
  const button=$('feedbackSound'),label=$('feedbackSoundStatus');if(!button||!label)return;
- button.textContent=state.enabled?'소리 켜짐':'소리 꺼짐';button.setAttribute('aria-pressed',String(state.enabled));button.dataset.soundState=state.status;button.dataset.played=String(state.played);
- const text=({idle:'첫 터치 후 소리가 준비됩니다',loading:'소리 준비 중…',ready:'소리 준비됨',muted:'소리가 꺼져 있습니다',paused:'다음 터치부터 소리가 재개됩니다',blocked:'소리를 준비하지 못했습니다 · 다시 켜서 시도하세요',unsupported:'이 브라우저는 소리를 지원하지 않습니다'})[state.status];if(label.textContent!==text)label.textContent=text;soundSettings?.render(state);
+ setText(button,state.enabled?'소리 켜짐':'소리 꺼짐');setAttribute(button,'aria-pressed',String(state.enabled));setData(button,"soundState",state.status);setData(button,"played",String(state.played));
+ const text=({idle:'첫 터치 후 소리가 준비됩니다',loading:'소리 준비 중…',ready:'소리 준비됨',muted:'소리가 꺼져 있습니다',paused:'다음 터치부터 소리가 재개됩니다',blocked:'소리를 준비하지 못했습니다 · 다시 켜서 시도하세요',unsupported:'이 브라우저는 소리를 지원하지 않습니다'})[state.status];if(label.textContent!==text)setText(label,text);soundSettings?.render(state);
 }});
 const actionFeedback=createActionFeedback({document,play:kind=>queueSoundEvent(world,kind,{key:kind+':'+world.sim.tickCount}),reducedMotion:()=>reducedMotion.matches});
 soundSettings=mountAudioSettings(document,{audio:actionAudio,muted:new URLSearchParams(location.search).get('muted')==='1'});
-const soundLabel=document.querySelector('.feedback-sound .sound-label');if(soundLabel)soundLabel.textContent='소리';
+const soundLabel=document.querySelector('.feedback-sound .sound-label');if(soundLabel)setText(soundLabel,'소리');
 const unlockActionAudio=event=>{if(event.isTrusted===false)return;void actionAudio.unlock();};
 document.addEventListener('pointerdown',unlockActionAudio,{capture:true,passive:true});
 document.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')unlockActionAudio(event);},true);
 document.addEventListener('click',event=>{const button=event.target?.closest?.('button,[role=tab]');if(event.isTrusted===false||!button||button.disabled||button.getAttribute('aria-disabled')==='true')return;queueSoundEvent(world,'tap',{key:'tap:'+performance.now()});flushGameSound(world);},true);
-const quietActionFeedback=()=>{textTags.length=0;goldTags.length=0;goldGain.hidden=true;$('gameApp').dataset.lifeEdge='false';void soundRecording?.stop();lifeHud.clear();actionFeedback.clear();world?.fieldFeedback?.clear();if(world){world.waveStartBanner=null;world.lifeEdgeUntil=0;world.waveNotice=null;world.enemyEncounters?.clear();}void actionAudio.suspend();};
+const quietActionFeedback=()=>{textTags.length=0;goldTags.length=0;setHidden(goldGain,true);setData($('gameApp'),"lifeEdge",'false');void soundRecording?.stop();lifeHud.clear();actionFeedback.clear();world?.fieldFeedback?.clear();if(world){world.waveStartBanner=null;world.lifeEdgeUntil=0;world.waveNotice=null;world.enemyEncounters?.clear();}void actionAudio.suspend();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)quietActionFeedback();});
 window.addEventListener('pagehide',quietActionFeedback);
 
@@ -109,9 +110,9 @@ const replayBuild=/^[a-f0-9]{16}$/.test(window.UZMAP_REPLAY_BUILD??'')?window.UZ
 if(contentBuild)artManifestURL.searchParams.set("build",contentBuild);
 installLocalSoundReview();
 const visualReady=sprites.load(artManifestURL.href,{lazy:true}).then(()=>{
-  $("artStatus").textContent=sprites.errors.length?"일부 그림은 기본 도형으로 표시됩니다":"기존 제작 그래픽 연결됨";
+  setText($("artStatus"),sprites.errors.length?"일부 그림은 기본 도형으로 표시됩니다":"기존 제작 그래픽 연결됨");
   if(sprites.errors.length)console.warn("[art fallback]",...sprites.errors);
-  $("gameApp").dataset.artCriticalReady=String(sprites.ready&&sprites.errors.length===0);
+  setData($("gameApp"),"artCriticalReady",String(sprites.ready&&sprites.errors.length===0));
   gemSkin.refresh();
 });
 const NEUTRAL_GC = { armorFactorPm: 60, strHitPointBonus: 0, agiDefenseBonusPm: 0, intManaBonusPm: 0 };
@@ -128,7 +129,7 @@ const frameClock = createFrameClock();
 let restoring=false,restoreCancelled=false;
 let runtimeFailed=false,loadingRun=false;
 let world = null, playing = false, tps = 1, rectEntered = 0, deaths = 0, gatePassed = 0;
-window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;world?.viewFeedback?.clear();void world?.cueAudio?.suspend();frameClock.reset();$("play").disabled=true;$("runState").textContent='오류로 정지';});
+window.addEventListener('game-runtime-error',()=>{runtimeFailed=true;playing=false;world?.viewFeedback?.clear();void world?.cueAudio?.suspend();frameClock.reset();setProperty($("play"),"disabled",true);setText($("runState"),'오류로 정지');});
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6, GEM_IDENTITY_MINE_DESIGN §6) — TextTag(피격/획득 부유 숫자).
 // Attacked 이벤트엔 대미지 수치 필드가 없어(world_api.ts SimEvent — attackerUnitId/targetUnitId만) 값
 // 재구현 없이 "매 스텝 전/후 hp 스냅샷 차이"로 대미지량을 관측한다(엔진 hp mutation을 그대로 읽을 뿐 —
@@ -187,44 +188,44 @@ function switchField(w,playerId){
  if(!w||!Number.isInteger(playerId)||playerId<0||playerId>=MAX_FIELD_PLAYERS)return;
  if(playerId!==0&&w.sim.playerState?.getSlotState(playerId)!==1&&w.sim.playerState)return;
  w.precisionCamera?.reset();drag.on=false;drag.cell=null;
- w.fieldFeedback?.clear();actionFeedback.clear();goldTags.length=0;goldGain.hidden=true;w.viewPlayerId=playerId;w.cameraMode='fit';w.hover=null;w.hoverGemId=null;w.buildCellsView=null;
+ w.fieldFeedback?.clear();actionFeedback.clear();goldTags.length=0;setHidden(goldGain,true);w.viewPlayerId=playerId;w.cameraMode='fit';w.hover=null;w.hoverGemId=null;w.buildCellsView=null;
  fitPlayerField(w);render(w);
 }
 function renderFieldView(w){
  const player=w.viewPlayerId??0,other=player!==0,connected=w.sim.playerState.getSlotState(player)===1;
- const app=$('gameApp');app.dataset.field=other?'other':'mine';app.dataset.camera=w.cameraMode??'fit';app.dataset.selected=String(w.selectedGemId!==null);
+ const app=$('gameApp');setData(app,"field",other?'other':'mine');setData(app,"camera",w.cameraMode??'fit');setData(app,"selected",String(w.selectedGemId!==null));
  for(const [index,id] of ['fieldMine','fieldOther'].entries()){
-  const tab=$(id);tab.setAttribute('aria-selected',String(index===player));tab.tabIndex=index===player?0:-1;
+  const tab=$(id);setAttribute(tab,'aria-selected',String(index===player));setProperty(tab,"tabIndex",index===player?0:-1);
  }
- $('fieldOther').hidden=w.sim.playerState.getSlotState(1)!==1;
- $('fieldOtherState').textContent=w.sim.playerState.getSlotState(1)===1?'관전':'미접속';
- $('cv').setAttribute('aria-label',other?'상대 전장 관전. 내 전장 탭으로 돌아가 건설하세요':'내 전장. 표시된 빈칸을 눌러 건설하세요. 돌 바닥은 건설할 수 없습니다. 길게 누르면 건설 위치를 확인합니다. 보석을 누르면 선택합니다');
- $('combatCount').hidden=other&&!connected;
- $('spectatorBanner').hidden=!other;$('spectatorBanner').textContent=connected?'상대 전장 · 관전 중':'상대 미접속 · 두 번째 전장';
- $('spectatorActions').hidden=!other;$('bottomPanel').inert=other||restoring;
- $('battlefield').setAttribute('aria-labelledby',other?'fieldOther':'fieldMine');
- for(const id of ['trainingOptions','casinoPanel'])if($(id))$(id).inert=other||restoring;
- for(const id of RESEARCH_IDS)if(other)$('rs'+id+'Btn').disabled=true;
- if(other)$('chatSend').disabled=true;
+ setHidden($('fieldOther'),w.sim.playerState.getSlotState(1)!==1);
+ setText($('fieldOtherState'),w.sim.playerState.getSlotState(1)===1?'관전':'미접속');
+ setAttribute($('cv'),'aria-label',other?'상대 전장 관전. 내 전장 탭으로 돌아가 건설하세요':'내 전장. 표시된 빈칸을 눌러 건설하세요. 돌 바닥은 건설할 수 없습니다. 길게 누르면 건설 위치를 확인합니다. 보석을 누르면 선택합니다');
+ setHidden($('combatCount'),other&&!connected);
+ setHidden($('spectatorBanner'),!other);setText($('spectatorBanner'),connected?'상대 전장 · 관전 중':'상대 미접속 · 두 번째 전장');
+ setHidden($('spectatorActions'),!other);setProperty($('bottomPanel'),"inert",other||restoring);
+ setAttribute($('battlefield'),'aria-labelledby',other?'fieldOther':'fieldMine');
+ for(const id of ['trainingOptions','casinoPanel'])if($(id))setProperty($(id),"inert",other||restoring);
+ for(const id of RESEARCH_IDS)if(other)setProperty($('rs'+id+'Btn'),"disabled",true);
+ if(other)setProperty($('chatSend'),"disabled",true);
  const state=gemTowerPlayerState(w.vm,player),now=performance.now();w.displayedLife??=[];w.lifeHitUntil??=[];w.lifeHitMessage??=[];
  const loss=lifeLossFeedback(w.displayedLife[player],state.life);
  const lifeStatus=$('lifeLossStatus');
- if((restoring||w.displayedLife[player]===undefined)&&lifeStatus?.textContent)lifeStatus.textContent='';
+ if((restoring||w.displayedLife[player]===undefined)&&lifeStatus?.textContent)setText(lifeStatus,'');
  if(loss&&!restoring&&!document.hidden&&w.modeDialog?.clicked&&(state.round??0)>0){
   w.lifeHitUntil[player]=now+1800;if(player===0&&now-(w.lifeEdgeStarted??-Infinity)>=350){w.lifeEdgeStarted=now;w.lifeEdgeUntil=now+300;}w.lifeHitMessage[player]=loss;
   lifeHud.emit({key:`${w.runId}:${w.sim.tickCount}:life:${player}:${state.life}`});
-  if(lifeStatus)lifeStatus.textContent=(other?'상대 전장 · ':'')+loss+` · 남은 생명 ${state.life}`;
+  if(lifeStatus)setText(lifeStatus,(other?'상대 전장 · ':'')+loss+` · 남은 생명 ${state.life}`);
  }
  w.displayedLife[player]=state.life;const hit=now<(w.lifeHitUntil[player]??0);
- $('gameApp').dataset.lifeEdge=String(!other&&now<(w.lifeEdgeUntil??0));$('hudLife').closest('.hud-pill').dataset.lifeHit=String(hit);$('exitMarker').dataset.hit=String(hit);
- $('exitLegendLabel').textContent=hit?w.lifeHitMessage[player]:'광산으로 · 도착 시 생명 감소';
- const hint=$('gemNone').querySelector('span');hint.textContent=w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개${playing?' · 완성 중':' · 재개해서 완성하기'}`:w.precisePlacement?'정밀 배치 · 빈칸을 고르고 아래 건설로 확정':selectionStageHint(state);
+ setData($('gameApp'),"lifeEdge",String(!other&&now<(w.lifeEdgeUntil??0)));setData($('hudLife').closest('.hud-pill'),"lifeHit",String(hit));setData($('exitMarker'),"hit",String(hit));
+ setText($('exitLegendLabel'),hit?w.lifeHitMessage[player]:'광산으로 · 도착 시 생명 감소');
+ const hint=$('gemNone').querySelector('span');setText(hint,w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개${playing?' · 완성 중':' · 재개해서 완성하기'}`:w.precisePlacement?'정밀 배치 · 빈칸을 고르고 아래 건설로 확정':selectionStageHint(state));
  if(other){
-  $('hudGold').textContent=connected?Math.floor(w.sim.ledger.gold(player)):'—';
-  $('hudLife').textContent=connected?(state.life??'—'):'—';
-  $('hudTower').textContent=connected?gemTowerPlayerGemIds(w.vm,player).length:'—';
-  $('hudWaveNum').textContent=connected?(state.round??'—'):'—';
-  $('buildCells').hidden=true;$('cancelPoint').hidden=true;
+  setText($('hudGold'),connected?Math.floor(w.sim.ledger.gold(player)):'—');
+  setText($('hudLife'),connected?(state.life??'—'):'—');
+  setText($('hudTower'),connected?gemTowerPlayerGemIds(w.vm,player).length:'—');
+  setText($('hudWaveNum'),connected?(state.round??'—'):'—');
+  setHidden($('buildCells'),true);setHidden($('cancelPoint'),true);
  }
 }
 const drag = { on: false, moved: false, sx: 0, sy: 0 };
@@ -357,8 +358,8 @@ function boot(bytes, presentation, stockProfile, seed) {
   cam.cx = r0 ? (r0.minX + r0.maxX) / 2 : 0;
   cam.cy = r0 ? (r0.minY + r0.maxY) / 2 - 1200 : 0; // 펜 쪽으로 살짝
   cam.zoom = clamp(14 / (pm ? pm.cellSize : 32), 0.05, 2); // 셀 ≈ 14px
-  $("mMap").textContent = "GemTower_Max_7C"; $("mTrig").textContent = registry.registeredTriggerCount;
-  const hudTotalWaves = $("hudTotalWaves"); if (hudTotalWaves) hudTotalWaves.textContent = TOTAL_WAVES; // U-2b: index.html의 "50" 리터럴은 부팅 1회 여기서 실값으로 갱신(집계값, 발명 0)
+  setText($("mMap"),"GemTower_Max_7C"); setText($("mTrig"),registry.registeredTriggerCount);
+  const hudTotalWaves = $("hudTotalWaves"); if (hudTotalWaves) setText(hudTotalWaves,TOTAL_WAVES); // U-2b: index.html의 "50" 리터럴은 부팅 1회 여기서 실값으로 갱신(집계값, 발명 0)
   rectEntered = 0; deaths = 0; gatePassed = 0;
   w.recordInput=input=>recordInput(w,input);
   focusPlayer(w);
@@ -406,7 +407,7 @@ function checkpointRun(w,force=false,now=Date.now()) {
  if(!w||restoring||loadingRun)return {kind:'skipped',reason:'ineligible'};
  const state=gemTowerPlayerState(w.vm),healthy=!runtimeFailed&&!w.replayMismatch&&!w.runtimeCrashes?.length;
  const eligible=healthy&&w.runMode==='race'&&w.modeDialog?.clicked&&w.modeDialog.pendingButtonId===undefined&&!w.trainingBatch&&state.difficulty>0&&w.sim.tickCount>=2;
- if(!eligible){const notice=!healthy?'자동 저장 중지 · 이전 기록은 보존됩니다':w.runMode==='classic'?'클래식은 이어하기를 지원하지 않습니다':w.trainingBatch?'묶음 구입을 마치면 자동 저장합니다':'게임을 시작하면 자동 저장합니다';if(status&&status.textContent!==notice)status.textContent=notice;return {kind:'skipped',reason:'ineligible'};}
+ if(!eligible){const notice=!healthy?'자동 저장 중지 · 이전 기록은 보존됩니다':w.runMode==='classic'?'클래식은 이어하기를 지원하지 않습니다':w.trainingBatch?'묶음 구입을 마치면 자동 저장합니다':'게임을 시작하면 자동 저장합니다';if(status&&status.textContent!==notice)setText(status,notice);return {kind:'skipped',reason:'ineligible'};}
  w.runCheckpoint??=createRunCheckpoint((trace,at)=>saveRunRecord(localStorage,trace,at,{automatic:true}));
  const result=w.runCheckpoint.attempt({now,eligible,force,revision:w.sim.tickCount+':'+(w.inputLog?.length??0),snapshot:()=>runSnapshot(w)});
  if(result.kind==='saved'){
@@ -416,7 +417,7 @@ function checkpointRun(w,force=false,now=Date.now()) {
   w.checkpointNotice='자동 저장 실패 · 저장 공간이나 브라우저 설정을 확인하세요';
   if(!w.checkpointFailed)flash(w.checkpointNotice);w.checkpointFailed=true;
  }
- if(status&&w.checkpointNotice&&status.textContent!==w.checkpointNotice)status.textContent=w.checkpointNotice;
+ if(status&&w.checkpointNotice&&status.textContent!==w.checkpointNotice)setText(status,w.checkpointNotice);
  return result;
 }
 // Replay text is a paused, visible inspection view; explicit save reuses its validated trace.
@@ -432,24 +433,24 @@ function refreshReplayOutput(w,trace) {
 function renderControls(w) {
  const ended=Boolean(w?.gameOver),awaitingMode=Boolean(w?.modeDialog&&!w.modeDialog.clicked),pendingMode=w?.modeDialog?.pendingButtonId!==undefined,play=$("play");
  const runLabel=runtimeFailed?'오류로 정지':restoring?'복원 중':ended?'게임 종료':awaitingMode?'방식 선택':playing?'진행 중':'일시정지';
- if($("runState").textContent!==runLabel)$("runState").textContent=runLabel;
- $("runState").dataset.state=runtimeFailed?'error':restoring?'restoring':ended?'ended':awaitingMode?'mode':playing?'playing':'paused';
- $("restoreOverlay").hidden=!restoring;$("cancelRestore").disabled=!restoring||restoreCancelled;
- for(const id of ["play","stepBtn","speed","chatInput","chatSend"])$(id).disabled=restoring||ended||runtimeFailed;
- if(awaitingMode)for(const id of ["play","stepBtn"])$(id).disabled=true;
- const cycle=$("speedCycle");if(cycle){cycle.disabled=$("speed").disabled||awaitingMode||Boolean(w?.startupChoice);cycle.textContent='배속 '+($("speed").value||1)+'×';}
- if(w?.replayMismatch)play.disabled=true;
- for(const id of ["reset","resumeRun","importRun"])$(id).disabled=restoring;
- $("saveRun").disabled=restoring||Boolean(w?.trainingBatch)||pendingMode;
- $("saveRun").title=pendingMode?'재개해서 게임 방식 선택을 처리한 뒤 저장하세요':'';
- $("resumeRun").disabled=restoring||!$("savedRuns").selectedOptions[0]?.record?.compatible;
- const upgrade=$("upgradeRun");if(upgrade)upgrade.disabled=restoring||!$("savedRuns").selectedOptions[0]?.record?.upgradeable;
+ if($("runState").textContent!==runLabel)setText($("runState"),runLabel);
+ setData($("runState"),"state",runtimeFailed?'error':restoring?'restoring':ended?'ended':awaitingMode?'mode':playing?'playing':'paused');
+ setHidden($("restoreOverlay"),!restoring);setProperty($("cancelRestore"),"disabled",!restoring||restoreCancelled);
+ for(const id of ["speed","chatInput","chatSend"])setProperty($(id),"disabled",restoring||ended||runtimeFailed);
+ setProperty($("stepBtn"),"disabled",restoring||ended||runtimeFailed||awaitingMode);
+ setProperty(play,"disabled",restoring||ended||runtimeFailed||awaitingMode||Boolean(w?.replayMismatch));
+ const cycle=$("speedCycle");if(cycle){setProperty(cycle,"disabled",$("speed").disabled||awaitingMode||Boolean(w?.startupChoice));setText(cycle,'배속 '+($("speed").value||1)+'×');}
+ for(const id of ["reset","importRun"])setProperty($(id),"disabled",restoring);
+ setProperty($("saveRun"),"disabled",restoring||Boolean(w?.trainingBatch)||pendingMode);
+ setProperty($("saveRun"),"title",pendingMode?'재개해서 게임 방식 선택을 처리한 뒤 저장하세요':'');
+ setProperty($("resumeRun"),"disabled",restoring||!$("savedRuns").selectedOptions[0]?.record?.compatible);
+ const upgrade=$("upgradeRun");if(upgrade)setProperty(upgrade,"disabled",restoring||!$("savedRuns").selectedOptions[0]?.record?.upgradeable);
  const label=runtimeFailed?'오류로 정지':restoring?'복원 중…':ended?'게임 종료':w?.replayMismatch?'복원 실패':awaitingMode?'방식 선택':playing?'일시정지':'재개';
- if(play.textContent!==label)play.textContent=label;
+ if(play.textContent!==label)setText(play,label);
  const drawerStatus=$("drawerRunStatus"),drawerLabel=play.disabled?label:playing?"진행 중 · 상단 일시정지로 멈출 수 있어요":"일시정지 · 상단 재개로 계속할 수 있어요";
- if(drawerStatus&&drawerStatus.textContent!==drawerLabel)drawerStatus.textContent=drawerLabel;
+ if(drawerStatus&&drawerStatus.textContent!==drawerLabel)setText(drawerStatus,drawerLabel);
  // The existing progress message and its ancestors stay outside the inert regions.
- for(const area of document.querySelectorAll('.header-actions,footer,#gameDrawer,#drawerScrim,#bottomPanel,#battlefield > :not(#msg):not(#restoreOverlay)'))if(area.inert!==restoring)area.inert=restoring;
+ for(const area of document.querySelectorAll('.header-actions,footer,#gameDrawer,#drawerScrim,#bottomPanel,#battlefield > :not(#msg):not(#restoreOverlay)'))if(area.inert!==restoring)setProperty(area,"inert",restoring);
 }
 function refreshSavedRuns(selectedKey){
  const list=$("savedRuns"),selected=selectedKey??list.value;list.replaceChildren();
@@ -459,21 +460,21 @@ function refreshSavedRuns(selectedKey){
    const option=document.createElement('option');option.value=record.key;option.record=record;
    const date=record.trace?.savedAt?new Date(record.trace.savedAt).toLocaleString('ko-KR'):'이전 기록';
    const round=record.trace?.sourceState?.round;
-   option.textContent=`${record.trace?.migratedFrom?'검사한 복사본 · ':''}${record.legacy?'보호된 예전 저장 · ':record.automatic?'자동 저장 · ':'수동 저장 · '}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.upgradeable?'검사하고 이어하기':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전'}`;
+   setText(option,`${record.trace?.migratedFrom?'검사한 복사본 · ':''}${record.legacy?'보호된 예전 저장 · ':record.automatic?'자동 저장 · ':'수동 저장 · '}${date}${round!=null?` · ${round}웨이브`:''} · ${record.compatible?'이어하기 가능':record.upgradeable?'검사하고 이어하기':record.error?'형식 확인 필요':record.reason==='classic'?'클래식 · 이어하기 미지원':'다른 버전'}`);
    list.append(option);
   }
   if(records.some(r=>r.key===selected))list.value=selected;
-  $("saveStatus").textContent=records.length?`저장 ${records.length}개 · 새 게임마다 별도 보관합니다`:'저장한 게임이 없습니다';
- }catch(error){$("saveStatus").textContent=`브라우저 저장소를 읽지 못했습니다: ${error.message}`;}
+  setText($("saveStatus"),records.length?`저장 ${records.length}개 · 새 게임마다 별도 보관합니다`:'저장한 게임이 없습니다');
+ }catch(error){setText($("saveStatus"),`브라우저 저장소를 읽지 못했습니다: ${error.message}`);}
  showSavedRun();
 }
 function showSavedRun(){
  const record=$("savedRuns").selectedOptions[0]?.record;
  $("savedRunRaw").value=record?.raw??'';
- $("resumeRun").disabled=restoring||!record?.compatible;
- const upgrade=$("upgradeRun");if(upgrade){upgrade.hidden=!record?.upgradeable;upgrade.disabled=restoring||!record?.upgradeable;}
- $("exportRun").disabled=!record;
- $("savedRunHelp").textContent=!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?record.upgradeable?'예전 기록을 지금 버전에서 검사합니다. 진행 결과가 같으면 별도 저장을 만들어 이어가며 원본은 남습니다.':'원본을 내보낼 수 있습니다. 이 기록은 현재 검사할 수 없습니다.':record.trace?.migratedFrom?'예전 기록을 확인해 만든 새 저장입니다. 원래 기록은 별도로 남아 있습니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.';
+ setProperty($("resumeRun"),"disabled",restoring||!record?.compatible);
+ const upgrade=$("upgradeRun");if(upgrade){setHidden(upgrade,!record?.upgradeable);setProperty(upgrade,"disabled",restoring||!record?.upgradeable);}
+ setProperty($("exportRun"),"disabled",!record);
+ setText($("savedRunHelp"),!record?'진행 저장을 누르면 현재 게임을 보관합니다.':record.error?'기록은 보존되어 있습니다. 원본을 내보내 확인하세요.':record.reason==='classic'?'클래식 수동 시작 기록은 이어하기를 지원하지 않습니다. 원본 내보내기는 가능합니다.':!record.compatible?record.upgradeable?'예전 기록을 지금 버전에서 검사합니다. 진행 결과가 같으면 별도 저장을 만들어 이어가며 원본은 남습니다.':'원본을 내보낼 수 있습니다. 이 기록은 현재 검사할 수 없습니다.':record.trace?.migratedFrom?'예전 기록을 확인해 만든 새 저장입니다. 원래 기록은 별도로 남아 있습니다.':record.legacy?'예전 저장 원본은 보호됩니다. 이어한 뒤 저장해도 새 저장 칸을 사용합니다.':'선택한 기록으로 이어하면 현재 화면 대신 저장 당시 진행을 복원합니다.');
 }
 $("savedRuns").onchange=showSavedRun;
 $("exportRun").onclick=()=>{
@@ -487,12 +488,12 @@ function captureRunView(){
 function restoreRunView(before){
  world=before.world;Object.assign(cam,before.cam);
  ({runtimeFailed,prevHp,prevGold,textTags,goldTags,lastPos,attackFx,waveNum,prevCreeps,waveFlashUntil,rectEntered,deaths,gatePassed}=before);
- if(before.mode===undefined)delete $("gameApp").dataset.mode;else $("gameApp").dataset.mode=before.mode;
+ if(before.mode===undefined)delete $("gameApp").dataset.mode;else setData($("gameApp"),"mode",before.mode);
  if(world){for(const key of ['rosterSignature','upgradeSignature','nativeDialogKey','trainingSignature','trainingButtons','buildCellsView','buildCellsCheck','replayOutputKey'])delete world[key];renderChatHelp(world);if(!runtimeFailed)render(world,true);}
- if(before.failureMessage){$("msg").replaceChildren(...before.failureMessage.nodes);$("msg").style.display=before.failureMessage.display;}
+ if(before.failureMessage){$("msg").replaceChildren(...before.failureMessage.nodes);setStyle($("msg"),"display",before.failureMessage.display);}
 }
 function cancelRestore(){
- if(!restoring)return;restoreCancelled=true;$("cancelRestore").disabled=true;$("restoreProgressText").textContent='복원 취소 중… 기존 진행으로 돌아갑니다';
+ if(!restoring)return;restoreCancelled=true;setProperty($("cancelRestore"),"disabled",true);setText($("restoreProgressText"),'복원 취소 중… 기존 진행으로 돌아갑니다');
 }
 async function restoreRun(raw,{verifyUpgrade=false}={}){
  if(restoring||loadingRun)return;
@@ -501,7 +502,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
  const checkpoint=checkpointRun(world,true);if(checkpoint?.kind==='failed'){flash('현재 진행을 보관하지 못해 이어하기를 중단했습니다 · 현재 게임은 계속할 수 있습니다');return;}
  const before=captureRunView(),savedSelection=$("savedRuns")?.value;let savedCopy,completed=false;
  const rollbackCopy=()=>{if(!savedCopy)return '';try{return savedCopy.rollback()?'':' · 새 복사본이 변경되어 그대로 남겨 두었습니다';}catch{return ' · 새 복사본 정리를 완료하지 못했습니다';}};
- restoring=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();void soundRecording?.stop();restoreCancelled=false;playing=false;renderControls(world);$("restoreProgressText").textContent=upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다';$("cancelRestore").focus();
+ restoring=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();void soundRecording?.stop();restoreCancelled=false;playing=false;renderControls(world);setText($("restoreProgressText"),upgrading?'예전 저장을 검사할 준비를 하고 있습니다':'저장한 게임을 준비하고 있습니다');$("cancelRestore").focus();
  try{
   const opened=await loadFromUrl(trace.seed,{publishSeed:false});playing=false;if(opened!==true||runtimeFailed)throw Error('게임을 새로 열지 못했습니다');if(restoreCancelled)throw Error('복원을 취소했습니다');if(!world||world===before.world)throw Error('게임을 새로 열지 못했습니다');
   world.restoredView=true;
@@ -511,7 +512,7 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
    const started=performance.now();cursor=replayInputBatch(world,trace,cursor,n=>stepN(world,n),200,()=>performance.now()-started>=12);
    // Hidden replay effects have no presentation lifetime; retain at most one batch.
    textTags.length=0;goldTags.length=0;attackFx.length=0;
-   const percent=Math.floor(world.sim.tickCount/Math.max(1,trace.tick)*100);$("restoreProgressText").textContent=`${upgrading?'예전 저장을 검사하는 중':'저장한 게임을 이어오는 중'}… ${percent}% · ${world.sim.tickCount.toLocaleString()} / ${trace.tick.toLocaleString()}`;
+   const percent=Math.floor(world.sim.tickCount/Math.max(1,trace.tick)*100);setText($("restoreProgressText"),`${upgrading?'예전 저장을 검사하는 중':'저장한 게임을 이어오는 중'}… ${percent}% · ${world.sim.tickCount.toLocaleString()} / ${trace.tick.toLocaleString()}`);
    await new Promise(resolve=>setTimeout(resolve,0));
   }
   if(restoreCancelled)throw Error('복원을 취소했습니다');
@@ -522,8 +523,8 @@ async function restoreRun(raw,{verifyUpgrade=false}={}){
   {const pending=world.inputLog.filter(a=>a.tick===world.sim.tickCount&&a.kind==='research'&&a.playerId===0&&a.accepted).at(-1);world.pendingResearch=pending?{techId:pending.techId}:null;}
   // End research presentation restore
   if(upgrading){savedCopy=saveVerifiedRunCopy(localStorage,trace,runSnapshot(world));world.runId=savedCopy.trace.runId;world.migratedFrom={...savedCopy.trace.migratedFrom};}
-  frameClock.reset();$("msg").style.display='none';render(world,true);if(savedCopy)refreshSavedRuns(savedCopy.key);flash(upgrading?'예전 진행을 확인해 새 저장을 만들었습니다 · 재개를 누르세요':'저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);if(!upgrading)commitSessionSeed(trace.seed);completed=true;
- }catch(error){const cleanup=rollbackCopy();restoreRunView(before);if(savedCopy)refreshSavedRuns(savedSelection);if(!runtimeFailed)$("msg").style.display='none';flash(`${error.message}${cleanup} · 기존 진행을 유지했습니다`);}
+  frameClock.reset();setStyle($("msg"),"display",'none');render(world,true);if(savedCopy)refreshSavedRuns(savedCopy.key);flash(upgrading?'예전 진행을 확인해 새 저장을 만들었습니다 · 재개를 누르세요':'저장한 진행을 정확히 복원했습니다 · 재개를 누르세요');setDrawer(false);if(!upgrading)commitSessionSeed(trace.seed);completed=true;
+ }catch(error){const cleanup=rollbackCopy();restoreRunView(before);if(savedCopy)refreshSavedRuns(savedSelection);if(!runtimeFailed)setStyle($("msg"),"display",'none');flash(`${error.message}${cleanup} · 기존 진행을 유지했습니다`);}
  finally{
   restoring=false;playing=false;frameClock.reset();
   try{renderControls(world);$("researchToggle").focus();if(upgrading&&completed)commitSessionSeed(trace.seed);}
@@ -545,7 +546,7 @@ function trainingTechName(w,id,level=1){
 }
 
 function renderGemUpgradeOptions(w,selected,upgrades){
- const root=$('gemUpgrades'),signature=JSON.stringify([selected.id,selected.typeId,upgrades]);root.hidden=!upgrades.length;
+ const root=$('gemUpgrades'),signature=JSON.stringify([selected.id,selected.typeId,upgrades]);setHidden(root,!upgrades.length);
  if(w.upgradeSignature===signature)return;w.upgradeSignature=signature;root.replaceChildren();
  for(const row of upgrades){
   const target=defOf(w,row.typeId),name=target?.name?fullName(w,row.typeId):'강화 정보 없음';
@@ -577,17 +578,17 @@ function renderRouteCues(w){
  const player=w.viewPlayerId??0,bounds=w.viewBounds,spawn=sourceIndexedRect(w,'x',player+1),entry=sourceIndexedRect(w,'o',player+1),marker=$('spawnMarker'),exit=$('exitMarker');
  const gateSpec=GEMTOWER_BALANCE.life.leakGateRects.find(g=>g.playerId===player),gate=gateSpec?sourceRect(w,gateSpec.id):null;
  const next=sourceRect(w,player===0?'Ax':'Fx'),last=w.fieldRects?.[player]?.at(-1);
- marker.hidden=!bounds||!spawn||!entry;exit.hidden=!bounds||!gate||!next||!last;
+ setHidden(marker,!bounds||!spawn||!entry);setHidden(exit,!bounds||!gate||!next||!last);
  if(!bounds)return;
  const rect=cv.getBoundingClientRect(),sx=rect.width/cv.width,sy=rect.height/cv.height;
  const project=r=>({x:W2SX((r.minX+r.maxX)/2)*sx,y:W2SY((r.minY+r.maxY)/2)*sy});
  const box={left:Math.max(0,W2SX(bounds.minX)*sx),top:Math.max(0,W2SY(bounds.maxY)*sy),width:Math.min(rect.width,W2SX(bounds.maxX)*sx)-Math.max(0,W2SX(bounds.minX)*sx),height:Math.min(rect.height,W2SY(bounds.minY)*sy)-Math.max(0,W2SY(bounds.maxY)*sy)};
  const place=(element,point,rotate)=>{
-  element.style.left=point.x+'px';element.style.top=point.y+'px';element.style.transform=`translate(-50%,-50%) rotate(${rotate?point.angle:0}deg)`;
-  element.dataset.side=point.side;for(const key of ['left','top','width','height'])element.dataset['board'+key[0].toUpperCase()+key.slice(1)]=String(box[key]);
+  setStyle(element,"left",point.x+'px');setStyle(element,"top",point.y+'px');setStyle(element,"transform",`translate(-50%,-50%) rotate(${rotate?point.angle:0}deg)`);
+  setData(element,"side",point.side);for(const key of ['left','top','width','height'])element.dataset['board'+key[0].toUpperCase()+key.slice(1)]=String(box[key]);
  };
  if(!marker.hidden)place(marker,ingressMarker(project(spawn),project(entry),box),true);
- if(!exit.hidden){place(exit,ingressMarker(project(last),project(next),box,true),false);exit.dataset.gate=gateSpec.id;}
+ if(!exit.hidden){place(exit,ingressMarker(project(last),project(next),box,true),false);setData(exit,"gate",gateSpec.id);}
 }
 
 
@@ -597,7 +598,7 @@ function renderBuildPreview(w){
  const ready=Boolean(eligible&&w.hover&&(w.hoverGemId===null||w.hoverGemId===undefined)&&remainingBuildSlots(state,w.pendingBuilds)>0);
  w.routeIntro??=createRouteIntro();
  const showRoute=w.routeIntro.visible({eligible,suppressed:loadingRun||document.hidden||document.documentElement.dataset.rotationBlocked==='true'||$('gameDrawer')?.hidden===false,ended:restoring||Boolean(w.gameOver)||state.chosen===true||(state.round??1)>1});
- if(target){target.hidden=!ready&&!showRoute;target.parentElement.dataset.preview=String(ready||showRoute);}
+ if(target){setHidden(target,!ready&&!showRoute);setData(target.parentElement,"preview",String(ready||showRoute));}
  w.buildPreviewResult=null;w.groundRoute=null;
  if(restoring||!field||!w.pm||!w.modeDialog?.clicked||!state.difficulty)return;
  const project=p=>({x:W2SX(p.x),y:W2SY(p.y)});
@@ -609,12 +610,12 @@ function renderBuildPreview(w){
   w.baseRouteSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
   w.groundRoute=w.baseRouteSearch.evaluate(input);
   drawBuildRoute(ctx,w.groundRoute,project,{alpha:.8,dashed:false});
-  if(target){target.dataset.state=w.groundRoute.status;target.textContent='실선: 지상 이동 경로';}
+  if(target){setData(target,"state",w.groundRoute.status);setText(target,'실선: 지상 이동 경로');}
  }
  if(!ready)return;
  w.previewSearch??=createBuildPreview({grid:w.pm,defs:w.defStore});
  const preview=w.previewSearch.evaluate({...input,candidate:{typeId:'h006',...point}});w.buildPreviewResult=preview;
- if(target){target.dataset.state=preview.status;target.textContent=preview.status==='open'?'건설 가능':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침';}
+ if(target){setData(target,"state",preview.status);setText(target,preview.status==='open'?'건설 가능':preview.status==='blocked'?'지상 길 막힘 · 건설은 가능':'건설 불가 · 지형/건물 겹침');}
  const ok=canPlaceBlock(w,w.hover.blockCol,w.hover.blockRow,buildGridCells(w)),size=w.pm.cellSize*buildGridCells(w)*cam.zoom;
  ctx.save();ctx.fillStyle=ok?(preview.status==='blocked'?'#e0ab6b50':'#d8d99d40'):'#dc8e8155';ctx.fillRect(W2SX(point.x)-size/2,W2SY(point.y)-size/2,size,size);
  ctx.strokeStyle=ok?'#dacb98':'#e09b8b';ctx.lineWidth=1;ctx.strokeRect(W2SX(point.x)-size/2+1,W2SY(point.y)-size/2+1,Math.max(1,size-2),Math.max(1,size-2));
@@ -678,8 +679,8 @@ function syncPrecisionView(w){
  const view=w.precisionCamera.sync({enabled:active,fit:{...cam},bounds:w.viewBounds,width:cv.width,height:cv.height});
  Object.assign(cam,view.camera);w.cameraMode=view.zoomed?'precision':'fit';
  if(!active&&before.pointerCount){drag.on=false;drag.cell=null;}
- const overview=$('precisionOverview');if(overview){overview.hidden=!view.zoomed;overview.title=`${view.scale.toFixed(1)}배 확대 · 전체 화면으로 돌아가기`;}
- $('gameApp').dataset.precisionScale=view.scale.toFixed(2);
+ const overview=$('precisionOverview');if(overview){setHidden(overview,!view.zoomed);setProperty(overview,"title",`${view.scale.toFixed(1)}배 확대 · 전체 화면으로 돌아가기`);}
+ setData($('gameApp'),"precisionScale",view.scale.toFixed(2));
 }
 function precisionPointer(w,kind,event){
  const camera=w?.precisionCamera;if(!camera||!precisionViewActive(w)&&!camera.snapshot().pointerCount)return false;
@@ -733,11 +734,11 @@ function syncDisabledReasons(w){
   if(!visible||!button.disabled){buttonReasons.clear(button);delete button.dataset.reasonInText;continue;}
   const text=buttonBlockReason(w,button),slot=button.classList.contains('round-slot'),top=['play','speedCycle'].includes(button.id);
   const existing=slot?roundSlotsHelp:top?header:button.querySelector('.training-reason,.upgrade-condition')??button.closest('.upgrade-option')?.querySelector('.upgrade-condition');
-  buttonReasons.set(button,text,existing??undefined);button.dataset.reasonInText=String(Boolean(text&&button.textContent.includes(text)));
+  buttonReasons.set(button,text,existing??undefined);setData(button,"reasonInText",String(Boolean(text&&button.textContent.includes(text))));
   if(slot)empty=true;
  }
- roundSlotsHelp.hidden=!empty;roundSlotsHelp.textContent=empty?'빈칸은 보석을 놓은 뒤 선택할 수 있어요':'';
- $('gameApp').dataset.controlGate=String(Boolean(headerReason));if(headerReason)header.textContent=headerReason;
+ setHidden(roundSlotsHelp,!empty);setText(roundSlotsHelp,empty?'빈칸은 보석을 놓은 뒤 선택할 수 있어요':'');
+ setData($('gameApp'),"controlGate",String(Boolean(headerReason)));if(headerReason)setText(header,headerReason);
 }
 
 function renderSourceDescriptions(w){
@@ -745,13 +746,13 @@ function renderSourceDescriptions(w){
   const button=$('rs'+techId+'Btn');if(!button)continue;
   let help=$('help'+techId);if(!help){help=document.createElement('small');help.id='help'+techId;help.className='source-help';button.closest('.research').append(help);}
   const source=w.sim.mapIr?.objectMods?.some(object=>object.kind==='upgrade'&&(object.newId??object.baseId)===techId),text=source?sourceButtonHelp(techId):'';
-  if(help.textContent!==text)help.textContent=text;help.hidden=!text;
-  const refs=(button.getAttribute('aria-describedby')??'').split(/\s+/).filter(id=>id&&id!==help.id);if(text)refs.push(help.id);button.setAttribute('aria-describedby',[...new Set(refs)].join(' '));
+  if(help.textContent!==text)setText(help,text);setHidden(help,!text);
+  const refs=(button.getAttribute('aria-describedby')??'').split(/\s+/).filter(id=>id&&id!==help.id);if(text)refs.push(help.id);setAttribute(button,'aria-describedby',[...new Set(refs)].join(' '));
  }
 }
 
 function renderFirstRunGuide(w){
- const button=$('showFirstRunGuide');if(button)button.disabled=restoring;
+ const button=$('showFirstRunGuide');if(button)setProperty(button,"disabled",restoring);
  if(restoring){firstRunView.render(null);return;}
  const state=gemTowerPlayerState(w.vm),wave=sourceWaveState(w),own=(w.viewPlayerId??0)===0,prepared=!wave.chosen&&wave.round>0&&!w.gameOver;
  const model=w.firstRunGuide?.observe({ready:Boolean(w.modeDialog?.clicked)&&Boolean(state.difficulty)&&!runtimeFailed&&!loadingRun&&!w.gameOver,fresh:!w.restoredView,restoring:false,own,prepared,buildCount:state.buildCount??0,choiceConfirmed:w.guideChoiceConfirmed===true,combatSeen:Boolean(w.firstCombatSeen),firstWaveEnded:Boolean(w.waveHasSpawned&&w.waveReadyForNext),round:wave.round,life:state.life,gold:w.sim.ledger.gold(0),researchLevel:w.sim.getResearchLevel(0,'R000'),researchCost:researchCostForLevel(GEMTOWER_BALANCE.researches.R000,1)});
@@ -790,18 +791,18 @@ function observeFirstEnemy(w){
 }
 function renderWaveAttention(w){
  const legend=document.querySelector('.route-legend');if(!legend)return;
- let host=$('waveAttention');if(!host){host=document.createElement('div');host.id='waveAttention';host.className='wave-attention';host.setAttribute('role','status');host.hidden=true;const art=document.createElement('canvas');art.id='firstEnemyArt';art.width=32;art.height=32;art.setAttribute('aria-hidden','true');const text=document.createElement('span');text.id='waveAttentionText';host.append(art,text);legend.append(host);}
+ let host=$('waveAttention');if(!host){host=document.createElement('div');host.id='waveAttention';host.className='wave-attention';setAttribute(host,'role','status');setHidden(host,true);const art=document.createElement('canvas');art.id='firstEnemyArt';art.width=32;art.height=32;setAttribute(art,'aria-hidden','true');const text=document.createElement('span');text.id='waveAttentionText';host.append(art,text);legend.append(host);}
  const suppressed=restoring||document.hidden||(w.viewPlayerId??0)!==0||Boolean(w.gameOver);if(suppressed){w.enemyEncounters?.clear();w.waveNotice=null;w.waveStartBanner=null;}
  const banner=!suppressed&&w.waveStartBanner?.until>performance.now()?w.waveStartBanner:null,encounter=suppressed?null:w.enemyEncounters?.snapshot(),notice=w.waveNotice,warning=!suppressed&&notice&&notice.until>performance.now();
- const art=$('firstEnemyArt'),text=$('waveAttentionText'),show=Boolean(banner||encounter||warning);host.hidden=!show;legend.dataset.attention=String(show);art.hidden=!encounter;if(!show)return;
- let message=notice?.text??'';host.dataset.kind=banner?'wave-start':encounter?'enemy':'warning';if(banner){text.textContent=banner.text;art.hidden=false;const c=art.getContext('2d');if(c){c.clearRect(0,0,32,32);drawMineCreep(c,{sprites,typeId:banner.typeId,band:banner.band,airborne:banner.motion==='공중',x:16,y:18,groundY:18,size:28,tick:0,reducedMotion:true});}return;}
+ const art=$('firstEnemyArt'),text=$('waveAttentionText'),show=Boolean(banner||encounter||warning);setHidden(host,!show);setData(legend,"attention",String(show));setHidden(art,!encounter);if(!show)return;
+ let message=notice?.text??'';setData(host,"kind",banner?'wave-start':encounter?'enemy':'warning');if(banner){setText(text,banner.text);setHidden(art,false);const c=art.getContext('2d');if(c){c.clearRect(0,0,32,32);drawMineCreep(c,{sprites,typeId:banner.typeId,band:banner.band,airborne:banner.motion==='공중',x:16,y:18,groundY:18,size:28,tick:0,reducedMotion:true});}return;}
  if(encounter){
   const def=defOf(w,encounter.typeId),visual=creepVisualPresentation(GEMTOWER_BALANCE.roleTable[encounter.typeId],def),object=w.sim.mapIr.objectMods.find(o=>o.kind==='unit'&&(o.newId??o.baseId)===encounter.typeId),raw=object?.mods.findLast(mod=>mod.field==='utub')?.value;
   const description=typeof raw==='string'?sourceText(w,raw).split(/\n/)[0].trim():'';
   message=[fullName(w,encounter.typeId),def?(visual.airborne?'공중':'지상'):'이동 방식 확인 중',/TRIGSTR_/.test(description)?'':description].filter(Boolean).join(' · ');
   const context=art.getContext('2d');if(context){context.clearRect(0,0,32,32);drawMineCreep(context,{sprites,typeId:encounter.typeId,band:visual.band,airborne:visual.airborne,x:16,y:18,groundY:18,size:28,tick:0,reducedMotion:true});}
  }
- if(text.textContent!==message)text.textContent=message;
+ if(text.textContent!==message)setText(text,message);
 }
 
 
@@ -974,45 +975,45 @@ function render(w,preservePendingDialog=false) {
     ctx.fillText(Math.max(0, e.hp) + "/" + e.hpMax, px, py - 25);
     ctx.textAlign = "left";
   }
-  $("mMineHp").textContent = mineHpP0 ? Math.max(0, mineHpP0.hp) + "/" + mineHpP0.hpMax : "—";
+  setText($("mMineHp"),mineHpP0 ? Math.max(0, mineHpP0.hp) + "/" + mineHpP0.hpMax : "—");
   // The script owns rounds and rewards. Rendering must not mutate economic state.
   const scriptRound = gemTowerPlayerState(w.vm).round;
   if (Number.isInteger(scriptRound) && scriptRound > 0) waveNum = scriptRound;
-  $("engineTag").textContent = w.gameOver ? (w.gameOver.winner===null?"생명이 0이 되었습니다 · 다시 시작할 수 있어요":"클리어했습니다 · 다시 시작할 수 있어요") : !w.modeDialog?.clicked?"게임 방식을 고르면 시작합니다":!playing&&!restoring?(w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개 · 재개해서 완성하기`:"일시정지 · 재개해서 계속하기"):gemBuildHint(w.vm);
+  setText($("engineTag"),w.gameOver ? (w.gameOver.winner===null?"생명이 0이 되었습니다 · 다시 시작할 수 있어요":"클리어했습니다 · 다시 시작할 수 있어요") : !w.modeDialog?.clicked?"게임 방식을 고르면 시작합니다":!playing&&!restoring?(w.pendingBuilds.length?`건설 대기 ${w.pendingBuilds.length}개 · 재개해서 완성하기`:"일시정지 · 재개해서 계속하기"):gemBuildHint(w.vm));
   const built=gemTowerPlayerState(w.vm).buildCount ?? 0;
-  $("buildProgress").setAttribute("aria-label",`보석 ${built}/5 건설`);
-  $("buildProgress").hidden=gemTowerPlayerState(w.vm).chosen===true;
+  setAttribute($("buildProgress"),"aria-label",`보석 ${built}/5 건설`);
+  setHidden($("buildProgress"),gemTowerPlayerState(w.vm).chosen===true);
   [...$("buildProgress").children].forEach((el,index)=>el.classList.toggle("filled",index<built));
   // HUD
-  $("mGold").textContent = Math.floor(w.sim.ledger.gold(0));
+  setText($("mGold"),Math.floor(w.sim.ledger.gold(0)));
   // P-2: 수입 분해 패널(ledger.bySource) — 이중지급 감시를 UI가 공짜로 보여준다(PLAYABLE §5/부록).
   // bounty(엔진)는 bountyMode="script" 설정상 항상 0이어야 정상(0 아니면 이중지급 회귀 신호).
   const bySrc = w.sim.ledger.bySource();
   const mGoldSrc = $("mGoldSrc");
-  if (mGoldSrc) mGoldSrc.textContent = `script +${bySrc.script.in}−${bySrc.script.out} · bounty +${bySrc.bounty.in}−${bySrc.bounty.out} · cost +${bySrc.cost.in}−${bySrc.cost.out}`;
+  if (mGoldSrc) setText(mGoldSrc,`script +${bySrc.script.in}−${bySrc.script.out} · bounty +${bySrc.bounty.in}−${bySrc.bounty.out} · cost +${bySrc.cost.in}−${bySrc.cost.out}`);
   // P-3: 젬 선택 패널(§4.3) — 스탯은 defOf(DefStore)에서 그대로 읽는다(엔진 데이터, 재발명 0).
   const selected = w.selectedGemId !== null ? w.sim.getUnit(w.selectedGemId) : undefined;
   if (selected && selected.alive) {
     const d = defOf(w, selected.typeId);
-    $("gemNone").style.display = "none";
-    $("gemPanel").style.display = "flex";
+    setStyle($("gemNone"),"display","none");
+    setStyle($("gemPanel"),"display","flex");
     // U-6a(DISPATCH_SONNET_U6_INFOARCH §2 U-6a) — 이름(병합 nameMap, 없으면 기존 gemLabel() 폴백) +
     // 특별보석 여부 배지. gemLabel(라인·티어 필드)는 기존 그대로(무변경, 아래).
     const family=gemTowerGemFamily(fullName(w,selected.typeId));
     const selectedVisual=gemObjectPresentation(selected.typeId,d,family,sprites.aliases[selected.typeId]);
-    $("gemName").textContent = fullName(w, selected.typeId);
-    $("gemCombatTarget").textContent = attackTargetLabel(d);
+    setText($("gemName"),fullName(w, selected.typeId));
+    setText($("gemCombatTarget"),attackTargetLabel(d));
     const specialBadge = $("gemSpecialBadge");
-    if (specialBadge) specialBadge.style.display = (selectedVisual.kind === "special") ? "inline-block" : "none";
-    $("gemLabel").textContent = family ? family.lineLabel+" · "+family.grade : selectedVisual.label;
+    if (specialBadge) setStyle(specialBadge,"display",(selectedVisual.kind === "special") ? "inline-block" : "none");
+    setText($("gemLabel"),family ? family.lineLabel+" · "+family.grade : selectedVisual.label);
     const gemType = $("gemType");
-    if (gemType) gemType.textContent = attackTypeLabel(d?.attack?.attackType);
+    if (gemType) setText(gemType,attackTypeLabel(d?.attack?.attackType));
     const attackText=attackDisplay(d?.attack??d?.secondaryAttack,DT);
-    $("gemDmg").textContent = attackText.damage;
+    setText($("gemDmg"),attackText.damage);
     const rangeModels=attackRangeModels(selected,d,{forced:selected.attackTargetId!==undefined});
-    $("gemRange").textContent=rangeModels.map(a=>(a.targetsMask===1?'땅 ':a.targetsMask===2?'공중 ':'')+rangeInBuildCells(a.radiusU,(w.pm?.cellSize??32)*buildGridCells(w))).join(' / ')||'—';
-    $("gemRange").title=selected.attackTargetId!==undefined?'지정 공격 사거리':'자동 공격 범위 · 적을 찾아 공격하는 거리';
-    $("gemCd").textContent = attackText.interval;
+    setText($("gemRange"),rangeModels.map(a=>(a.targetsMask===1?'땅 ':a.targetsMask===2?'공중 ':'')+rangeInBuildCells(a.radiusU,(w.pm?.cellSize??32)*buildGridCells(w))).join(' / ')||'—');
+    setProperty($("gemRange"),"title",selected.attackTargetId!==undefined?'지정 공격 사거리':'자동 공격 범위 · 적을 찾아 공격하는 거리');
+    setText($("gemCd"),attackText.interval);
     const resolvedEffects=w.sim.abilityEffects?.effects(selected.abilities)??[];
     effectIcons.render({effects:resolvedEffects,def:d});
     const effects=combatEffectLabels(resolvedEffects,DT),effectText=$("gemEffects");
@@ -1022,26 +1023,26 @@ function render(w,preservePendingDialog=false) {
       const name=sourceText(w,w.sim.mapIr.objectMods.filter(o=>o.kind==="ability"&&(o.newId??o.baseId)===id).flatMap(o=>o.mods).findLast(m=>m.field==="anam")?.value);
       effects.push("아직 지원하지 않는 효과"+(name&&name!==id&&!/^TRIGSTR_\d+$/.test(name)?" · "+name:""));
     }
-    effectText.hidden=!effects.length;effectText.textContent=effects.length?"보유 효과"+effects.map(text=>"\n• "+text).join(""):"";
+    setHidden(effectText,!effects.length);setText(effectText,effects.length?"보유 효과"+effects.map(text=>"\n• "+text).join(""):"");
     const upgrades=(d?.upgradesTo??[]).map(typeId=>{const cost=w.sim.unitUpgradeCost(selected.id,typeId),reason=w.sim.validateUnitUpgrade(0,selected.id,typeId);return {typeId,cost,reason,condition:reason==='insufficient-gold'?unavailableReason(reason,{cost,gold:w.sim.ledger.gold(selected.owner)}):upgradeConditionText(reason,selected.owner)};});
     renderGemUpgradeOptions(w,selected,upgrades);
-    const pending=w.sim.pendingUpgrades.get(selected.id);$("upgradeStatus").textContent=pending?`강화 중 · ${(pending.remainingTicks*DT).toFixed(1)}초`:upgrades.some(u=>u.reason==='not-owner')&&selected.owner===9?'이번 보석을 남긴 뒤 전투 중에 강화할 수 있어요':'';
+    const pending=w.sim.pendingUpgrades.get(selected.id);setText($("upgradeStatus"),pending?`강화 중 · ${(pending.remainingTicks*DT).toFixed(1)}초`:upgrades.some(u=>u.reason==='not-owner')&&selected.owner===9?'이번 보석을 남긴 뒤 전투 중에 강화할 수 있어요':'');
     // Reflect the same ownership/ability checks used by the engine command path.
     const actions = gemActions(w, selected.id);w.gemActionViews=actions;
     for (const action of actions) {
       const button = $("cast" + action.abilityId);
-      button.disabled = action.disabled;
-      button.hidden=!showGemAction(action);
-      button.textContent = action.abilityId==="A008"?"바위 제거":action.label;
-      button.title = action.reason ? abilityOrderReason(action.reason) : "보유한 능력 사용";
+      setProperty(button,"disabled",action.disabled);
+      setHidden(button,!showGemAction(action));
+      setText(button,action.abilityId==="A008"?"바위 제거":action.label);
+      setProperty(button,"title",action.reason ? abilityOrderReason(action.reason) : "보유한 능력 사용");
       if(action.disabled&&!button.hidden&&["A03M","A02J","A02G","A008"].includes(action.abilityId))button.textContent+=" · "+button.title;
     }
-    $("gemCombineGate").textContent = gemActionConditions(actions).join("\n");$("gemCombineGate").hidden=!$("gemCombineGate").textContent;
+    setText($("gemCombineGate"),gemActionConditions(actions).join("\n"));setHidden($("gemCombineGate"),!$("gemCombineGate").textContent);
 
   } else {
     w.selectedGemId = null;
-    $("gemNone").style.display = "flex";
-    $("gemPanel").style.display = "none";
+    setStyle($("gemNone"),"display","flex");
+    setStyle($("gemPanel"),"display","none");
   }
   // G-2c(DISPATCH_SONNET_G2_CORE §2 G-2c) — 연구 패널: 레벨/비용은 GameBalanceConfig.researches(A-G1)
   // + sim.getResearchLevel(0, techId)에서 그대로 읽는다(값 재발명 0). 만렙이면 버튼 비활성화.
@@ -1050,31 +1051,31 @@ function render(w,preservePendingDialog=false) {
     const lvEl = $("rs" + techId + "Lv"), costEl = $("rs" + techId + "Cost"), btn = $("rs" + techId + "Btn");
     const lv = w.sim.getResearchLevel(0, techId);
     if (spec) {
-      if (lvEl) lvEl.textContent = lv + "/" + spec.maxLevel;
+      if (lvEl) setText(lvEl,lv + "/" + spec.maxLevel);
       // R-1 C-1 반영(2026-07-20): 비용이 레벨당 증가분(R000: 20→230)을 갖게 되어 고정 costPerLevel 표시는
       // 실제 청구액과 어긋난다. *다음 레벨* 비용을 표시한다(엔진과 동일한 researchCostForLevel 재사용 —
       // 화면에서 수식을 재구현하지 않는다). 최대 레벨이면 "연구 완료".
       if (costEl) {
         const complete=lv >= spec.maxLevel,pending=w.pendingResearch?.techId===techId;
-        costEl.textContent = complete ? "" : researchCostForLevel(spec, lv + 1);
-        costEl.hidden=complete;
-        if(costEl.previousSibling)costEl.previousSibling.textContent=complete?"연구 완료":pending?"연구 처리 중 · ":"연구 · ";
-        if(costEl.nextSibling)costEl.nextSibling.textContent=complete?"":" 골드";
+        setText(costEl,complete ? "" : researchCostForLevel(spec, lv + 1));
+        setHidden(costEl,complete);
+        if(costEl.previousSibling)setText(costEl.previousSibling,complete?"연구 완료":pending?"연구 처리 중 · ":"연구 · ");
+        if(costEl.nextSibling)setText(costEl.nextSibling,complete?"":" 골드");
       }
       // R-1 C-2 반영: 선행조건(R001 ← R000 8레벨) 미충족이면 버튼도 잠근다(엔진이 거부하는 것을 UI가 미리 반영).
       const prereqOk = !spec.requires || w.sim.getResearchLevel(0, spec.requires.techId) >= spec.requires.count;
       if (btn) {
         const cost = researchCostForLevel(spec, lv + 1);
-        btn.setAttribute("aria-label",`${({R000:"보석 질",R001:"찬스 확률",R002:"천국의 보석"})[techId]} 연구${lv >= spec.maxLevel ? " 완료" : ` · ${cost} 골드`}`);
+        setAttribute(btn,"aria-label",`${({R000:"보석 질",R001:"찬스 확률",R002:"천국의 보석"})[techId]} 연구${lv >= spec.maxLevel ? " 완료" : ` · ${cost} 골드`}`);
         const affordable = w.sim.ledger.gold(0) >= cost;
-        btn.disabled = Boolean(w.gameOver) || Boolean(w.pendingResearch) || lv >= spec.maxLevel || !prereqOk || !affordable;
-        btn.setAttribute("aria-busy",String(w.pendingResearch?.techId===techId));
-        btn.title = w.pendingResearch ? "연구 처리 중입니다" : lv >= spec.maxLevel ? "연구 완료" : !prereqOk ? "선행: " + spec.requires.techId + " " + spec.requires.count + "레벨 필요" : !affordable ? "골드가 부족합니다" : "";
+        setProperty(btn,"disabled",Boolean(w.gameOver) || Boolean(w.pendingResearch) || lv >= spec.maxLevel || !prereqOk || !affordable);
+        setAttribute(btn,"aria-busy",String(w.pendingResearch?.techId===techId));
+        setProperty(btn,"title",w.pendingResearch ? "연구 처리 중입니다" : lv >= spec.maxLevel ? "연구 완료" : !prereqOk ? "선행: " + spec.requires.techId + " " + spec.requires.count + "레벨 필요" : !affordable ? "골드가 부족합니다" : "");
       }
-    } else if (lvEl) lvEl.textContent = "—";
+    } else if (lvEl) setText(lvEl,"—");
   }
   {const researchStatus=$("researchStatus"),researchMessage=w.pendingResearch?(playing?"연구 처리 중…":"일시정지 · 상단 재개를 누르면 연구가 진행됩니다"):w.researchNotice??"연구 완료 후 다음 가격으로 계속 구입할 수 있어요";
-  if(researchStatus&&researchStatus.textContent!==researchMessage)researchStatus.textContent=researchMessage;}
+  if(researchStatus&&researchStatus.textContent!==researchMessage)setText(researchStatus,researchMessage);}
   // G-6(DISPATCH_SONNET_G3_G6 §2 G-6, GEM_IDENTITY_MINE_DESIGN §5.1) — 멀티보드: 실측 CreateMultiboardBJ
   // (6,L,"보석타워 맥스") 타이틀·6열 그대로. 열 내용(hud_quests.json 콜사이트60 미확보 — A-G10 자체 선택)은
   // "natives 상태 미러"만: 플레이어/골드/라이프/타워/웨이브/상태 — 전부 이미 노출된 값의 재표시(재구현 0).
@@ -1083,25 +1084,25 @@ function render(w,preservePendingDialog=false) {
   // "—" 고착 버그). 실측 정본 키는 PLAYER_STATE_RESOURCE_LUMBER(=2, docs/dissection/economy_death.json
   // QMe_roundAdvance의 SetPlayerStateBJ(...,PLAYER_STATE_RESOURCE_LUMBER,5) 및 debug 실측 재확인).
   const lumber = gemTowerPlayerState(w.vm).life ?? w.sim.playerState.get(0, PLAYER_STATE_RESOURCE_LUMBER);
-  $("mLife").textContent = lumber >= 0 ? lumber : "—";
+  setText($("mLife"),lumber >= 0 ? lumber : "—");
   const mGate = $("mGate");
-  if (mGate) mGate.textContent = gatePassed; // observe 모드 관측 카운트(라이프 차감 아님 — HUD 부기용)
-  $("mWave").textContent = w.prepActive ? "준비" : (waveNum > 0 ? waveNum : "1");
-  $("mTick").textContent = w.sim.tickCount;
-  $("mEnt").textContent = w.sim.entities.size;
-  $("mCreep").textContent = creeps;
-  $("mTower").textContent = towers;
-  $("mRect").textContent = rectEntered;
-  $("mHash").textContent = w.sim.stateHash();
-  $("mAttacks").textContent = w.observedAttacks;
-  cv.dataset.spritesDrawn=String(sprites.drawn);
+  if (mGate) setText(mGate,gatePassed); // observe 모드 관측 카운트(라이프 차감 아님 — HUD 부기용)
+  setText($("mWave"),w.prepActive ? "준비" : (waveNum > 0 ? waveNum : "1"));
+  setText($("mTick"),w.sim.tickCount);
+  setText($("mEnt"),w.sim.entities.size);
+  setText($("mCreep"),creeps);
+  setText($("mTower"),towers);
+  setText($("mRect"),rectEntered);
+  setText($("mHash"),w.sim.stateHash());
+  setText($("mAttacks"),w.observedAttacks);
+  setData(cv,"spritesDrawn",String(sprites.drawn));
   // U-2b/U-2c(DISPATCH_SONNET_U2_GAMESHELL §2) — 코너 게임 HUD(리소스 바+목표 HUD). 사이드바 dev 패널
   // (mGold/mLife/mWave 등, 위)과 동일한 값을 재표시할 뿐(재계산 0) — 플레이어용 "게임 화면" 오버레이와
   // 개발자용 상세 패널을 분리(teardown "코너 앵커·미니멀·고대비" + premium 6:3:1 위계).
   renderTraining(w);
   const hudGold = $("hudGold"), hudLife = $("hudLife"), hudTower = $("hudTower");
-  if (hudGold) hudGold.textContent = Math.floor(w.sim.ledger.gold(0));
-  if (hudLife) hudLife.textContent = lumber >= 0 ? lumber : "—";
+  if (hudGold) setText(hudGold,Math.floor(w.sim.ledger.gold(0)));
+  if (hudLife) setText(hudLife,lumber >= 0 ? lumber : "—");
   for(const request of w.pendingMoves??[]){const unit=w.sim.getUnit(request.unitId);
    if(unit&&unit.x===request.x&&unit.y===request.y){request.done=true;flash('슬레이트 이동 완료');}
    else if(w.sim.tickCount-request.issuedTick>20){request.done=true;flash('원작 이동 조건을 충족하지 못했습니다 · 다른 곳을 선택하세요');}
@@ -1113,82 +1114,82 @@ function render(w,preservePendingDialog=false) {
   overlapPicker.render(overlapChoices(w).map(e=>({id:e.id,name:fullName(w,e.typeId)})),w.selectedGemId);
   renderPlacement(w);
   const comboIds=availableGemCombinations(w,gems);w.availableComboIds=comboIds;
-  $("findCombination").hidden=comboIds.length===0||Boolean(w.gameOver);
-  $("findCombination").textContent=`조합 가능 ${comboIds.length}`;
+  setHidden($("findCombination"),comboIds.length===0||Boolean(w.gameOver));
+  setText($("findCombination"),`조합 가능 ${comboIds.length}`);
   const roster=w.showRocks?ownedRocks(w):gems;
-  if (hudTower) hudTower.textContent = gems.length;
-  $("rosterKind").textContent=w.showRocks?"내 바위":"내 보석";$("showRocks").setAttribute("aria-pressed",String(Boolean(w.showRocks)));
-  const blocked=blockedCreepCount(w);$("pathWarning").hidden=!blocked||Boolean(w.gameOver);$("pathWarning").textContent=`길 막힘 · 적 ${blocked}마리 · 바위 보기`;
-  $("combatCount").textContent=`적 ${[...w.sim.entities.values()].filter(e=>e.alive&&e.owner===11&&e.orderActive).length}마리`;
-  $("rosterCount").textContent=roster.length;
+  if (hudTower) setText(hudTower,gems.length);
+  setText($("rosterKind"),w.showRocks?"내 바위":"내 보석");setAttribute($("showRocks"),"aria-pressed",String(Boolean(w.showRocks)));
+  const blocked=blockedCreepCount(w);setHidden($("pathWarning"),!blocked||Boolean(w.gameOver));setText($("pathWarning"),`길 막힘 · 적 ${blocked}마리 · 바위 보기`);
+  setText($("combatCount"),`적 ${[...w.sim.entities.values()].filter(e=>e.alive&&e.owner===11&&e.orderActive).length}마리`);
+  setText($("rosterCount"),roster.length);
   if(gemTowerPlayerState(w.vm).chosen===false)roster.sort((a,b)=>Number(b.owner===0)-Number(a.owner===0));
   const rosterSignature=String(Boolean(w.showRocks))+roster.map(e=>e.id+":"+e.typeId+(w.showRocks?":"+e.x+":"+e.y:"")).join(",");
   if(w.rosterSignature!==rosterSignature){
     w.rosterSignature=rosterSignature;$("gemRoster").replaceChildren();
     for(const [index,e] of roster.entries()){
-      const button=document.createElement("button");button.className="gem-chip";button.dataset.unitId=String(e.id);button.textContent=fullName(w,e.typeId);button.setAttribute("aria-label",w.showRocks?`바위 ${Math.round((e.y-w.pm.originY)/w.pm.cellSize/buildGridCells(w))+1}행 ${Math.round((e.x-w.pm.originX)/w.pm.cellSize/buildGridCells(w))+1}열`:`${fullName(w,e.typeId)} · 보석 ${index+1}`);
+      const button=document.createElement("button");button.className="gem-chip";setData(button,"unitId",String(e.id));setText(button,fullName(w,e.typeId));setAttribute(button,"aria-label",w.showRocks?`바위 ${Math.round((e.y-w.pm.originY)/w.pm.cellSize/buildGridCells(w))+1}행 ${Math.round((e.x-w.pm.originX)/w.pm.cellSize/buildGridCells(w))+1}열`:`${fullName(w,e.typeId)} · 보석 ${index+1}`);
       const family=gemTowerGemFamily(fullName(w,e.typeId));button.style.setProperty("--gem-color",LINE_COLORS[family?.line]??gemVisual(w,e.typeId).color);
       $("gemRoster").append(button);
     }
   }
   for(const button of $("gemRoster").children){
    const id=Number(button.dataset.unitId),canCombine=!w.showRocks&&comboIds.includes(id);
-   button.setAttribute("aria-pressed",String(id===w.selectedGemId));button.dataset.combine=String(canCombine);
-   if(canCombine)button.setAttribute('aria-description','특별 조합이나 슬레이트 조합을 사용할 수 있습니다');else button.removeAttribute('aria-description');
+   setAttribute(button,"aria-pressed",String(id===w.selectedGemId));setData(button,"combine",String(canCombine));
+   if(canCombine)setAttribute(button,'aria-description','특별 조합이나 슬레이트 조합을 사용할 수 있습니다');else button.removeAttribute('aria-description');
   }
   const hudWaveNum = $("hudWaveNum"), hudPhase = $("hudPhase");
   if (hudWaveNum) {
-    hudWaveNum.textContent = w.prepActive ? "—" : String(waveNum > 0 ? waveNum : 1);
+    setText(hudWaveNum,w.prepActive ? "—" : String(waveNum > 0 ? waveNum : 1));
     // U-2b: 웨이브 전환 연출(펄스) — 새 웨이브 진입 순간에만 900ms간 확대(팝) 후 원복. 신규 애니메이션
     // 곡선 1개 추가(Motion Gate 2번째 포인트, RETURN §Motion Gate 표 참조) — CSS keyframes 대신 기존
     // 코드베이스 관례(연령 기반 인라인 스타일 계산, textTag/attackFx와 동일 패턴)를 따른다.
     if (!reducedMotion.matches && performance.now() < waveFlashUntil) {
       const age = 1 - (waveFlashUntil - performance.now()) / 900;
-      hudWaveNum.style.transform = `scale(${(1 + 0.5 * Math.sin(Math.min(1, age) * Math.PI)).toFixed(2)})`;
-      hudWaveNum.style.color = "#ffd166";
-    } else { hudWaveNum.style.transform = ""; hudWaveNum.style.color = ""; }
+      setStyle(hudWaveNum,"transform",`scale(${(1 + 0.5 * Math.sin(Math.min(1, age) * Math.PI)).toFixed(2)})`);
+      setStyle(hudWaveNum,"color","#ffd166");
+    } else { setStyle(hudWaveNum,"transform",""); setStyle(hudWaveNum,"color",""); }
   }
-  if (hudPhase) hudPhase.textContent = w.gameOver ? "종료" : gemTowerPlayerState(w.vm).chosen !== true ? "보석 준비" : "웨이브 진행 중";
+  if (hudPhase) setText(hudPhase,w.gameOver ? "종료" : gemTowerPlayerState(w.vm).chosen !== true ? "보석 준비" : "웨이브 진행 중");
   // P-4: GameOver 오버레이 — 스크립트가 sim.endGame()을 호출했을 때만 등장(재구현 0, 값은 이벤트 그대로).
   renderControls(w);
   gameMenu.sync({solo:w.sim.playerState.getSlotState(1)!==1,playing});
   const over = $("gameOver");
   if (over) {
     if (w.gameOver) {
-      over.style.display = "flex";
+      setStyle(over,"display","flex");
       if(!w.gameOver.focused){$("goRestart").focus();w.gameOver.focused=true;}
       const winner = w.gameOver.winner;
-      $("goTitle").textContent = winner === null ? "패배" : `플레이어 ${winner + 1} 클리어`;
-      $("goSummary").textContent = `웨이브 ${waveNum} · 골드 ${Math.floor(w.sim.ledger.gold(0))} · 게임 시간 ${(w.sim.tickCount * DT / 60).toFixed(1)}분`;
+      setText($("goTitle"),winner === null ? "패배" : winner === 0 ? "클리어" : `플레이어 ${winner + 1} 클리어`);
+      setText($("goSummary"),`골드 ${Math.floor(w.sim.ledger.gold(0))} · 게임 시간 ${(w.sim.tickCount * DT / 60).toFixed(1)}분`);
     } else {
-      over.style.display = "none";
+      setStyle(over,"display","none");
     }
   }
   const sourceState=gemTowerPlayerState(w.vm),difficulty=sourceState.difficulty??0;
   renderResultDetails(w);
   const difficultyName=difficulty?w.vm.getGlobalIndexed('vI',30+difficulty):null;
-  $("difficultyTag").textContent=sourceDifficultyChoices(w)[difficulty-1]?.label??(difficultyName?.t==='string'?sourceText(w,difficultyName.v):w.startupChoice?'선택한 난이도 적용 중':'선택 전');
+  setText($("difficultyTag"),sourceDifficultyChoices(w)[difficulty-1]?.label??(difficultyName?.t==='string'?sourceText(w,difficultyName.v):w.startupChoice?'선택한 난이도 적용 중':'선택 전'));
   const dialog=w.registry.dialogIds.map(id=>w.vm.handles.get(id)).find(d=>d?.kind==='dialog'&&d.id!==w.modeDialog?.dialogId&&(d.data.visibleTo??[]).includes(0)&&d.data.buttons?.length);
-  $("sourceDialog").hidden=!dialog||Boolean(w.gameOver)||Boolean(w.startupChoice)&&sourceDifficultyChoices(w).some(c=>c.dialogId===dialog?.id);
+  setHidden($("sourceDialog"),!dialog||Boolean(w.gameOver)||Boolean(w.startupChoice)&&sourceDifficultyChoices(w).some(c=>c.dialogId===dialog?.id));
   if(dialog&&!w.gameOver){
     const key=JSON.stringify([dialog.id,dialog.data.message,dialog.data.buttons]);
-    if(w.nativeDialogKey!==key){w.nativeDialogKey=key;if(!preservePendingDialog)w.nativeDialogPendingId=null;$("sourceDialogTitle").textContent=sourceText(w,dialog.data.message)||'선택해 주세요';$("sourceDialogButtons").replaceChildren();
-      for(const id of dialog.data.buttons){const handle=w.vm.handles.get(id);if(handle?.kind!=='button')continue;const button=document.createElement('button');button.className='sec';button.dataset.dialogButton=String(id);button.dataset.dialogId=String(dialog.id);button.textContent=sourceDifficultyLabel(w,dialog.id,id,sourceText(w,handle.data.text));$("sourceDialogButtons").append(button);}$("sourceDialogButtons").querySelector('button')?.focus();
+    if(w.nativeDialogKey!==key){w.nativeDialogKey=key;if(!preservePendingDialog)w.nativeDialogPendingId=null;setText($("sourceDialogTitle"),sourceText(w,dialog.data.message)||'선택해 주세요');$("sourceDialogButtons").replaceChildren();
+      for(const id of dialog.data.buttons){const handle=w.vm.handles.get(id);if(handle?.kind!=='button')continue;const button=document.createElement('button');button.className='sec';setData(button,"dialogButton",String(id));setData(button,"dialogId",String(dialog.id));setText(button,sourceDifficultyLabel(w,dialog.id,id,sourceText(w,handle.data.text)));$("sourceDialogButtons").append(button);}$("sourceDialogButtons").querySelector('button')?.focus();
     }
-    for(const button of $("sourceDialogButtons").children)button.disabled=w.nativeDialogPendingId===dialog.id;
+    for(const button of $("sourceDialogButtons").children)setProperty(button,"disabled",w.nativeDialogPendingId===dialog.id);
   }else {w.nativeDialogKey=null;w.nativeDialogPendingId=null;}
   refreshReplayOutput(w);
   // 준비 오버레이
   if (w.prepActive) {
-    $("prep").style.display = "flex";
+    setStyle($("prep"),"display","flex");
     const ready = gemTowerPlayerState(w.vm).chosen === true;
-    $("prepTime").textContent = ready ? "준비 완료" : "보석 준비";
-    $("skip").disabled = !ready;
-    $("skip").textContent = "클래식 웨이브 시작";
-  } else { $("prep").style.display = "none"; }
+    setText($("prepTime"),ready ? "준비 완료" : "보석 준비");
+    setProperty($("skip"),"disabled",!ready);
+    setText($("skip"),"클래식 웨이브 시작");
+  } else { setStyle($("prep"),"display","none"); }
   // S-A2d: 모드 선택 오버레이 — 클릭 전까지만 노출(원작 Ne 다이얼로그와 동일하게 1회성).
   const modeSelectEl = $("modeSelect");
-  if (modeSelectEl) modeSelectEl.style.display = w.modeDialog && !w.modeDialog.clicked ? "flex" : "none";renderStartupOptions(w);
+  if (modeSelectEl) setStyle(modeSelectEl,"display",w.modeDialog && !w.modeDialog.clicked ? "flex" : "none");renderStartupOptions(w);
   // U-2e: 공격 juice — 타겟팅 라인 + 임팩트 버스트(단일 콤보 이펙트, Motion Gate 1포인트). 좌표는 stepN()이
   // lastPos 스냅샷에서 얻은 값(재발명 0). 220ms 수명 — 다음 공격까지 잔상이 안 남을 만큼 짧게(남발 금지).
   const nowT = performance.now();
@@ -1206,7 +1207,7 @@ function render(w,preservePendingDialog=false) {
   const numberBounds=fieldBounds?{left:W2SX(fieldBounds.minX),top:W2SY(fieldBounds.maxY),width:(fieldBounds.maxX-fieldBounds.minX)*z,height:(fieldBounds.maxY-fieldBounds.minY)*z}:{left:0,top:0,width:W,height:H};
   const numbers=playPreferences.snapshot().damageNumbers?damageTagViews(textTags,p=>!fieldBounds||pointInBattlefield(p,fieldBounds)?{x:W2SX(p.x),y:W2SY(p.y)}:null,{now:nowT,boxes:w.damageBoxes??[],viewport:numberBounds,reducedMotion:reducedMotion.matches,measure:(text,size)=>{ctx.font=`bold ${size}px system-ui`;return ctx.measureText(text).width;}}):[];
   for(const t of numbers){ctx.globalAlpha=t.opacity;ctx.font=`bold ${t.fontSize}px system-ui`;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#170f0b';ctx.strokeText(t.text,t.x,t.y);ctx.fillStyle='#e9d3b4';ctx.fillText(t.text,t.x,t.y);ctx.globalAlpha=1;ctx.textAlign='left';}
-  goldTags=goldTags.filter(t=>nowT-t.born<760);const gain=((w.viewPlayerId??0)===0?goldGainView(goldTags,nowT,reducedMotion.matches):null);goldGain.hidden=!gain;if(gain){goldGain.textContent=gain.text;goldGain.style.transform=`translateY(${gain.dy}px)`;goldGain.style.opacity=String(gain.opacity);}
+  goldTags=goldTags.filter(t=>nowT-t.born<760);const gain=((w.viewPlayerId??0)===0?goldGainView(goldTags,nowT,reducedMotion.matches):null);setHidden(goldGain,!gain);if(gain){setText(goldGain,gain.text);setStyle(goldGain,"transform",`translateY(${gain.dy}px)`);setStyle(goldGain,"opacity",String(gain.opacity));}
   // U-1c: 호버 툴팁 — 클릭선택 패널과 별개로 마우스오버만으로 라인·티어·공격력·사거리 즉시 확인
   // (roleTable/defOf 파생만, 발명 0). 드래그(팬) 중엔 억제(조작 충돌 방지).
   if (w.hoverGemId !== null && !drag.on) {
@@ -1262,7 +1263,7 @@ function render(w,preservePendingDialog=false) {
   renderFirstRunGuide(w);
   syncDisabledReasons(w);
   lifeHud.draw();
-  document.documentElement.dataset.gameReady='true';
+  setData(document.documentElement,"gameReady",'true');
 }
 
 // G-6(DISPATCH_SONNET_G3_G6 §2 G-6) — 멀티보드 6열×행(행=플레이어, §5.1 GEM_IDENTITY_MINE_DESIGN §5.1
@@ -1271,7 +1272,7 @@ function render(w,preservePendingDialog=false) {
 function updateMultiboard(w) {
   const panel = $("multiboard");
   if (!panel || !w) return;
-  panel.style.display = "block";
+  setStyle(panel,"display","block");
   const towersByOwner = new Map();
   for (const e of w.sim.entities.values()) {
     if (!e.alive) continue;
@@ -1323,9 +1324,9 @@ function renderTraining(w){
   for(const host of hosts){let next=host.firstElementChild;
   for(const{row,count,key}of desired.filter(item=>item.host===host)){
    let button=buttons.get(key);
-   if(!button){button=document.createElement('button');button.className='sec training-option';button.dataset.producerId=String(row.producerId);button.dataset.trainType=row.typeId;button.dataset.trainCount=String(count);const label=document.createElement('span'),reason=document.createElement('small'),help=document.createElement('small');label.className='training-label';help.className='training-help';help.id=`training-help-${row.producerId}-${row.typeId}-${count}`;help.textContent=sourceButtonHelp(row.typeId);help.hidden=!help.textContent;reason.className='training-reason';reason.id=`training-reason-${row.producerId}-${row.typeId}-${count}`;button.setAttribute('aria-describedby',[help.hidden?'':help.id,reason.id].filter(Boolean).join(' '));button.append(label,help,reason);buttons.set(key,button);}
+   if(!button){button=document.createElement('button');button.className='sec training-option';setData(button,"producerId",String(row.producerId));setData(button,"trainType",row.typeId);setData(button,"trainCount",String(count));const label=document.createElement('span'),reason=document.createElement('small'),help=document.createElement('small');label.className='training-label';help.className='training-help';help.id=`training-help-${row.producerId}-${row.typeId}-${count}`;setText(help,sourceButtonHelp(row.typeId));setHidden(help,!help.textContent);reason.className='training-reason';reason.id=`training-reason-${row.producerId}-${row.typeId}-${count}`;setAttribute(button,'aria-describedby',[help.hidden?'':help.id,reason.id].filter(Boolean).join(' '));button.append(label,help,reason);buttons.set(key,button);}
    const view=trainingOptionView(row,{name:fullName(w,row.typeId),count,life,gold,ready,paused:!playing,batch:Boolean(w.trainingBatch),spinning:sourceSpinning.has(row.producerId)&&['h044','h046'].includes(row.typeId)});
-   button.querySelector('.training-label').textContent=view.label;button.querySelector('.training-reason').textContent=view.reason;button.disabled=view.disabled;button.title=view.reason;
+   setText(button.querySelector('.training-label'),view.label);setText(button.querySelector('.training-reason'),view.reason);setProperty(button,"disabled",view.disabled);setProperty(button,"title",view.reason);
    if(button!==next){const focused=document.activeElement===button;host.insertBefore(button,next);if(focused)button.focus();}
    next=button.nextElementSibling;
   }}
@@ -1333,16 +1334,16 @@ function renderTraining(w){
  const pending=[...w.sim.pendingTrainings.values()],batch=w.trainingBatch;
  // remaining excludes the accepted current request, which may still be queued before its next tick.
  const current=batch?pending.find(q=>q.producerId===batch.producerId&&q.typeId===batch.typeId):pending[0],queued=rows.some(row=>row.reason==='busy');
- $("trainingStatus").textContent=w.gameOver&&(pending.length||batch)?'게임 종료 · 구입 처리 중단':batch
+ setText($("trainingStatus"),w.gameOver&&(pending.length||batch)?'게임 종료 · 구입 처리 중단':batch
   ?current?`묶음 구입 중 · 남은 ${batch.remaining+1}회 · 이번 1회: 게임 시간 ${(current.remainingTicks*DT).toFixed(1)}초 남음 · 완료 후 반영`:`묶음 구입 대기 · 남은 ${batch.remaining+1}회 · 1회씩 완료 후 반영`
-  :current?`${fullName(w,current.typeId)} · 처리 중 · 게임 시간 ${(current.remainingTicks*DT).toFixed(1)}초 남음${current.typeId==='h01W'?' · 완료 후 반영':''}`:queued?'구입 예약 중 · 재개하면 진행됩니다':life>=100?'최대 수명에 도달했습니다':'';
- if(!playing&&(batch||current))$("trainingStatus").textContent='일시정지 · 상단 재개를 누르면 구입이 진행됩니다 · '+$("trainingStatus").textContent;
- if(w.trainingBatchNotice)$("trainingStatus").textContent=w.trainingBatchNotice+' · '+$("trainingStatus").textContent;
- $("cancelTrainingBatch").hidden=!batch||batch.remaining===0;if(batch)$("cancelTrainingBatch").textContent=`남은 ${batch.remaining}회 예약 취소`;
+  :current?`${fullName(w,current.typeId)} · 처리 중 · 게임 시간 ${(current.remainingTicks*DT).toFixed(1)}초 남음${current.typeId==='h01W'?' · 완료 후 반영':''}`:queued?'구입 예약 중 · 재개하면 진행됩니다':life>=100?'최대 수명에 도달했습니다':'');
+ if(!playing&&(batch||current))setText($("trainingStatus"),'일시정지 · 상단 재개를 누르면 구입이 진행됩니다 · '+$("trainingStatus").textContent);
+ if(w.trainingBatchNotice)setText($("trainingStatus"),w.trainingBatchNotice+' · '+$("trainingStatus").textContent);
+ setHidden($("cancelTrainingBatch"),!batch||batch.remaining===0);if(batch)setText($("cancelTrainingBatch"),`남은 ${batch.remaining}회 예약 취소`);
  const casinoCurrent=pending.find(q=>sourceOwned.has(q.producerId));
- $("casinoUse").hidden=sourceOwned.size===0;
- $("casinoTrainingStatus").textContent=sourceOwned.size===0?'':w.gameOver?'게임 종료 · 시설 이용 중단':!playing?'일시정지 · 상단 재개를 누르면 구입과 추첨이 진행됩니다':batch?$("trainingStatus").textContent:casinoCurrent?`${fullName(w,casinoCurrent.typeId)} · 처리 중 · 게임 시간 ${(casinoCurrent.remainingTicks*DT).toFixed(1)}초 남음`:[...sourceOwned].some(id=>sourceSpinning.has(id))?'추첨 중입니다 · 완료 후 다시 이용할 수 있어요':'코인 투입이나 나가기를 선택하세요';
- $("saveRun").disabled=Boolean(batch)||w.modeDialog?.pendingButtonId!==undefined;
+ setHidden($("casinoUse"),sourceOwned.size===0);
+ setText($("casinoTrainingStatus"),sourceOwned.size===0?'':w.gameOver?'게임 종료 · 시설 이용 중단':!playing?'일시정지 · 상단 재개를 누르면 구입과 추첨이 진행됩니다':batch?$("trainingStatus").textContent:casinoCurrent?`${fullName(w,casinoCurrent.typeId)} · 처리 중 · 게임 시간 ${(casinoCurrent.remainingTicks*DT).toFixed(1)}초 남음`:[...sourceOwned].some(id=>sourceSpinning.has(id))?'추첨 중입니다 · 완료 후 다시 이용할 수 있어요':'코인 투입이나 나가기를 선택하세요');
+ setProperty($("saveRun"),"disabled",Boolean(batch)||w.modeDialog?.pendingButtonId!==undefined);
 }
 
 function stepN(w, n) {
@@ -1413,7 +1414,7 @@ function stepN(w, n) {
         queueSoundEvent(w,ev.winner===0?'clear':'defeat',{key:'outcome'});
         w.trainingBatch = null;
         playing = false;
-        $("play").textContent = "게임 종료";
+        setText($("play"),"게임 종료");
       }
       else if(ev.kind==='TrainingFinished'){advanceTrainingBatch(w,ev,ev.typeId==='h01W'&&gemTowerPlayerState(w.vm).life>=100);flash(fullName(w,ev.typeId)+' · 완료');}
       else if(ev.kind==='TrainingRejected'){advanceTrainingBatch(w,ev);flash(TRAIN_REASON[ev.reason]??"구입 조건을 충족하지 못했습니다");}
@@ -1550,14 +1551,14 @@ function installLocalSoundReview() {
  if(!isLocalGameHost(location.hostname))return;
  const host=$('advancedOptions');if(!host)return;
  const details=document.createElement('details'),summary=document.createElement('summary'),note=document.createElement('p'),record=document.createElement('button'),stop=document.createElement('button'),show=document.createElement('button'),output=document.createElement('textarea');
- details.id='soundReview';summary.textContent='소리 점검';note.id='soundReviewStatus';note.className='local-note';note.textContent='이 맥의 전장 화면과 게임 소리만 녹화합니다 · 최대 5분';
- record.type=stop.type=show.type='button';record.className=stop.className=show.className='sec';record.textContent='전장 녹화 시작';stop.textContent='녹화 마치고 저장';stop.disabled=true;show.textContent='소리 기록 보기';output.id='soundReviewLog';output.readOnly=true;output.rows=10;output.setAttribute('aria-label','소리 재생 기록');
- const choose=document.createElement('select'),tryCue=document.createElement('button');choose.setAttribute('aria-label','개별 소리 점검');
+ details.id='soundReview';setText(summary,'소리 점검');note.id='soundReviewStatus';note.className='local-note';setText(note,'이 맥의 전장 화면과 게임 소리만 녹화합니다 · 최대 5분');
+ record.type=stop.type=show.type='button';record.className=stop.className=show.className='sec';setText(record,'전장 녹화 시작');setText(stop,'녹화 마치고 저장');setProperty(stop,"disabled",true);setText(show,'소리 기록 보기');output.id='soundReviewLog';output.readOnly=true;output.rows=10;setAttribute(output,'aria-label','소리 재생 기록');
+ const choose=document.createElement('select'),tryCue=document.createElement('button');setAttribute(choose,'aria-label','개별 소리 점검');
  const labels={place:'설치',combine:'조합',upgrade:'강화',waveStart:'웨이브 시작',lifeLoss:'생명 감소',kill:'처치',boss:'보스',air:'공중',keep:'남기기',rare:'희귀 보석',research:'연구 완료',waveGold:'웨이브 골드',tap:'버튼',defeat:'패배',clear:'클리어'};
- for(const [value,label]of Object.entries(labels)){const option=document.createElement('option');option.value=value;option.textContent=label;choose.append(option);}choose.value='place';tryCue.type='button';tryCue.className='sec';tryCue.textContent='선택한 소리 듣기';
- tryCue.onclick=async()=>{const kind=choose.value;if(!Object.hasOwn(H_AUDIO_CUES,kind))return;await actionAudio.unlock();const played=actionAudio.play(kind,{origin:'controlled',kind,runId:world?.runId??'review',tick:world?.sim.tickCount??0,key:'controlled:'+Date.now()});note.textContent=played?'개별 소리 점검 · '+labels[kind]:'소리가 꺼져 있거나 준비 중입니다';};
+ for(const [value,label]of Object.entries(labels)){const option=document.createElement('option');option.value=value;setText(option,label);choose.append(option);}choose.value='place';tryCue.type='button';tryCue.className='sec';setText(tryCue,'선택한 소리 듣기');
+ tryCue.onclick=async()=>{const kind=choose.value;if(!Object.hasOwn(H_AUDIO_CUES,kind))return;await actionAudio.unlock();const played=actionAudio.play(kind,{origin:'controlled',kind,runId:world?.runId??'review',tick:world?.sim.tickCount??0,key:'controlled:'+Date.now()});setText(note,played?'개별 소리 점검 · '+labels[kind]:'소리가 꺼져 있거나 준비 중입니다');};
  details.append(summary,note,record,stop,choose,tryCue,show,output);host.append(details);
- soundRecording=createGameRecording({canvas:cv,audio:actionAudio,onState:state=>{record.disabled=['recording','starting','stopping'].includes(state.state);stop.disabled=!['recording','starting','ready'].includes(state.state);note.textContent=({idle:'녹화를 시작할 수 있습니다',starting:'소리와 화면을 준비하고 있습니다',recording:'전장 화면과 게임 소리 녹화 중 · 최대 5분',stopping:'녹화 파일을 준비하고 있습니다',ready:'녹화가 끝났습니다',unsupported:'이 브라우저에서 소리 포함 녹화를 준비하지 못했습니다',failed:'녹화를 준비하지 못했습니다 · 게임은 계속할 수 있습니다'})[state.state];}});
+ soundRecording=createGameRecording({canvas:cv,audio:actionAudio,onState:state=>{setProperty(record,"disabled",['recording','starting','stopping'].includes(state.state));setProperty(stop,"disabled",!['recording','starting','ready'].includes(state.state));setText(note,({idle:'녹화를 시작할 수 있습니다',starting:'소리와 화면을 준비하고 있습니다',recording:'전장 화면과 게임 소리 녹화 중 · 최대 5분',stopping:'녹화 파일을 준비하고 있습니다',ready:'녹화가 끝났습니다',unsupported:'이 브라우저에서 소리 포함 녹화를 준비하지 못했습니다',failed:'녹화를 준비하지 못했습니다 · 게임은 계속할 수 있습니다'})[state.state]);}});
  record.onclick=async()=>{await soundRecording.start();};
  stop.onclick=async()=>{const blob=await soundRecording.stop();if(!blob?.size)return;const link=document.createElement('a'),url=URL.createObjectURL(blob);link.href=url;link.download='gemtower-sound-'+Date.now()+(blob.type.includes('mp4')?'.mp4':'.webm');link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  show.onclick=()=>{output.value=JSON.stringify({build:contentBuild,replayBuild,recordedAt:new Date().toISOString(),game:world?{runId:world.runId,tick:world.sim.tickCount,hash:world.sim.stateHash(),state:gemTowerPlayerState(world.vm)}:null,sound:actionAudio.snapshot(),recording:soundRecording.snapshot()},null,2);};
@@ -1617,7 +1618,7 @@ function syncRotationGate(){
  const physical=window.screen?.orientation?.type??(typeof window.orientation==='number'?(Math.abs(window.orientation)===90?'landscape':'portrait'):null);
  const blocked=!restoring&&isShortTouchLandscape({touch:qa||coarsePointer.matches||navigator.maxTouchPoints>0,width:window.innerWidth,height:window.innerHeight,orientation:qa?null:physical,editing});
  const root=document.documentElement,changed=root.dataset.rotationBlocked!==String(blocked);
- if(changed)root.dataset.rotationBlocked=String(blocked);if(screen.hidden!==!blocked)screen.hidden=!blocked;
+ if(changed)setData(root,"rotationBlocked",String(blocked));if(screen.hidden!==!blocked)setHidden(screen,!blocked);
  if(blocked&&(playing||changed)){playing=false;frameClock.reset();interruptUiOrders(world);checkpointRun(world,true);if(world)renderControls(world);}
  if(blocked&&root.dataset.loadState==='ready'&&active!==screen&&!active?.closest?.('#qaDevicePanel'))screen.focus({preventScroll:true});
  return blocked;
@@ -1697,18 +1698,18 @@ function placeTower(w, worldX, worldY) {
 
 // P-3: 클릭한 지점에 이미 젬(공격 가능 엔티티)이 있으면 선택(패널 오픈), 없으면 기존 건설(P-1)로.
 function renderBuildCells(w){
- if((w.viewPlayerId??0)!==0){$("buildCells").hidden=true;$("cancelPoint").hidden=true;return;}
- if(w.pendingTargetAbility){$("buildCells").hidden=true;$("cancelPoint").hidden=true;return;}
+ if((w.viewPlayerId??0)!==0){setHidden($("buildCells"),true);setHidden($("cancelPoint"),true);return;}
+ if(w.pendingTargetAbility){setHidden($("buildCells"),true);setHidden($("cancelPoint"),true);return;}
  let point=w.pendingPointAbility;if(point&&w.sim.validateAbilityOrder(0,point.unitId,point.abilityId)!==null){w.pendingPointAbility=null;point=null;}
- $("cancelPoint").hidden=!point;
+ setHidden($("cancelPoint"),!point);
  const overlay=$("buildCells"),state=gemTowerPlayerState(w.vm),ready=w.pm&&w.modeDialog?.clicked&&state.difficulty&&!state.chosen&&remainingBuildSlots(state,w.pendingBuilds)>0&&!w.gameOver;
- overlay.hidden=!(ready||point);if(overlay.hidden)return;
- overlay.setAttribute("aria-label",point?"슬레이트 이동 위치":"건설 가능한 칸");
+ setHidden(overlay,!(ready||point));if(overlay.hidden)return;
+ setAttribute(overlay,"aria-label",point?"슬레이트 이동 위치":"건설 가능한 칸");
  const key=[cam.cx,cam.cy,cam.zoom,cv.width,cv.height,state.buildCount,Math.floor(w.sim.tickCount/4),w.pendingBuilds.length,point?.unitId??0].join(':');if(w.buildCellsCheck===key)return;w.buildCellsCheck=key;
  const cells=buildGridCells(w),rect=cv.getBoundingClientRect(),sx=rect.width/cv.width,sy=rect.height/cv.height,size=cells*w.pm.cellSize;
  const blocks=visibleBuildBlocks(w.pm,cam,cv.width,cv.height,cells).filter(b=>{const p=blockCenter(w.pm,b.col,b.row,cells);if(point)return w.sim.validatePointAbilityOrder(0,point.unitId,point.abilityId,p.x,p.y)===null;return canPlaceBlock(w,b.col,b.row,cells);});
  const viewKey=JSON.stringify([cam.cx,cam.cy,cam.zoom,cv.width,cv.height,Boolean(point),blocks]);if(w.buildCellsView===viewKey)return;w.buildCellsView=viewKey;
- const keep=new Set();for(const {col,row} of blocks){const id=`${col}:${row}`;keep.add(id);let button=overlay.querySelector(`[data-cell="${id}"]`);if(!button){button=document.createElement('button');button.className='build-cell';button.dataset.cell=id;overlay.append(button);}button.textContent=point?'◎':'+';button.setAttribute('aria-label',`${point?'슬레이트 이동':'보석 건설'} ${row/cells+1}행 ${col/cells+1}열`);const p=blockCenter(w.pm,col,row,cells);button.dataset.x=p.x;button.dataset.y=p.y;const box=screenFootprintBox(p,size,cam,cv.width,cv.height);button.style.left=(box.left*sx)+'px';button.style.top=(box.top*sy)+'px';button.style.width=(box.width*sx)+'px';button.style.height=(box.height*sy)+'px';}
+ const keep=new Set();for(const {col,row} of blocks){const id=`${col}:${row}`;keep.add(id);let button=overlay.querySelector(`[data-cell="${id}"]`);if(!button){button=document.createElement('button');button.className='build-cell';setData(button,"cell",id);overlay.append(button);}setText(button,point?'◎':'+');setAttribute(button,'aria-label',`${point?'슬레이트 이동':'보석 건설'} ${row/cells+1}행 ${col/cells+1}열`);const p=blockCenter(w.pm,col,row,cells);setData(button,"x",p.x);setData(button,"y",p.y);const box=screenFootprintBox(p,size,cam,cv.width,cv.height);setStyle(button,"left",(box.left*sx)+'px');setStyle(button,"top",(box.top*sy)+'px');setStyle(button,"width",(box.width*sx)+'px');setStyle(button,"height",(box.height*sy)+'px');}
  for(const button of [...overlay.children])if(!keep.has(button.dataset.cell))button.remove();
 }
 $("buildCells").addEventListener('focusin',event=>{const button=event.target.closest('.build-cell');if(!button||!world?.pm||world.pendingPlacement)return;const x=Number(button.dataset.x),y=Number(button.dataset.y);world.hoverGemId=null;world.hover={cx:x,cy:y,...buildBlockAt(world.pm,x,y,buildGridCells(world))};render(world);});
@@ -1768,18 +1769,18 @@ function smallPlacementAtCurrentZoom(w,pointerType,rect){
 }
 function renderPlacement(w){
  if(w.pendingPlacement&&(w.gameOver||(w.viewPlayerId??0)!==0||w.pendingTargetAbility||w.pendingPointAbility||gemTowerPlayerState(w.vm).chosen||remainingBuildSlots(gemTowerPlayerState(w.vm),w.pendingBuilds)===0))clearPlacement(w);
- const point=w.pendingPlacement,confirm=$("placementConfirm");if(confirm.hidden!==!point)confirm.hidden=!point;
- const app=$('gameApp');const small=String(Boolean(point&&w.placementLoupe));if(app&&app.dataset.smallPlacement!==small)app.dataset.smallPlacement=small;
- if(point){confirm.dataset.x=String(point.x);confirm.dataset.y=String(point.y);}
- if(point)$("placementHint").textContent='길과 위치 확인 중 · 사거리는 건설 후 확정돼요';
+ const point=w.pendingPlacement,confirm=$("placementConfirm");if(confirm.hidden!==!point)setHidden(confirm,!point);
+ const app=$('gameApp');const small=String(Boolean(point&&w.placementLoupe));if(app&&app.dataset.smallPlacement!==small)setData(app,"smallPlacement",small);
+ if(point){setData(confirm,"x",String(point.x));setData(confirm,"y",String(point.y));}
+ if(point)setText($("placementHint"),'길과 위치 확인 중 · 사거리는 건설 후 확정돼요');
 }
 function renderPlacementLoupe(w){
  const host=$('placementLoupe'),point=w.pendingPlacement,anchor=w.placementLoupe;if(!host)return;
- host.hidden=!point||!anchor;if(host.hidden)return;
+ setHidden(host,!point||!anchor);if(host.hidden)return;
  const rect=cv.getBoundingClientRect(),box=placementLoupeBox({width:rect.width,height:rect.height,fingerX:anchor.clientX-rect.left,fingerY:anchor.clientY-rect.top});
- if(!box){host.hidden=true;return;}host.style.left=box.left+'px';host.style.top=box.top+'px';host.style.width=box.size+'px';
+ if(!box){setHidden(host,true);return;}setStyle(host,"left",box.left+'px');setStyle(host,"top",box.top+'px');setStyle(host,"width",box.size+'px');
  const image=$('placementLoupeImage');if(image.width!==box.size)image.width=box.size;if(image.height!==box.size)image.height=box.size;
- if(!drawPlacementLoupe(image.getContext('2d'),cv,{x:W2SX(point.x),y:W2SY(point.y)},{cellPixels:buildGridCells(w)*w.pm.cellSize*cam.zoom}))host.hidden=true;
+ if(!drawPlacementLoupe(image.getContext('2d'),cv,{x:W2SX(point.x),y:W2SY(point.y)},{cellPixels:buildGridCells(w)*w.pm.cellSize*cam.zoom}))setHidden(host,true);
 }
 $("confirmPlacement").onclick=()=>{if(!world?.pendingPlacement)return;const point=world.pendingPlacement;clearPlacement(world);placeTower(world,point.x,point.y);render(world);};
 $("precisePlacement").onchange=()=>{if(world){world.precisePlacement=$("precisePlacement").checked;clearPlacement(world);render(world);}};
@@ -1870,15 +1871,15 @@ function startWaves(w) {
   // 때마다 재적용해야 하는 이유는 준비시간 중엔 아직 첫 시동을 걸지 않았기 때문(스크립트가 스스로
   // 감지할 방법이 없는 갭 — 위 boot() 주석 참조, 대체 조건 동일: X-1 다이얼로그 UI).
   if (w.roundTimer && w.roundTimer.kind === "timer") { w.roundTimer.data.remainingTicks = 40; w.roundTimer.data.timeoutTicks = 360; w.roundTimer.data.running = true; w.roundTimer.data.periodic = false; }
-  playing = true; $("play").textContent = "일시정지";
-  $("engineTag").textContent = "웨이브 진행 · 점이 있는 빈 칸을 눌러 건설";
+  playing = true; setText($("play"),"일시정지");
+  setText($("engineTag"),"웨이브 진행 · 점이 있는 빈 칸을 눌러 건설");
 }
-$("play").onclick = () => { if (!world||restoring||loadingRun||runtimeFailed) return;if(world.replayMismatch){flash("기록이 일치하지 않습니다 · 새 게임을 시작하세요");return;} playing = !playing; $("play").textContent = playing ? "일시정지" : "재개";if(!playing)checkpointRun(world,true); };
+$("play").onclick = () => { if (!world||restoring||loadingRun||runtimeFailed) return;if(world.replayMismatch){flash("기록이 일치하지 않습니다 · 새 게임을 시작하세요");return;} playing = !playing; setText($("play"),playing ? "일시정지" : "재개");if(!playing)checkpointRun(world,true); };
 $("skip").onclick = () => { if (world && world.prepActive) startWaves(world); };
 $("stepBtn").onclick = () => { if (world&&!restoring&&!loadingRun&&!runtimeFailed) { stepN(world, 1); render(world);checkpointRun(world,true); } };
 $("reset").onclick = () => startNewGame();
 $("changeSetup").onclick = () => startNewGame(true);
-$("speed").oninput = (e) => { tps = +e.target.value; $("spd").textContent = tps + "×";if($("speedCycle"))$("speedCycle").textContent='배속 '+tps+'×'; };
+$("speed").oninput = (e) => { tps = +e.target.value; setText($("spd"),tps + "×");if($("speedCycle"))setText($("speedCycle"),'배속 '+tps+'×'); };
 $("speedCycle").onclick=()=>{const slider=$("speed");if(slider.disabled)return;const next=Number(slider.value)+Number(slider.step||1);slider.value=String(next>Number(slider.max)?slider.min:next);slider.oninput({target:slider});};
 for (const id of ["A009", "A007", "A00R", "A03M", "A02G", "A008", "A02J"]) {
   $("cast" + id).onclick = () => { if (world) castGem(world, id); };
@@ -1974,14 +1975,14 @@ function sendChat() {
   world.sim.injectChat(0, text); // P0 왕복 — 효과(§8.1)는 실맵 스크립트가 다음 triggerBridge 단계에서 수행
   recordInput(world,{kind:'chat',playerId:0,text});
   const log = $("chatLog");
-  if (log) { const line=document.createElement('div');line.textContent='› '+text;log.prepend(line); }
+  if (log) { const line=document.createElement('div');setText(line,'› '+text);log.prepend(line); }
   input.value = "";
 }
 if ($("chatSend")) $("chatSend").onclick = sendChat;
 if ($("chatInput")) $("chatInput").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
 if ($("chatShowAdmin")) $("chatShowAdmin").onchange = () => renderChatHelp(world);
 
-function setMsg(t) { const m = $("msg"); if (m) { m.style.display = "flex"; m.textContent = t; } }
+function setMsg(t) { const m = $("msg"); if (m) { setStyle(m,"display","flex"); setText(m,t); } }
 function startNewGame(showSetup=false){
  if(world&&!world.gameOver&&!confirm('진행 중인 판을 먼저 저장하고 새 판을 시작할까요?'))return false;
  if(checkpointRun(world,true).kind==='failed')return false;
@@ -1994,6 +1995,8 @@ function startChallenge(profile){
  setDrawer(false);return loadFromUrl(profile.seed,{startupProfile:profile});
 }
 function renderResultDetails(w){
+ const initial=w?gemTowerPlayerState(w.vm):null;
+ resultView.startup(Boolean(w&&!w.challengeDate&&!w.gameOver&&!restoring&&!loadingRun&&!runtimeFailed&&(w.viewPlayerId??0)===0&&w.modeDialog?.clicked&&initial?.round===1&&initial.buildCount===0&&!w.pendingBuilds?.length));
  if(!w?.gameOver){resultView.render(null);resultView.records(recordBook.list());return;}
  if(restoring||loadingRun||runtimeFailed)return;
  const state=gemTowerPlayerState(w.vm),stats=w.resultStats?.snapshot()??{kills:0,unattributed:0,top:[],lastLoss:null};
@@ -2016,7 +2019,7 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false,st
   checkpointRun(world,true);
   const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
   loadingRun=true;world?.viewFeedback?.clear();world?.fieldFeedback?.clear();world?.cueAudio?.stop();playing=false;frameClock.reset();
-  runtimeFailed=false;document.documentElement.dataset.gameReady='false';
+  runtimeFailed=false;setData(document.documentElement,"gameReady",'false');
   const readBytes=(response,id)=>readResponseBytes(response,id,(...values)=>{if(!restoring)loadingScreen.receive(...values);});
   const reading=async()=>{if(!restoring)await loadingScreen.reading();};
   if(!restoring)loadingScreen.begin();
@@ -2036,7 +2039,7 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false,st
     setMsg("파싱·부팅 중…");
     frameClock.reset();
     drag.on=false; delete $("gameApp").dataset.mode;
-    resize(); world = boot(buf, nameMap, stockProfile, seed); $("msg").style.display = "none"; $("sourceFiles").hidden=true;
+    resize(); world = boot(buf, nameMap, stockProfile, seed); setStyle($("msg"),"display","none"); setHidden($("sourceFiles"),true);
     // G-6: 리셋/재부팅 시 hp/gold 차분 앵커·부유 태그·채팅 도움말 갱신(구 world 잔재로 인한 오탐 방지).
     prevHp = new Map(); prevGold = [0, 0, 0, 0, 0, 0, 0, 0];
     prevGold[0] = world.sim.ledger.gold(0); // source startup gold is the observation baseline
@@ -2044,8 +2047,8 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false,st
     // U-2e: 재부팅 시 구 world의 위치/이펙트 잔재 초기화(오탐 attackFx 방지 — 위 prevHp/goldTags와 동일 이유).
     lastPos = new Map(); attackFx = []; waveNum = 0; prevCreeps = 0; waveFlashUntil = 0;
     renderChatHelp(world);
-    $("engineTag").textContent = "보석 5개 건설 → 보석 선택 또는 같은 보석 조합";
-    playing = false; $("play").textContent = "방식 선택";
+    setText($("engineTag"),"보석 5개 건설 → 보석 선택 또는 같은 보석 조합");
+    playing = false; setText($("play"),"방식 선택");
     let returning=true;try{returning=listRunRecords(localStorage,contentBuild,replayBuild).some(r=>r.trace);}catch{ /* Storage access failure keeps the explicit choice screen. */ }
     if(!restoring&&!showSetup&&startupProfile){world.challengeDate=startupProfile.dailyDate??null;chooseStartup(startupProfile.mode,startupProfile.difficulty);}
     else if(!restoring&&!showSetup&&!returning)chooseStartup('race',0);
@@ -2058,7 +2061,7 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false,st
     loaded=true;return true;
   } catch (e) {
     const alreadyFailed=runtimeFailed;
-    playing=false;frameClock.reset();document.documentElement.dataset.gameReady='false';
+    playing=false;frameClock.reset();setData(document.documentElement,"gameReady",'false');
     // An already-created candidate is unusable after a completion-stage failure.
     // Preserve prior-world health only for failures that occurred before replacement.
     if(world!==priorWorld)runtimeFailed=true;
@@ -2074,14 +2077,14 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false,st
 
 function showSourceFiles(message='두 파일을 선택하면 게임을 열 수 있습니다.'){
  if(!restoring)loadingScreen.intake($("sourceFiles"));
- $("sourceFiles").hidden=false;$("msg").style.display="none";$("sourceFilesStatus").textContent=message;
- $("play").disabled=true;$("reset").disabled=true;$("runState").textContent='자료 선택';
+ setHidden($("sourceFiles"),false);setStyle($("msg"),"display","none");setText($("sourceFilesStatus"),message);
+ setProperty($("play"),"disabled",true);setProperty($("reset"),"disabled",true);setText($("runState"),'자료 선택');
  syncDisabledReasons(world);
 }
-function updateSourceFiles(){const ready=Boolean($("mapFile").files[0]&&$("profileFile").files[0]);$("openSourceFiles").disabled=!ready;syncDisabledReasons(world);}
+function updateSourceFiles(){const ready=Boolean($("mapFile").files[0]&&$("profileFile").files[0]);setProperty($("openSourceFiles"),"disabled",!ready);syncDisabledReasons(world);}
 $("mapFile").addEventListener('change',updateSourceFiles);$("profileFile").addEventListener('change',updateSourceFiles);
 $("openSourceFiles").addEventListener('click',async()=>{
- const button=$("openSourceFiles");button.disabled=true;$("sourceFilesStatus").textContent='자료를 확인하는 중…';
+ const button=$("openSourceFiles");setProperty(button,"disabled",true);setText($("sourceFilesStatus"),'자료를 확인하는 중…');
  try{loadingScreen.begin();await loadingScreen.reading();const source=await readPlayFiles($("mapFile").files[0],$("profileFile").files[0],parseStockProfile);selectedSource=source;await loadFromUrl();}
  catch(error){showSourceFiles(error.message);}
  finally{updateSourceFiles();}
@@ -2106,32 +2109,32 @@ resize(); requestAnimationFrame(loop); loadFromUrl(sessionSeed,{startupProfile:l
 function renderStartupOptions(w){
  if(!w?.modeDialog||w.modeDialog.clicked)return;
  const choices=sourceDifficultyChoices(w),mode=w.startupMode??'race',selected=w.startupDifficulty??0;
- for(const [value,id]of [['classic','modeClassic'],['race','modeRace']])$(id).setAttribute('aria-pressed',String(mode===value));
+ for(const [value,id]of [['classic','modeClassic'],['race','modeRace']])setAttribute($(id),'aria-pressed',String(mode===value));
  const host=$('startupDifficulties');
  if(w.startupOptionsKey!==JSON.stringify(choices)){
   w.startupOptionsKey=JSON.stringify(choices);host.replaceChildren();
-  for(const choice of choices){const b=document.createElement('button');b.type='button';b.className='sec';b.dataset.difficultyIndex=String(choice.index);const title=document.createElement('strong'),note=document.createElement('small');title.textContent=choice.label;note.textContent=choice.description;b.append(title,note);b.onclick=()=>{w.startupDifficulty=choice.index;renderStartupOptions(w);};host.append(b);}
+  for(const choice of choices){const b=document.createElement('button');b.type='button';b.className='sec';setData(b,"difficultyIndex",String(choice.index));const title=document.createElement('strong'),note=document.createElement('small');setText(title,choice.label);setText(note,choice.description);b.append(title,note);b.onclick=()=>{w.startupDifficulty=choice.index;renderStartupOptions(w);};host.append(b);}
  }
- for(const button of host.children)button.setAttribute('aria-pressed',String(Number(button.dataset.difficultyIndex)===selected));
- $('startGame').disabled=!choices.length;$('startGame').textContent=`${mode==='classic'?'클래식':'레이스'} · ${choices[selected]?.label??'난이도 확인'} 시작`;
+ for(const button of host.children)setAttribute(button,'aria-pressed',String(Number(button.dataset.difficultyIndex)===selected));
+ setProperty($('startGame'),"disabled",!choices.length);setText($('startGame'),`${mode==='classic'?'클래식':'레이스'} · ${choices[selected]?.label??'난이도 확인'} 시작`);
 }
 function chooseStartup(mode,index){
  if(!world||!requestStartupChoice(world,mode,index))return false;
- $('gameApp').dataset.mode=mode;frameClock.reset();playing=true;
+ setData($('gameApp'),"mode",mode);frameClock.reset();playing=true;
  // Start through ordinary fixed steps. The original delayed difficulty timer
  // continues on the frame clock; advanceStartupChoice waits for its real buttons.
  stepN(world,4);render(world);cv.focus();return true;
 }
 function chooseMode(mode) {
   if (!world || !requestModeChoice(world, mode)) return;
-  world.runMode=mode;$("gameApp").dataset.mode = mode;
-  frameClock.reset(); playing = true; $("play").textContent = "일시정지";
+  world.runMode=mode;setData($("gameApp"),"mode",mode);
+  frameClock.reset(); playing = true; setText($("play"),"일시정지");
   cv.focus();
 }
 function setDrawer(open) {
   if(open&&$("gameDrawer").hidden){clearPlacement(world);if(playing){checkpointRun(world,true);if(world)render(world,true);}}
-  $("gameDrawer").hidden = !open; $("drawerScrim").hidden = !open;
-  $("researchToggle").setAttribute("aria-expanded", String(open));
+  setHidden($("gameDrawer"),!open); setHidden($("drawerScrim"),!open);
+  setAttribute($("researchToggle"),"aria-expanded",String(open));
   if(open){refreshSavedRuns();$("drawerClose").focus();} else $("researchToggle").focus();
 }
 $("researchToggle").onclick = () => setDrawer($("gameDrawer").hidden);

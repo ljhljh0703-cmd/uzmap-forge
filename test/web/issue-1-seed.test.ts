@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -17,7 +18,7 @@ it('startup honors explicit zero and uint32 seeds; absent or malformed seeds req
  let entropyCalls=0;const entropy={getRandomValues(out:Uint32Array){entropyCalls++;out[0]=99;return out;}};
  for(const [raw,expected] of [['0',0],['6',6],['4294967295',0xffffffff],[null,99],['bad',99],['4294967296',99]]){
   const context:any={...actions,launchChallenge:null,sessionQuery:new URLSearchParams(raw===null?'':`seed=${raw}`),crypto:entropy};
-  vm.runInNewContext(lines+'\nglobalThis.actual=sessionSeed;',context);assert.equal(context.actual,expected);
+  vm.runInNewContext(lines+'\nglobalThis.actual=sessionSeed;',Object.assign(context,domState));assert.equal(context.actual,expected);
  }
  assert.equal(entropyCalls,3,'explicit URL seeds must not consume browser entropy');
 });
@@ -27,7 +28,7 @@ it('new-game and play-again buttons request fresh entropy rather than replaying 
  for(const callback of callbacks!){
   let entropyCalls=0;const requested:number[]=[],reset:any={},goRestart:any={};
   const context:any={...actions,sessionSeed:6,world:{seed:6},restoring:false,confirm:()=>true,checkpointRun:()=>({kind:'saved'}),setDrawer(){},goRestart,$:()=>reset,crypto:{getRandomValues(out:Uint32Array){entropyCalls++;out[0]=6;return out;}},loadFromUrl:async(seed:number)=>{requested.push(seed);context.sessionSeed=seed;return true;}};
-  vm.runInNewContext(source.match(/^function startNewGame[^\n]*\{[\s\S]*?^\}/m)[0]+'\n'+callback,context);await (callback.startsWith('if')?goRestart:reset).onclick();
+  vm.runInNewContext(source.match(/^function startNewGame[^\n]*\{[\s\S]*?^\}/m)[0]+'\n'+callback,Object.assign(context,domState));await (callback.startsWith('if')?goRestart:reset).onclick();
   assert.equal(entropyCalls,1);assert.equal(requested.length,1);assert.notEqual(requested[0],6);assert.ok(requested[0]!>=0&&requested[0]!<=0xffffffff);
  }
 });
@@ -40,14 +41,14 @@ it('same-build saved games can resume across a new-game seed, while other versio
 it('snapshots record the world seed even while a different URL seed is still active',()=>{
  const snapshot=source.match(/^function runSnapshot\([^\n]+$/m)?.[0];assert.ok(snapshot);
  const context:any={sessionSeed:6,contentBuild:build,replayBuild:null,isRunCompatible,cam:{},gemTowerPlayerState:()=>({}),w:{seed:77,runId:'saved-run-0001',sim:{tickCount:0,stateHash:()=> '01234567'},inputLog:[]}};
- vm.runInNewContext(snapshot+'\nglobalThis.actual=runSnapshot(w);',context);assert.equal(context.actual.seed,77);
+ vm.runInNewContext(snapshot+'\nglobalThis.actual=runSnapshot(w);',Object.assign(context,domState));assert.equal(context.actual.seed,77);
 });
 
 function restoration({mismatch=false,cancel=false}={}){
  const original={seed:6,runId:'original-run001'},saved=trace(77),loaded:any[]=[];let commits=0,paints=0,recordingStops=0;const nodes:any=new Proxy({}, {get(target:any,key:string){return target[key]??= {disabled:false,textContent:'',style:{},focus(){}};}});
  const context:any={soundRecording:{stop(){recordingStops++;}},world:original,sessionSeed:6,restoring:false,restoreCancelled:false,playing:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},contentBuild:build,replayBuild:null,isRunCompatible,validateInputReplay:actions.validateInputReplay,restoredRunId:(t:any)=>t.runId,$:(id:string)=>nodes[id],captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{context.world=before.world;},renderControls(){},performance:{now:()=>0},frameClock:{reset(){}},setDrawer(){},flash(){},gemTowerPlayerState:()=>({}),textTags:[],goldTags:[],attackFx:[],render(){paints++;},commitSessionSeed:(seed:number)=>{assert.equal(context.world.sim.stateHash(),saved.stateHash,'publish only a verified replay');context.sessionSeed=seed;commits++;}};
  context.loadFromUrl=async(seed:number,options:any)=>{loaded.push({seed,options});assert.equal(context.sessionSeed,6,'URL seed stays unchanged during candidate boot');assert.equal(commits,0);context.world={seed,sim:{tickCount:0,stateHash:()=>mismatch?'fedcba98':'01234567',getUnit:()=>undefined},sourceVersion:null,runtimeCrashes:[],inputLog:[]};if(cancel)context.restoreCancelled=true;return true;};
- vm.runInNewContext(declaration('restoreRun'),context);
+ vm.runInNewContext(declaration('restoreRun'),Object.assign(context,domState));
  return {context,saved,original,loaded,stats:()=>({commits,paints,recordingStops})};
 }
 it('strict restore boots the saved seed and publishes it only after validation succeeds',async()=>{
@@ -59,13 +60,13 @@ it('mismatched and cancelled restores retain the old world and URL seed',async()
 
 it('publishing a verified seed keeps unrelated query fields and the URL fragment',()=>{
  const replaced:any[]=[],context:any={sessionSeed:6,URL,location:{href:'https://example.test/web/?seed=6&review=fixed#game'},history:{state:{preserve:true},replaceState(...args:any[]){replaced.push(args);}}};
- vm.runInNewContext(declaration('commitSessionSeed'),context);context.commitSessionSeed(77);assert.equal(context.sessionSeed,77);assert.equal(replaced.length,1);assert.equal(replaced[0][0],context.history.state);assert.equal(String(replaced[0][2]),'https://example.test/web/?seed=77&review=fixed#game');
+ vm.runInNewContext(declaration('commitSessionSeed'),Object.assign(context,domState));context.commitSessionSeed(77);assert.equal(context.sessionSeed,77);assert.equal(replaced.length,1);assert.equal(replaced[0][0],context.history.state);assert.equal(String(replaced[0][2]),'https://example.test/web/?seed=77&review=fixed#game');
 });
 
 it('actual loader passes each chosen seed to boot and withholds URL publication for a restore candidate',async()=>{
  const nodes:any=new Proxy({}, {get(target:any,key:string){return target[key]??= {textContent:'',dataset:{},style:{},hidden:true};}}),bootSeeds:number[]=[],published:number[]=[];
  const context:any={loadingScreen:{begin(){},receive(){},async reading(){},finish(){},intake(){},error(){}},visualReady:Promise.resolve(),readResponseBytes:async r=>r.arrayBuffer(),restoring:false,listRunRecords:()=>[{trace:{}}],localStorage:{},contentBuild:'a'.repeat(16),replayBuild:'b'.repeat(16),sessionSeed:6,selectedSource:{mapBytes:new ArrayBuffer(0),stockProfile:{}},localSourceMode:true,runtimeFailed:false,loadingRun:false,checkpointRun(){},document:{documentElement:{dataset:{}}},setMsg(){},extractGemPresentation:()=>({}),frameClock:{reset(){}},drag:{on:false},$:(id:string)=>nodes[id],resize(){},boot:(_bytes:any,_names:any,_profile:any,seed:number)=>{bootSeeds.push(seed);return {seed,sim:{ledger:{gold:()=>10}}};},world:null,Map,renderChatHelp(){},render(){},commitSessionSeed:(seed:number)=>{published.push(seed);context.sessionSeed=seed;},console};
- vm.runInNewContext(declaration('loadFromUrl'),context);
+ vm.runInNewContext(declaration('loadFromUrl'),Object.assign(context,domState));
  assert.equal(await context.loadFromUrl(),true);assert.equal(context.world.seed,6);assert.deepEqual(published,[6]);
  assert.equal(await context.loadFromUrl(77,{publishSeed:false}),true);assert.equal(context.world.seed,77);assert.deepEqual(published,[6]);assert.equal(context.sessionSeed,6);
  assert.equal(await context.loadFromUrl(88),true);assert.equal(context.world.seed,88);assert.deepEqual(published,[6,88]);assert.equal(context.sessionSeed,88);assert.deepEqual(bootSeeds,[6,77,88]);
@@ -79,4 +80,4 @@ it('repeated explicit seeds retain the existing deterministic RNG sequence witho
  assert.deepEqual(sample(actions.parseSessionSeed('6')),sample(actions.parseSessionSeed('6')));assert.notDeepEqual(sample(6),sample(fresh));assert.equal(draws,1);
 });
 
-it('the actual initial seed declaration accepts a daily challenge without consuming entropy',()=>{const line=source.match(/^(?:const|let) sessionSeed = [^\n]+/m)?.[0];const query=new URLSearchParams('daily=2026-10-26&mode=race&difficulty=2');let entropy=0;const c:any={...actions,sessionQuery:query,launchChallenge:challengeFromQuery(query),crypto:{getRandomValues(){entropy++;throw Error('not needed');}}};vm.runInNewContext(line+'\nglobalThis.actual=sessionSeed;',c);assert.equal(c.actual,dailySeed('2026-10-26'));assert.equal(entropy,0);});
+it('the actual initial seed declaration accepts a daily challenge without consuming entropy',()=>{const line=source.match(/^(?:const|let) sessionSeed = [^\n]+/m)?.[0];const query=new URLSearchParams('daily=2026-10-26&mode=race&difficulty=2');let entropy=0;const c:any={...actions,sessionQuery:query,launchChallenge:challengeFromQuery(query),crypto:{getRandomValues(){entropy++;throw Error('not needed');}}};vm.runInNewContext(line+'\nglobalThis.actual=sessionSeed;',Object.assign(c,domState));assert.equal(c.actual,dailySeed('2026-10-26'));assert.equal(entropy,0);});

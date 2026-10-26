@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -30,7 +31,7 @@ function contextRecord(w:any,a:any){w.inputLog.push({tick:w.sim.tickCount,...a})
 function chatContext(world:any,text:string){
  const lines:any[]=[],input={value:text},log={prepend:(line:any)=>lines.unshift(line),innerHTML:''};
  const context:any={world,$:(id:string)=>id==='chatInput'?input:log,document:{createElement:()=>({textContent:''})}};
- vm.runInNewContext(recordInput+'\n'+sendChat,context);
+ vm.runInNewContext(recordInput+'\n'+sendChat,Object.assign(context,domState));
  return {context,lines,input,log};
 }
 it('paused ordinary source chat survives save and replay at its exact pending-input tick',()=>{
@@ -64,7 +65,7 @@ it('a queued mode choice cannot be saved until the original two-tick flush recor
  const w=start();const calls:any[]=[],messages:string[]=[];let snapshots=0;
  const save=main.match(/^\$\("saveRun"\)[.]onclick[^\n]*$/m)?.[0];assert.ok(save);
  const context:any={world:w,restoring:false,$:()=>({}),flash:(text:string)=>messages.push(text),validateInputReplay:(t:any)=>t,runSnapshot:()=>{snapshots++;return {};},saveRunRecord:()=>{calls.push('save');return {trace:{},key:'slot'};},refreshReplayOutput(){},refreshSavedRuns(){},localStorage:{}};
- const button:any={};context.$=(id:string)=>id==='saveRun'?button:{};vm.runInNewContext(save,context);
+ const button:any={};context.$=(id:string)=>id==='saveRun'?button:{};vm.runInNewContext(save,Object.assign(context,domState));
  const {requestModeChoice,flushModeChoice}=requireActions;
  w.recordInput=(a:any)=>contextRecord(w,a);
  assert.equal(requestModeChoice(w,'race'),true);

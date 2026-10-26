@@ -6,6 +6,14 @@ import type { JassVm } from "../vm.ts";
 import { vint, vreal, vstring, vbool } from "../vm.ts";
 
 export function registerArithNatives(vm: JassVm): void {
+  // Caller-owned Warcraft III1.28 Scripts\Blizzard.j, inspected2026-10-27:
+  // bj_PI=3.14159; bj_DEGTORAD=bj_PI/180. Keep that source precision rather
+  // than replacing it with Math.PI. Missing this constant made slate retries
+  // use angle0 even after adding the radian natives (Claude final review).
+  vm.setGlobal("bj_DEGTORAD", vreal(3.14159 / 180));
+  for (const [name, fn] of [["Cos", Math.cos], ["Sin", Math.sin]] as const) {
+    vm.registerNative(name, (_ctx, args) => vreal(fn(args[0]?.t === "real" || args[0]?.t === "int" ? args[0].v : 0)));
+  }
   vm.registerNative("I2S", (_ctx, args) => vstring(String(args[0]?.t === "int" ? args[0].v : 0)));
   vm.registerNative("I2R", (_ctx, args) => vreal(args[0]?.t === "int" ? args[0].v : 0));
   vm.registerNative("R2I", (_ctx, args) => vint(args[0]?.t === "real" ? Math.trunc(args[0].v) : 0));

@@ -1,3 +1,4 @@
+import {setHidden,setText,setData,setStyle,setProperty,setAttribute} from './dom-state.js';
 /** Presentation-only source-success responses and reused prototype sounds. */
 export function createActionFeedback({now=()=>performance.now(),play=()=>false,document:doc=null,reducedMotion=()=>false}={}){
  const seen=new Set(),targets=new Map();let active=[],last=null,total=0,lastFlashAt=-Infinity;
@@ -15,16 +16,16 @@ export function createActionFeedback({now=()=>performance.now(),play=()=>false,d
    const state=this.snapshot();if(!doc)return;const desired=new Map();
    for(const item of state.active){for(const node of doc.querySelectorAll(`.round-slot[data-unit-id="${item.unitId}"]`))desired.set(node,item);if(item.unitId===selectedId)for(const id of ['gemName','selectedGemPortrait']){const node=doc.getElementById(id);if(node)desired.set(node,item);}}
    for(const node of targets.keys())if(!desired.has(node))remove(node);
-   for(const[node,item]of desired){if(targets.get(node)?.key===item.key)continue;remove(node);node.classList.add('action-success');node.dataset.feedbackKind=item.kind;let animation=null;
+   for(const[node,item]of desired){if(targets.get(node)?.key===item.key)continue;remove(node);node.classList.add('action-success');setData(node,"feedbackKind",item.kind);let animation=null;
     if(item.motionAllowed&&!reducedMotion()&&typeof node.animate==='function')try{animation=node.animate([{filter:'brightness(1.24)'},{filter:'brightness(1)'}],{duration:360,easing:'ease-out'});}catch{}
     targets.set(node,{key:item.key,animation});
    }
-   const app=doc.getElementById('gameApp'),celebration=state.active.findLast(item=>item.kind==='combine'||item.rare);if(app){app.dataset.celebration=String(Boolean(celebration));if(celebration)app.style?.setProperty?.('--celebration-color',celebration.color);}
-   const panel=doc.getElementById('bottomPanel');if(panel){panel.dataset.confirmedActions=String(state.total);panel.dataset.lastSuccess=state.last?.kind??'';}
+   const app=doc.getElementById('gameApp'),celebration=state.active.findLast(item=>item.kind==='combine'||item.rare);if(app){setData(app,"celebration",String(Boolean(celebration)));if(celebration)app.style?.setProperty?.('--celebration-color',celebration.color);}
+   const panel=doc.getElementById('bottomPanel');if(panel){setData(panel,"confirmedActions",String(state.total));setData(panel,"lastSuccess",state.last?.kind??'');}
   },
   pose(unitId){const at=now(),item=active.findLast(x=>x.until>at&&x.unitId===unitId);if(!item||reducedMotion())return{lift:0,scaleX:1};const age=at-item.at;return{lift:item.kind==='keep'?3*Math.sin(Math.PI*Math.min(1,age/560)):item.kind==='place'?4*(1-Math.min(1,age/120)):0,scaleX:item.kind==='combine'?Math.max(.15,Math.sin(Math.PI/2*Math.min(1,age/240))):1};},
   ghosts(){if(reducedMotion())return[];const out=[];for(const item of this.snapshot().active)if(item.kind==='keep'){const age=now()-item.at;item.hand.filter(x=>x.id!==item.unitId).forEach((x,index)=>{if(age<(index+1)*100)out.push({...x,color:item.color});});}return out.slice(0,4);},
-  clear(){active=[];last=null;total=0;lastFlashAt=-Infinity;const app=doc?.getElementById?.('gameApp');if(app)app.dataset.celebration='false';seen.clear();for(const node of targets.keys())remove(node);}
+  clear(){active=[];last=null;total=0;lastFlashAt=-Infinity;const app=doc?.getElementById?.('gameApp');if(app)setData(app,"celebration",'false');seen.clear();for(const node of targets.keys())remove(node);}
  };
 }
 // Legacy defaults remain for API/tests only. The product injects its separately

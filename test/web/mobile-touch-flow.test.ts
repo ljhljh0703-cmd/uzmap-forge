@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {trainingInterruptionText} from '../../web/play-ui.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,7 +29,7 @@ function pointer(){
  const world:any={selectedGemId:null,pm:null,hover:null,gemTargetCandidateIds:new Set([1]),sim:{entities:new Map([[1,unit]])}};
  const cv={width:200,height:200,setPointerCapture(){},getBoundingClientRect:()=>({left:0,top:0,right:200,bottom:200,width:200,height:200}),addEventListener:(kind:string,f:Function)=>handlers.set(kind,f)};
  const context:any={precisionPointer:()=>false,cv,surface:cv,drag:{on:false},cam:{cx:0,cy:0,zoom:1},mouseScreen:{},world,S2WX:(x:number)=>x,S2WY:(y:number)=>y,defOf:()=>({pathing:{width:4,height:4}}),isGemSelectable:()=>true,buildGridCells:()=>4,visibleGemChoices:(ui as any).visibleGemChoices,classifyMapGesture:(ui as any).classifyMapGesture,selectGemById:(w:any,id:number)=>{w.selectedGemId=id;selected.push(id);return true;},placeTower:(_w:any,x:number,y:number)=>placed.push([x,y]),previewPlacement:(_w:any,x:number,y:number)=>previews.push([x,y]),render(){}};
- vm.runInNewContext(fn('gemNear')+'\n'+fn('selectMapGem')+'\n'+source.slice(source.indexOf('surface.addEventListener("pointerdown"'),source.indexOf('function focusPlayer(w)')),context);
+ vm.runInNewContext(fn('gemNear')+'\n'+fn('selectMapGem')+'\n'+source.slice(source.indexOf('surface.addEventListener("pointerdown"'),source.indexOf('function focusPlayer(w)')),Object.assign(context,domState));
  const cell={dataset:{x:'96',y:'96'}};const send=(kind:string,extra:any={})=>handlers.get(kind)!({isPrimary:true,button:0,pointerId:1,pointerType:'touch',timeStamp:100,clientX:50,clientY:90,target:{closest:()=>cell},...extra});return {send,placed,previews,selected,world};
 }
 it('actual pointer handler selects a slate under the construction overlay after rock removal',()=>{const f=pointer();f.send('pointerdown');f.send('pointerup',{timeStamp:180});assert.deepEqual(f.selected,[1]);assert.deepEqual(f.placed,[]);});
@@ -40,13 +41,13 @@ it('opening and closing the solo menu checkpoints without changing explicit paus
  for(const playing of [true,false]){
  const nodes:any={gameDrawer:{hidden:true},drawerScrim:{hidden:true},researchToggle:{setAttribute(){},focus(){}},drawerClose:{focus(){}}};let saves=0,resets=0;
  const c:any={world:{},playing,$:(id:string)=>nodes[id],frameClock:{reset(){resets++;}},checkpointRun(){saves++;},renderControls(){},render(){},refreshSavedRuns(){},flash(){},clearPlacement(){}};
- vm.runInNewContext(fn('setDrawer'),c);c.setDrawer(true);assert.equal(c.playing,playing);assert.equal(nodes.gameDrawer.hidden,false);assert.equal(saves,Number(playing));assert.equal(resets,0);c.setDrawer(false);assert.equal(c.playing,playing);assert.equal(saves,Number(playing));
+ vm.runInNewContext(fn('setDrawer'),Object.assign(c,domState));c.setDrawer(true);assert.equal(c.playing,playing);assert.equal(nodes.gameDrawer.hidden,false);assert.equal(saves,Number(playing));assert.equal(resets,0);c.setDrawer(false);assert.equal(c.playing,playing);assert.equal(saves,Number(playing));
  }
 });
 it('background interruption preserves issued purchases and cancels only the unissued remainder before saving',()=>{
  const events=new Map<string,Function>(),issued=[{kind:'train',typeId:'h01W'}],world:any={trainingBatch:{producerId:1,typeId:'h01W',remaining:7},inputLog:issued,pendingBuilds:[],hover:{},pendingPlacement:{x:1,y:2}};let saved:any;
  const c:any={document:{hidden:true,addEventListener:(k:string,f:Function)=>events.set(k,f)},window:{addEventListener:(k:string,f:Function)=>events.set(k,f)},world,trainingInterruptionText,playing:true,drag:{on:true},frameClock:{reset(){}},checkpointRun(w:any){saved={batch:w.trainingBatch,issued:[...w.inputLog]};},renderControls(){},interruptUiOrders:undefined};
- vm.runInNewContext(fn('clearPlacement')+'\n'+fn('interruptUiOrders')+'\n'+source.slice(source.indexOf('document.addEventListener("visibilitychange"'),source.indexOf('resize(); requestAnimationFrame(loop);')),c);
+ vm.runInNewContext(fn('clearPlacement')+'\n'+fn('interruptUiOrders')+'\n'+source.slice(source.indexOf('document.addEventListener("visibilitychange"'),source.indexOf('resize(); requestAnimationFrame(loop);')),Object.assign(c,domState));
  events.get('visibilitychange')!();assert.equal(c.playing,false);assert.equal(world.trainingBatch,null);assert.deepEqual(saved.issued,issued);assert.equal(saved.batch,null);assert.equal(world.pendingPlacement,null);assert.equal(c.drag.on,false);assert.match(world.trainingBatchNotice,/7/);
 });
 it('training labels expose prerequisite, affordability and pending pause reasons without hover',()=>{
@@ -63,15 +64,15 @@ it('precision preview stays anchored when the pointer moves, leaves or cancels a
 });
 it('a failed safety checkpoint blocks the new batch request while preserving the current game',()=>{
  let requested=0;const w={trainingBatch:null},c:any={world:w,checkpointRun:()=>({kind:'failed'}),requestTrainingBatch:()=>{requested++;return true;},flash(){},render(){},playing:false};
- vm.runInNewContext(fn('handleTrainingClick'),c);c.handleTrainingClick({target:{closest:()=>({dataset:{producerId:'1',trainType:'h01W',trainCount:'2'}})}});assert.equal(requested,0);assert.equal(c.world,w);
+ vm.runInNewContext(fn('handleTrainingClick'),Object.assign(c,domState));c.handleTrainingClick({target:{closest:()=>({dataset:{producerId:'1',trainType:'h01W',trainCount:'2'}})}});assert.equal(requested,0);assert.equal(c.world,w);
 });
 it('keyboard and assistive build-cell activation also honor the precision preview setting',()=>{
  const line=source.split('\n').find(x=>x.startsWith('$("buildCells").addEventListener(\'click\''));assert.ok(line);let listener:Function;const previews:any[]=[],placed:any[]=[],world={precisePlacement:true},c:any={world,$:()=>({addEventListener:(_kind:string,f:Function)=>listener=f}),previewPlacement:(_w:any,x:number,y:number)=>previews.push([x,y]),placeTower:(_w:any,x:number,y:number)=>placed.push([x,y]),render(){}};
- vm.runInNewContext(line!,c);listener!({detail:0,target:{closest:()=>({dataset:{x:'96',y:'96'}})}});assert.deepEqual(previews,[[96,96]]);assert.deepEqual(placed,[]);
+ vm.runInNewContext(line!,Object.assign(c,domState));listener!({detail:0,target:{closest:()=>({dataset:{x:'96',y:'96'}})}});assert.deepEqual(previews,[[96,96]]);assert.deepEqual(placed,[]);
 });
 it('a training prerequisite uses the original upgrade name and WTS rather than a raw research code',()=>{
  const c:any={resolveWtsText:(s:string,strings:Map<number,string>)=>s.replace(/TRIGSTR_(\d+)/g,(_m,n)=>strings.get(Number(n))??_m),fullName:(_w:any,id:string)=>id};
- vm.runInNewContext(fn('sourceText')+'\n'+fn('trainingTechName'),c);
+ vm.runInNewContext(fn('sourceText')+'\n'+fn('trainingTechName'),Object.assign(c,domState));
  const w={strings:new Map([[17,'|cffff0000보석 질 향상|r']]),sim:{mapIr:{objectMods:[{kind:'upgrade',newId:'R000',mods:[{field:'gnam',value:'TRIGSTR_17'}]}]}}};assert.equal(c.trainingTechName(w,'R000'),'보석 질 향상');assert.equal(c.trainingTechName(w,'NONE'),'필요 연구');
 });
 it('purchase interruption metadata is bounded and cannot restore unissued orders or arbitrary messages',async()=>{

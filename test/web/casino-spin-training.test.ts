@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {sourceButtonHelp} from '../../web/source-help.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,7 +17,7 @@ function fixture(initialRows:any[]){
  const w:any={vm:{},modeDialog:{clicked:true},sim:{ledger:{gold:()=>gold},pendingTrainings:new Map()}};
  const nodes:any={trainingOptions:options,trainingStatus:status,saveRun:save,casinoTrainingOptions:casino,casinoTrainingStatus:casinoStatus,casinoUse,cancelTrainingBatch:{}};
  const context:any={sourceButtonHelp,playing:true,trainingOptionView,checkpointRun:()=>({kind:"saved"}),trainingActions:()=>[...rows],gemTowerPlayerState:()=>({life,difficulty:ready?1:0}),gemTowerCasinoState:()=>({stations:[572,574].map(id=>({id,owned:owned.has(id),spinning:spinning.has(id)}))}),fullName:(_w:any,id:string)=>id,DT:.05,TRAIN_REASON:{busy:'구입 중','insufficient-gold':'골드가 부족합니다'},$:(id:string)=>nodes[id],document:doc};
- vm.runInNewContext(fn,context);
+ vm.runInNewContext(fn,Object.assign(context,domState));
  return {w,doc,children,casinoChildren:casino.children,casinoStatus,casinoUse,save,status,render:(world=w)=>context.renderTraining(world),button:(producer:number,type:string,count=1)=>[...children,...casino.children].find(b=>b.dataset.producerId===String(producer)&&b.dataset.trainType===type&&b.dataset.trainCount===String(count)),setGold(v:number){gold=v;},setLife(v:number){life=v;},setReady(v:boolean){ready=v;},setSpinning(ids:number[]){spinning=new Set(ids);},setOwned(ids:number[]){owned=new Set(ids);},setPlaying(v:boolean){context.playing=v;},setRows(v:any[]){rows=v;},stats:()=>({creates,replacements,moves,removals})};
 }
 const coins=()=>[{producerId:572,typeId:'h044',cost:10,durationTicks:20,reason:null},{producerId:572,typeId:'h046',cost:0,durationTicks:20,reason:null},{producerId:574,typeId:'h044',cost:10,durationTicks:20,reason:null}];
@@ -98,5 +99,5 @@ it('paused, source training and terminal status stay beside the admitted machine
  f.w.gameOver={winner:null};f.render();assert.match(f.casinoStatus.textContent,/게임 종료/);assert.doesNotMatch(f.casinoStatus.textContent,/0[.]9초/);
 });
 it('both purchase containers use one shared handler and the existing validated recorded request',()=>{
- const source=fs.readFileSync(mainSource,'utf8'),fn=source.match(/function handleTrainingClick\([^\n]*\{[\s\S]*?\n\}/)?.[0];assert.ok(fn,'one existing training handler must serve both DOM locations');const calls:any[]=[],world={};const context:any={world,playing:false,checkpointRun:()=>({kind:'saved'}),requestTrainingBatch:(...args:any[])=>{calls.push(args);return true;},flash(){},render(){}};vm.runInNewContext(fn!,context);context.handleTrainingClick({target:{closest:()=>({dataset:{producerId:'572',trainType:'h044',trainCount:'1'}})}});assert.deepEqual(calls,[[world,572,'h044',1]]);assert.match(source,/\["trainingOptions","casinoTrainingOptions"\].*addEventListener\('click',handleTrainingClick\)/);
+ const source=fs.readFileSync(mainSource,'utf8'),fn=source.match(/function handleTrainingClick\([^\n]*\{[\s\S]*?\n\}/)?.[0];assert.ok(fn,'one existing training handler must serve both DOM locations');const calls:any[]=[],world={};const context:any={world,playing:false,checkpointRun:()=>({kind:'saved'}),requestTrainingBatch:(...args:any[])=>{calls.push(args);return true;},flash(){},render(){}};vm.runInNewContext(fn!,Object.assign(context,domState));context.handleTrainingClick({target:{closest:()=>({dataset:{producerId:'572',trainType:'h044',trainCount:'1'}})}});assert.deepEqual(calls,[[world,572,'h044',1]]);assert.match(source,/\["trainingOptions","casinoTrainingOptions"\].*addEventListener\('click',handleTrainingClick\)/);
 });

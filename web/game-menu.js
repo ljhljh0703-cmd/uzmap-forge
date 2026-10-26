@@ -70,7 +70,7 @@ export function mountGameMenu(doc){
   if(focus&&!node.hidden&&!node.inert)node.focus();return true;
  }
  function sync({solo,playing}={}){
-  if(typeof solo==='boolean')for(const node of [chat,players])if(node){if(node.hidden!==solo)node.hidden=solo;node.inert=solo;}
+  if(typeof solo==='boolean')for(const node of [chat,players])if(node){if(node.hidden!==solo)node.hidden=solo;if(node.inert!==solo)node.inert=solo;}
   const label=sourcePlay?.textContent||(playing===false?'재개':'일시정지');if(pause.textContent!==label)pause.textContent=label;
   const disabled=Boolean(sourcePlay?.disabled??true);if(pause.disabled!==disabled)pause.disabled=disabled;
  }

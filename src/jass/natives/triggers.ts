@@ -7,7 +7,7 @@
  * natives/bridge.ts(chat·EnterRect·사망)와 natives/timers.ts(타이머 만료)가 담당, 이 파일은 등록만.
  */
 import type { JassVm, NativeCallContext } from "../vm.ts";
-import { vhandle, vint, vbool, vstring } from "../vm.ts";
+import { vhandle, vint, vbool, vstring, vreal } from "../vm.ts";
 import { TriggerRegistry, fireTrigger } from "./registry.ts";
 import { playerIndexOf } from "./players.ts";
 import { secondsToTicks } from "../../sim/ticks.ts";
@@ -149,6 +149,11 @@ export function registerTriggerNatives(vm: JassVm, registry: TriggerRegistry): v
   });
 
   // 발화 컨텍스트 — R-207.
+  // Current bridge supports ATTACKED (attack start), not EVENT_UNIT_DAMAGED.
+  // It carries no damage payload. Never infer this value from attack power:
+  // source une uses >0 here, which would activate otherwise dormant effects.
+  // A future damaged-event bridge must supply its own scoped real payload.
+  vm.registerNative("GetEventDamage", (ctx) => ctx.threadMeta.eventDamage?.t === "real" ? ctx.threadMeta.eventDamage : vreal(0));
   vm.registerNative("GetTriggerPlayer", (ctx) => ctx.threadMeta.player ?? vhandle(null));
   vm.registerNative("GetTriggeringTrigger", (ctx) => ctx.threadMeta.trigger ?? vhandle(null));
   vm.registerNative("GetEventPlayerChatString", (ctx) => ctx.threadMeta.chatText ?? vstring(""));

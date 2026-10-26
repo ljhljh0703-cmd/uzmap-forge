@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';
 import {restoreFixture} from './helpers/restore-fixture.ts';import * as store from '../../web/run-storage.js';
 function upgradeFixture({mismatch=false,quota=false}={}){
@@ -7,7 +8,7 @@ function upgradeFixture({mismatch=false,quota=false}={}){
  const originalLoad=f.context.loadFromUrl;
  f.context.loadFromUrl=(...args:any[])=>{const pending=originalLoad(...args);f.context.world.modeDialog={dialogId:7,raceButtonId:11,clicked:true};return pending;};
  Object.assign(f.context,{localStorage:storage,replayBuild:'c'.repeat(16),canVerifyRunUpgrade:(store as any).canVerifyRunUpgrade,saveVerifiedRunCopy:(s:any,t:any,next:any)=>(store as any).saveVerifiedRunCopy(s,t,next,{newRunId:'verified-copy-001',savedAt:5}),refreshSavedRuns:(key:string)=>{selected=key;}});
- const snapshot=f.source.match(/^function runSnapshot\([^\n]*\{[^\n]*/m)?.[0];assert.ok(snapshot);vm.runInNewContext(snapshot,f.context);
+ const snapshot=f.source.match(/^function runSnapshot\([^\n]*\{[^\n]*/m)?.[0];assert.ok(snapshot);vm.runInNewContext(snapshot,Object.assign(f.context,domState));
  f.context.replayInputBatch=(w:any,t:any,_cursor:number,advance:(n:number)=>void,maxTicks:number)=>{advance(Math.min(maxTicks,t.tick-w.sim.tickCount));return t.actions.filter((a:any)=>a.tick<=w.sim.tickCount).length;};
  return {...f,old,raw,data,before,originalKey,selected:()=>selected};
 }
@@ -37,7 +38,7 @@ it('failed final controls or URL publication preserve the original session seed 
  for(const phase of ['controls','history']){
   const f=upgradeFixture(),priorURL='http://127.0.0.1/web/?seed=1';f.old.seed=7;f.originalWorld.seed=1;f.context.sessionSeed=1;f.context.URL=URL;f.context.location={href:priorURL};let historyCalls=0,failed=false;
   f.context.history={state:null,replaceState(_state:any,_title:string,url:URL){historyCalls++;if(phase==='history')throw Error('history publication failed');f.context.location.href=url.href;}};
-  const commit=f.source.match(/^function commitSessionSeed\([^\n]*\{[\s\S]*?\n\}/m)?.[0];assert.ok(commit);vm.runInNewContext(commit,f.context);
+  const commit=f.source.match(/^function commitSessionSeed\([^\n]*\{[\s\S]*?\n\}/m)?.[0];assert.ok(commit);vm.runInNewContext(commit,Object.assign(f.context,domState));
   const load=f.context.loadFromUrl;f.context.loadFromUrl=(...args:any[])=>{const pending=load(...args);f.context.world.seed=7;return pending;};
   if(phase==='controls'){const controls=f.context.renderControls;f.context.renderControls=(w:any)=>{if(!failed&&!f.context.restoring&&w!==f.originalWorld){failed=true;throw Error('final controls failed');}return controls(w);};}
   f.begin({verifyUpgrade:true});await f.finish();assert.equal(f.context.world,f.originalWorld);assert.equal(f.context.sessionSeed,1);assert.equal(f.context.location.href,priorURL);assert.deepEqual([...f.data],f.before);assert.equal(historyCalls,phase==='controls'?0:1);
