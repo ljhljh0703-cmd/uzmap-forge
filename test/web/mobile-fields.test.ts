@@ -16,7 +16,7 @@ it('fits every source battle waypoint with padding after phone resize and panel 
 it('a field tab switch changes only the view and rejects a third player',()=>{
  const source=readFileSync(new URL('../../web/main.js',import.meta.url),'utf8');const fn=source.match(/function switchField\([^\n]*\{[\s\S]*?\n\}/)?.[0];assert.ok(fn,'real field handler exists');
  let fit=0,render=0;const w:any={viewPlayerId:0,selectedGemId:73,pendingPointAbility:{abilityId:'A02J'},sim:{tickCount:500},inputLog:[{kind:'place'}]};
- const ctx:any={drag:{on:false,cell:null},fitPlayerField:()=>fit++,render:()=>render++,MAX_FIELD_PLAYERS:2};vm.runInNewContext(fn!,ctx);
+ const ctx:any={actionFeedback:{clear(){}},goldTags:[],goldGain:{hidden:false},drag:{on:false,cell:null},fitPlayerField:()=>fit++,render:()=>render++,MAX_FIELD_PLAYERS:2};vm.runInNewContext(fn!,ctx);
  const before=JSON.stringify([w.sim,w.inputLog,w.selectedGemId,w.pendingPointAbility]);ctx.switchField(w,1);assert.equal(w.viewPlayerId,1);assert.equal(w.cameraMode,'fit');assert.equal(fit,1);assert.equal(render,1);assert.equal(JSON.stringify([w.sim,w.inputLog,w.selectedGemId,w.pendingPointAbility]),before);
  ctx.switchField(w,2);assert.equal(w.viewPlayerId,1);assert.equal(fit,1);ctx.switchField(w,0);assert.equal(w.viewPlayerId,0);
 });

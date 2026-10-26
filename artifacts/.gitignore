@@ -1,0 +1,3 @@
+# Private hosted-input copies in local previews are never source commits.
+**/source-inputs/
+**/fixtures/

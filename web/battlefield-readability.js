@@ -69,9 +69,9 @@ export function drawAttackRanges(ctx,{models=[],x,y,zoom,sprites}={}){
   const kinds=[model.targetsMask&1?'ground':null,model.targetsMask&2?'air':null].filter(Boolean),left=x+radius*.707,yEdge=y-radius*.707;
   for(const [index,kind]of kinds.entries()){
    const px=left+index*18;let painted=false;try{painted=Boolean(sprites?.draw?.(ctx,'effect:'+kind,px,yEdge,16,{tick:0,shadow:false}));}catch{}
-   if(!painted){ctx.fillStyle='#f3e5ba';ctx.font='11px system-ui';ctx.fillText?.(kind==='ground'?'땅':'공중',px-7,yEdge);}
+   if(!painted){ctx.fillStyle='#f3e5ba';ctx.font='12px system-ui';ctx.fillText?.(kind==='ground'?'땅':'공중',px-7,yEdge);}
   }
-  if(model.mode==='effect'){ctx.fillStyle='#f3e5ba';ctx.font='11px system-ui';ctx.fillText?.('화염 범위',left-20,yEdge-12);}
+  if(model.mode==='effect'){ctx.fillStyle='#f3e5ba';ctx.font='12px system-ui';ctx.fillText?.('화염 범위',left-20,yEdge-12);}
   ctx.restore();count++;
  }
  return count;
@@ -104,7 +104,7 @@ export function drawCreepStatus(ctx,{sprites,kinds=[],x,y,size}={}){
  for(const [index,kind]of kinds.entries()){
   const cx=x+(index-(kinds.length-1)/2)*(iconSize+2);let painted=false;
   try{painted=Boolean(sprites?.draw?.(ctx,'effect:'+kind,cx,cy,iconSize,{tick:0,shadow:false}));}catch{}
-  if(painted)count++;else{ctx.save();ctx.font='10px system-ui';ctx.fillStyle='#f3e5ba';ctx.fillText?.(({poison:'독',fire:'불',slow:'느림',stun:'기절'})[kind]??'',cx-iconSize/2,cy);ctx.restore();}
+  if(painted)count++;else{ctx.save();ctx.font='12px system-ui';ctx.fillStyle='#f3e5ba';ctx.fillText?.(({poison:'독',fire:'불',slow:'느림',stun:'기절'})[kind]??'',cx-iconSize/2,cy);ctx.restore();}
  }
  return count;
 }
