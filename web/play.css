@@ -540,3 +540,9 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body{min-height:0;overflow:auto}
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body>.gem-stats{order:-3;flex-shrink:0}
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body>#selectedUnitArt{order:-2}
+
+/* The approved raster increased the phone body inset from12px to20px.
+ * Compensate that entire inset at the existing sticky handle so scrolled
+ * content cannot paint through the old8px gap above it. PC flow is unchanged. */
+.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body.skin-framed{padding-top:20px}
+.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body>#selectionSheetHandle{top:-20px;margin-top:-20px}
