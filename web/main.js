@@ -26,7 +26,7 @@ import {createRunCheckpoint} from './run-checkpoint.js';
 import {createRunId,restoredRunId,saveRunRecord,listRunRecords,isRunCompatible,canVerifyRunUpgrade,saveVerifiedRunCopy} from './run-storage.js';
 import {resolveWtsText} from "./dist/formats/wts.js";
 import {SpriteBank} from "./visual-assets.js";
-import {mountGemSkin,selectionStageHint,upgradeOptionNode} from "./ui-skin.js";
+import {mountGemSkin,selectionStageHint,upgradeOptionNode,setPhaseNotice} from "./ui-skin.js";
 import {createCasinoFeedback} from "./casino-feedback.js";
 import {extractRecipeBook} from "./recipe-book.js";
 import {mountRecipeBook} from "./recipe-view.js";
@@ -802,13 +802,24 @@ function syncDesktopField(w){
  renderWaveAttention(w);
 
 }
+/** Observe source phase only. Selection/targeting are UI state, never source orders. */
+function syncSelectionPhase(w){
+ const state=gemTowerPlayerState(w.vm),round=state.round,chosen=state.chosen;
+ if(!Number.isInteger(round)||round<1||typeof chosen!=='boolean')return;
+ const before=w.selectionPhase;if(before?.round===round&&before.chosen===chosen)return;
+ if(before&&!chosen&&(before.chosen||before.round!==round)){
+  w.selectedGemId=null;w.pendingCombatFocus=false;w.pendingPointAbility=null;cancelGemTarget(w);
+ }
+ w.selectionPhase={round,chosen};
+}
 function render(w,preservePendingDialog=false) {
   syncGameSound(w);
+  syncSelectionPhase(w);
   syncDesktopField(w);
   syncPrecisionView(w);
   currentGemTarget(w);
   renderBuildCells(w);
-  $("actionFeedback").hidden=performance.now()>flashUntil;
+  setPhaseNotice(document,performance.now()<=flashUntil);
   sprites.drawn=0;
   const W = cv.width, H = cv.height;
   ctx.fillStyle = "#23432a"; ctx.fillRect(0, 0, W, H);
@@ -1238,7 +1249,7 @@ function render(w,preservePendingDialog=false) {
    return {slot,id:entity.id,name,alive:true,logical:visual.logical,kind:visual.kind,grade:gemGradePresentation(family?.grade),roleLabel:visual.label+(family?' · '+family.grade:''),tint:visual.kind==='stone'||visual.kind==='slate'?undefined:LINE_COLORS[family?.line]??gemVisual(w,entity.typeId).color};
   };
   const handIds=Array.from({length:Math.min(5,sourceHand.buildCount??0)},(_,i)=>w.vm.getGlobalIndexed('I',i+1)).filter(handle=>handle.t==='handle'&&handle.v!==null).map(handle=>handle.v);
-  const combinations=combinationHints(w,handIds,{ready:!sourceHand.chosen&&!restoring&&Boolean(sourceHand.difficulty),playerId:w.viewPlayerId??0});
+  const combinations=combinationHints(w,handIds,{ready:!sourceHand.chosen&&!restoring&&Boolean(sourceHand.difficulty),playerId:w.viewPlayerId??0,includeKinds:true});
   recipeGuide.setBook(w.recipeBook);recipeGuide.setPriority(combinations.priorityRecipeIds);
   const specialName=combinations.specialType?fullName(w,combinations.specialType):'';
 
@@ -1249,7 +1260,7 @@ function render(w,preservePendingDialog=false) {
    candidates:Array.from({length:5},(_,i)=>{
     const slot=i+1;if(slot>(sourceHand.buildCount??0))return null;
     const handle=w.vm.getGlobalIndexed('I',slot);
-    const item=skinGem(handle.t==='handle'&&handle.v!==null?w.sim.getUnit(handle.v):null,slot);return item?{...item,combinable:combinations.combinableIds.includes(item.id)}:null;
+    const item=skinGem(handle.t==='handle'&&handle.v!==null?w.sim.getUnit(handle.v):null,slot);return item?{...item,combinable:combinations.combinableIds.includes(item.id),combineKinds:combinations.kindsById?.[item.id]??[]}:null;
    })});
   renderFieldView(w);
   renderSourceDescriptions(w);

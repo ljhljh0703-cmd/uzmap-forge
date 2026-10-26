@@ -55,3 +55,5 @@ it('repeated queries preserve world observations and return independent result a
  const f=fixture();f.add(1,['A00R']);const before=structuredClone({units:[...f.units],book:f.w.recipeBook}),first=f.run([1]);first.combinableIds.length=0;first.priorityRecipeIds.push('bogus');
  for(let i=0;i<20;i++)assert.deepEqual(f.run([1]),{combinableIds:[1],specialType:'h03X',priorityRecipeIds:['gem:A03G']});assert.deepEqual({units:[...f.units],book:f.w.recipeBook},before);
 });
+
+it('optional badge kinds use only already-enabled source action identities and leave the default API intact',()=>{const f=fixture();f.add(1,['A007']);f.add(2,['A00R']);f.add(3,['A007','A00R','A03M']);f.add(4,['A007'],{reasons:{A007:'busy'}});const result=f.run([1,2,3,4],{ready:true,includeKinds:true});assert.deepEqual(result.kindsById,{'1':['A007'],'2':['A00R'],'3':['A007','A00R','A03M']});assert.deepEqual(result.combinableIds,[1,2,3]);assert.ok(!Object.hasOwn(f.run([1]),'kindsById'));assert.deepEqual(f.run([1],{ready:false,includeKinds:true}).kindsById,{});});

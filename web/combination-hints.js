@@ -11,20 +11,20 @@ const HANDBOOK_BY_RESULT=Object.freeze({
  h01O:'gem:A036',h01N:'gem:A034',h029:'gem:A032',h03X:'gem:A03G',h040:null,
 });
 const COMBINE_ACTIONS=new Set(['A007','A00R','A03M']);
-const empty=()=>({combinableIds:[],specialType:null,priorityRecipeIds:[]});
+const empty=(includeKinds=false)=>({combinableIds:[],specialType:null,priorityRecipeIds:[],...(includeKinds===true?{kindsById:{}}:{})});
 
 /** Read only the current five source-hand slots supplied by the caller.
  * Source grants and the actual action view own eligibility. c[player+1] owns
  * which special recipe won the original ordered conditions; never choose a
  * recipe from ingredients, copied predicates, tier arithmetic or RNG here. */
-export function combinationHints(w,handIds,{ready=false,playerId=0}={}){
- if(ready!==true||playerId!==0||(w?.viewPlayerId??0)!==0||w?.gameOver||w?.sim?.gameOver||!Array.isArray(handIds)||typeof w?.sim?.getUnit!=='function')return empty();
- const combinableIds=[],seen=new Set();let specialEnabled=false;
+export function combinationHints(w,handIds,{ready=false,playerId=0,includeKinds=false}={}){
+ if(ready!==true||playerId!==0||(w?.viewPlayerId??0)!==0||w?.gameOver||w?.sim?.gameOver||!Array.isArray(handIds)||typeof w?.sim?.getUnit!=='function')return empty(includeKinds);
+ const combinableIds=[],seen=new Set(),kindsById={};let specialEnabled=false;
  for(const id of handIds.slice(0,5)){
   if(!Number.isSafeInteger(id)||id<=0||seen.has(id))continue;seen.add(id);
   const unit=w.sim.getUnit(id);if(!unit?.alive)continue;
   const enabled=gemActions(w,id).filter(action=>COMBINE_ACTIONS.has(action.abilityId)&&action.disabled===false);
-  if(enabled.length)combinableIds.push(id);
+  if(enabled.length){combinableIds.push(id);if(includeKinds===true)kindsById[id]=enabled.map(action=>action.abilityId);}
   if(enabled.some(action=>action.abilityId==='A00R'))specialEnabled=true;
  }
  let specialType=null;
@@ -36,5 +36,5 @@ export function combinationHints(w,handIds,{ready=false,playerId=0}={}){
  }
  const recipe=specialType?HANDBOOK_BY_RESULT[specialType]:null;
  const priorityRecipeIds=recipe&&w.recipeBook?.rows?.some(row=>row?.id===recipe)?[recipe]:[];
- return {combinableIds,specialType,priorityRecipeIds};
+ return {combinableIds,specialType,priorityRecipeIds,...(includeKinds===true?{kindsById}:{})};
 }

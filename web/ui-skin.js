@@ -21,6 +21,18 @@ export function createNoticeState(duration=1800){
  let last={text:'',count:0,until:0};
  return {push(text,now){last={text,count:last.text===text&&now<last.until?last.count+1:1,until:now+duration};return {...last};}};
 }
+/** A notice occupies the existing caption row; it never covers a second caption. */
+export function setPhaseNotice(doc,visible){
+ const active=Boolean(visible),notice=doc.getElementById('actionFeedback'),phase=doc.getElementById('playPhase'),caption=doc.getElementById('phoneWavePreview');
+ if(notice)notice.hidden=!active;
+ if(phase&&phase.dataset.noticeActive!==String(active))phase.dataset.noticeActive=String(active);
+ caption?.setAttribute('aria-hidden',String(active));
+}
+/** Labels describe actual granted action kinds, never inferred ingredients. */
+export function combinationBadge(kinds=[]){
+ const known=[['A007','같은2','같은 보석 조합'],['A00R','특수','스페셜 조합'],['A03M','석판','슬레이트 조합']].filter(([id])=>kinds.includes(id));
+ return {label:known.length>1?known.length+'종':known[0]?.[1]??'',description:known.map(row=>row[2]).join(' · ')};
+}
 const CASINO_REASON_TEXT={
  locked:'보석 질 연구를 완료하면 입장할 수 있어요',
  'no-gambler':'타짜를 확인할 수 없습니다',paused:'나가기 후 다른 기계를 선택하세요',
@@ -207,6 +219,7 @@ export function createSelectionCard(doc){
   const panel=doc.getElementById('gemPanel'),name=doc.querySelector('.bp-name'),meta=doc.querySelector('.gem-meta'),body=meta?.querySelector('.gem-detail-body'),actions=doc.querySelector('.bp-actions'),summary=meta?.querySelector('summary'),badge=doc.getElementById('gemSpecialBadge');
   if(!panel||!name||!meta||!body||!actions||!summary||!close)return;
   if(!homes)homes={actions:remember(actions),close:remember(close),badge:badge?remember(badge):null,summary:summary.textContent};
+  if(!summary.id)summary.id='gemDetailsToggle';
   if(!sheet)sheet=createSelectionSheet(doc,{panel,meta,body,summary});
   const portrait=doc.getElementById('selectedGemPortrait');
   if(portrait){
@@ -393,15 +406,12 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const models=roundSlotModels(snapshot);
   tray.dataset.committed=String(snapshot.chosen===true);
   tray.hidden=snapshot.chosen===true&&models.every(item=>item.id===null);
-  const gap=parseInt(doc.defaultView.getComputedStyle(slots).columnGap,10)||8,max=doc.defaultView.innerWidth>=1000?80:72,available=slots.clientWidth;
-  const cell=Math.max(44,Math.min(max,Math.floor((available-gap*4)/5)));
-  slots.style.gridTemplateColumns=`repeat(5, ${cell}px)`;slots.style.justifyContent='start';slots.style.paddingLeft=Math.max(0,Math.floor((available-cell*5-gap*4)/2))+'px';
   summary.textContent='보유 '+doc.getElementById('rosterCount').textContent;
   latest=snapshot;const key=JSON.stringify([models,snapshot.round,snapshot.buildCount,snapshot.chosen,snapshot.selectedId,snapshot.selectedGem,snapshot.specialMessage]);
   comboNotice.hidden=!snapshot.specialMessage;comboNotice.textContent=snapshot.specialMessage??'';
   state.textContent=snapshot.chosen?'보석을 남겼습니다':`${Math.min(5,snapshot.buildCount??0)} / 5`;
   title.textContent=snapshot.chosen?'이번 선택':'이번 보석';
-  if(signature!==key||selectedPortrait.dataset.artReady==='false'||(!tray.hidden&&buttons.some(b=>b.dataset.artReady==='false'))){signature=key;for(let i=0;i<5;i++){const item=models[i],button=buttons[i];button.dataset.unitId=item.id??'';button.disabled=!item.id;button.setAttribute('aria-pressed',String(item.selected));button.setAttribute('aria-label',`보석 ${i+1} · ${item.name}${item.combinable?' · 조합 가능':''}`);button.title=item.name;const combo=button.querySelector('.slot-combination');combo.hidden=!item.combinable;button.style.setProperty('--quality-color',FIELD_GRADE_COLORS[fieldGradeIndex(item.name)]??QUALITY_COLORS[item.frame]);if(!tray.hidden)paintSlot(button,item);}
+  if(signature!==key||selectedPortrait.dataset.artReady==='false'||(!tray.hidden&&buttons.some(b=>b.dataset.artReady==='false'))){signature=key;for(let i=0;i<5;i++){const item=models[i],button=buttons[i];button.dataset.unitId=item.id??'';button.disabled=!item.id;button.setAttribute('aria-pressed',String(item.selected));const badge=combinationBadge(item.combineKinds??[]),description=badge.description|| (item.combinable?'조합 가능':'');button.setAttribute('aria-label',`보석 ${i+1} · ${item.name}${description?' · 사용 가능: '+description:''}`);button.title=item.name+(description?' · '+description:'');const combo=button.querySelector('.slot-combination');combo.textContent=badge.label||'조합';combo.hidden=!item.combinable;button.style.setProperty('--quality-color',FIELD_GRADE_COLORS[fieldGradeIndex(item.name)]??QUALITY_COLORS[item.frame]);if(!tray.hidden)paintSlot(button,item);}
    const selected=snapshot.selectedGem??models.find(m=>m.selected);const p=selectedPortrait.getContext('2d');p.clearRect(0,0,64,64);selectedPortrait.dataset.unitId=selected?.id??'';selectedPortrait.dataset.artReady=String(!selected||Boolean(drawGem(p,selected,32,34,64)));
   }
   const targeted=snapshot.targetActions?.find(action=>action.abilityId==='A05L'),selecting=Boolean(snapshot.pendingTarget);
@@ -422,7 +432,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  materialListeners.add(queueRepaint);
  void materialsReady().then(repaint).catch(error=>{app.dataset.skinError='materials';console.warn('[UI material]',error.message);});
  app.dataset.uiSkin='walnut-brass';app.dataset.uiAssets='claude-approved-23';
- return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');notice.hidden=false;return message;},destroy(){materialListeners.delete(queueRepaint);resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
+ return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');setPhaseNotice(doc,true);return message;},destroy(){materialListeners.delete(queueRepaint);resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
 }
 
 export function primaryActionId(snapshot={},available=[]){
