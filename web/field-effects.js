@@ -97,3 +97,24 @@ export function createFieldFeedback({now=()=>performance.now(),reducedMotion=()=
   clear(){active=[];total=0;}
  };
 }
+
+/** Actual HP differences only. This changes the six view slots, never HP or attribution. */
+export function addDamageTag(tags,event,now){
+ const active=tags.filter(t=>now-t.born<700);if(!Number.isSafeInteger(event?.unitId)||![event.x,event.y,event.amount,now].every(Number.isFinite)||event.amount<=0)return active;
+ const prior=active.find(t=>t.unitId===event.unitId);if(prior){prior.amount+=event.amount;prior.x=event.x;prior.y=event.y;prior.born=now;prior.critical||=event.critical===true;return active;}
+ return [...active,{unitId:event.unitId,x:event.x,y:event.y,amount:event.amount,critical:event.critical===true,born:now}].slice(-6);
+}
+const intersects=(a,b)=>a.left<b.x+b.width&&a.left+a.width>b.x&&a.top<b.y+b.height&&a.top+a.height>b.y;
+export function damageTagViews(tags,project,{now=0,boxes=[],viewport={left:0,top:0,width:100000,height:100000},measure=text=>text.length*7,reducedMotion=false}={}){
+ const out=[];for(const tag of tags.filter(t=>now-t.born<700).slice(-6)){
+  const point=project(tag);if(!point||![point.x,point.y].every(Number.isFinite))continue;
+  const fontSize=tag.critical===true?16:12,text=String(Math.round(tag.amount))+(tag.critical?'!':''),width=Math.ceil(measure(text,fontSize))+6,height=fontSize+4;if(width>viewport.width-8)continue;
+  const box=boxes.find(b=>b.id===tag.unitId),base=(box?.y??point.y-32)-6,age=Math.max(0,Math.min(1,(now-tag.born)/700));
+  const x=Math.max(viewport.left+4+width/2,Math.min(viewport.left+viewport.width-4-width/2,point.x));
+  for(let row=0;row<8;row++){const y=base-row*(height+3)-(reducedMotion?0:age*8),rect={left:x-width/2,top:y-fontSize,width,height};if(rect.top<viewport.top+4)break;
+   if(rect.top+height>viewport.top+viewport.height-4||boxes.some(b=>intersects(rect,b))||out.some(b=>intersects(rect,{x:b.left,y:b.top,width:b.width,height:b.height})))continue;
+   out.push({...rect,x,y,text,fontSize,opacity:reducedMotion?1:1-age});break;
+  }
+ }return out;
+}
+export function goldGainView(tags,now,reducedMotion=false){const active=tags.filter(t=>now-t.born<760),amount=active.reduce((sum,t)=>sum+(Number.isFinite(t.amount)?t.amount:0),0);if(!amount)return null;const age=Math.max(0,Math.min(1,(now-Math.max(...active.map(t=>t.born)))/760));return{text:'+'+amount+' 골드',dy:reducedMotion?0:10*(1-age),opacity:reducedMotion?1:1-age};}

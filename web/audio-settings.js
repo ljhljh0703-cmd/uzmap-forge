@@ -20,3 +20,9 @@ export function mountAudioSettings(doc,{audio,storage,muted=false}={}){
  button?.addEventListener('click',()=>{const state=preferences.set({enabled:!audio.snapshot().enabled});audio.setEnabled(state.enabled);render();if(state.enabled)void audio.unlock();});render();
  return{render,preferences};
 }
+
+export function createPlayPreferences(storage=()=>globalThis.localStorage){
+ const key='uzmap.ui.gemtower.play.v1';let state={damageNumbers:true,precision:false};
+ try{const raw=JSON.parse(storage()?.getItem(key)??'null');if(raw&&typeof raw==='object')for(const name of Object.keys(state))if(typeof raw[name]==='boolean')state[name]=raw[name];}catch{}
+ return{snapshot:()=>({...state}),set(patch={}){for(const name of Object.keys(state))if(typeof patch[name]==='boolean')state[name]=patch[name];try{storage()?.setItem(key,JSON.stringify(state));}catch{}return{...state};}};
+}

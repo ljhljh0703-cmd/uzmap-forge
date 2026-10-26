@@ -567,3 +567,12 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 @media(max-height:600px){.game-over{align-items:flex-start}.game-over>.result-card{max-height:calc(100dvh - 32px)}}
 
 .game-over>.result-card.skin-framed::after{content:'';position:sticky;bottom:-24px;z-index:2;order:99;flex:0 0 24px;box-sizing:border-box;width:calc(100% + 48px);min-height:24px;height:24px;margin:0 -24px -24px;pointer-events:none;background:#2b2117;border-style:solid;border-color:transparent;border-width:0 18px 18px;border-image-source:url(./assets/ui/approved/frame-panel.png);border-image-slice:72;border-image-width:0 18px 18px 18px;border-image-repeat:stretch;image-rendering:pixelated}
+
+/* J: short, nonblocking source confirmations, inside the established shell. */
+.damage-option{display:flex;gap:10px;align-items:center;min-height:48px;padding:8px 0;font-size:13px;cursor:pointer}.damage-option input{width:24px;height:24px}
+.hud-pill[title=골드]{position:relative}.gold-gain{position:absolute;left:0;top:100%;z-index:5;white-space:nowrap;font-size:12px;line-height:18px;color:#f2d27d;background:#302419;padding:0 4px;pointer-events:none}.gold-gain[hidden]{display:none}
+.app[data-celebration=true] #battlefield{outline:2px solid var(--celebration-color,#dbc783);outline-offset:-3px}.app[data-celebration=true] #actionFeedback{font-size:14px;font-weight:700}
+.app[data-life-edge=true] #battlefield::after{content:'';position:absolute;inset:0;z-index:38;pointer-events:none;border:2px solid #df927e}.app[data-life-edge=true] #hudLife{animation:life-jolt .3s ease-out}
+.wave-attention[data-kind=wave-start]{font-weight:700;color:#f1d48b}
+@keyframes life-jolt{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@media(prefers-reduced-motion:reduce){.app[data-life-edge=true] #hudLife{animation:none}}
