@@ -53,3 +53,5 @@ it('a cancelled-direction or incomplete drag consumes its compatibility click, w
 it('the opened sheet uses at most half the real battlefield height and recalculates after resize',()=>{
  const f=fixture();f.nativeClick();assert.equal(f.body.style.values['--selection-sheet-max-height'],'320px');f.doc.getElementById=()=>({getBoundingClientRect:()=>({height:400})});f.sheet.update({selected:true,interacting:false});assert.equal(f.body.style.values['--selection-sheet-max-height'],'200px');
 });
+
+it('inline PC details never use upward sheet anchors, while returning mobile still measures the verified overlay',()=>{const f=fixture();f.nativeClick();const reads=f.reads();f.sheet.update({selected:true,interacting:false,desktop:true});assert.equal(f.reads(),reads);f.setRect({top:720});f.sheet.update({selected:true,interacting:false,desktop:false});assert.ok(f.reads()>reads);assert.equal(f.body.style.values['--selection-sheet-bottom'],'124px');});
