@@ -22,3 +22,12 @@ it('small-phone ability numbers precede the portrait inside the existing scrolla
  assert.match(rule(base+'>.gem-stats'),/flex-shrink:0/);
  assert.match(css,/--play-controls-height:216px/,'field reservation unchanged');
 });
+
+it('the phone sheet sticky handle cancels the full framed top inset so no scroll gap remains',()=>{
+ const rule=selector=>{const start=css.lastIndexOf(selector+'{');assert.ok(start>=0,selector);return css.slice(start+selector.length+1,css.indexOf('}',start));};
+ const base='.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body';
+ const framed=rule(base+'.skin-framed'),handle=rule(base+'>#selectionSheetHandle');
+ const top=Number(framed.match(/padding-top:(\d+)px/)?.[1]),margin=Number(handle.match(/margin-top:(-?\d+)px/)?.[1]),sticky=Number(handle.match(/(?:^|;)top:(-?\d+)px/)?.[1]);
+ assert.equal(top+margin,0,'the initial handle covers the entire inner top gap');assert.equal(top+sticky,0,'scrolling keeps the same opaque top boundary');
+ assert.match(rule(base),/overflow:auto/);assert.match(css,/#selectionSheetHandle\{[^}]*min-height:44px/,'same44px swipe/collapse control');
+});
