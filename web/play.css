@@ -529,6 +529,14 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=true]>.gem-meta>summary{position:sticky;top:0;z-index:5;display:list-item;list-style:disclosure-closed inside;min-height:44px;height:44px;padding:12px 10px 4px;border:1px solid #735a36;background:#32271b;font-size:12px;line-height:18px}
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=true]>.gem-meta[open]>summary{list-style:disclosure-open inside}
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=true]>.gem-meta>summary::before{display:none}
-.app[data-simple-ui=true] #gemPanel[data-desktop-card=true][data-selection-sheet=true]>.gem-meta>.gem-detail-body{position:static;inset:auto;width:100%;max-height:none;min-height:0;margin:0;padding:16px 16px 24px;overflow:visible;box-shadow:none;border-radius:0;scroll-padding:0}
+.app[data-simple-ui=true] #gemPanel[data-desktop-card=true][data-selection-sheet=true]>.gem-meta>.gem-detail-body{position:relative;z-index:0;inset:auto;width:100%;max-height:none;min-height:0;margin:0;padding:16px 16px 24px;overflow:visible;box-shadow:none;border-radius:0;scroll-padding:0}
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=true] #selectionSheetHandle{display:none}
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=true] .gem-detail-body>.stat{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:32px;padding:6px 0;line-height:20px}
+
+/* Each raster belongs to its own positioned detail surface. On phones, show
+ * the attack/range/interval row before the large portrait so the half-field
+ * sheet exposes all three numbers immediately, including a360px viewport.
+ * The original scroll body and swipe handle retain their existing behavior. */
+.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body{min-height:0;overflow:auto}
+.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body>.gem-stats{order:-3;flex-shrink:0}
+.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body>#selectedUnitArt{order:-2}
