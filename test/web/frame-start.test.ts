@@ -7,11 +7,11 @@ import {createFrameClock} from "../../src/sim/ticks.ts";
 it("the actual browser startup uses one rAF timestamp source, even when the first paint predates bootstrap", () => {
   const source=fs.readFileSync(new URL("../../web/main.js",import.meta.url),"utf8");
   const loop=source.match(/function loop[^\n]*\{[\s\S]*?\n\}/)?.[0];
-  const start=source.match(/^resize\(\);.*loadFromUrl\(\);$/m)?.[0];
+  const start=source.match(/^resize\(\);.*loadFromUrl\([^;]*\);$/m)?.[0];
   assert.ok(loop && start);
   const pending:Array<(time:number)=>void>=[];let quiets=0;
   const context={quietActionFeedback:()=>quiets++,world:null,playing:false,restoring:false,runtimeFailed:false,loadingRun:false,checkpointRun(){},window:{showErr:(_where:string,error:Error)=>{throw error;}},tps:1,frameClock:createFrameClock(),
-    performance:{now:()=>100},resize:()=>{},loadFromUrl:()=>{},
+    performance:{now:()=>100},sessionSeed:6,launchChallenge:null,resize:()=>{},loadFromUrl:()=>{},
     requestAnimationFrame:(callback:(time:number)=>void)=>pending.push(callback)};
   // The former mixed-clock bootstrap really fails under this timing.
   const oldPending:Array<(time:number)=>void>=[];

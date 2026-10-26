@@ -2,6 +2,7 @@ import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {challengeFromQuery,dailySeed} from '../../web/result-records.js';
 const actions=await import(new URL('../../web/gem-actions.js',import.meta.url).href);
 const {listRunRecords,saveRunRecord,isRunCompatible}=await import(new URL('../../web/run-storage.js',import.meta.url).href);
 
@@ -15,7 +16,7 @@ it('startup honors explicit zero and uint32 seeds; absent or malformed seeds req
  const lines=source.match(/^(?:const|let) sessionSeed = [^\n]+/m)?.[0];assert.ok(lines);
  let entropyCalls=0;const entropy={getRandomValues(out:Uint32Array){entropyCalls++;out[0]=99;return out;}};
  for(const [raw,expected] of [['0',0],['6',6],['4294967295',0xffffffff],[null,99],['bad',99],['4294967296',99]]){
-  const context:any={...actions,sessionQuery:new URLSearchParams(raw===null?'':`seed=${raw}`),crypto:entropy};
+  const context:any={...actions,launchChallenge:null,sessionQuery:new URLSearchParams(raw===null?'':`seed=${raw}`),crypto:entropy};
   vm.runInNewContext(lines+'\nglobalThis.actual=sessionSeed;',context);assert.equal(context.actual,expected);
  }
  assert.equal(entropyCalls,3,'explicit URL seeds must not consume browser entropy');
@@ -77,3 +78,5 @@ it('repeated explicit seeds retain the existing deterministic RNG sequence witho
  const sample=(seed:number)=>{const rng=new Rng(seed);return Array.from({length:10},()=>rng.next());};
  assert.deepEqual(sample(actions.parseSessionSeed('6')),sample(actions.parseSessionSeed('6')));assert.notDeepEqual(sample(6),sample(fresh));assert.equal(draws,1);
 });
+
+it('the actual initial seed declaration accepts a daily challenge without consuming entropy',()=>{const line=source.match(/^(?:const|let) sessionSeed = [^\n]+/m)?.[0];const query=new URLSearchParams('daily=2026-10-26&mode=race&difficulty=2');let entropy=0;const c:any={...actions,sessionQuery:query,launchChallenge:challengeFromQuery(query),crypto:{getRandomValues(){entropy++;throw Error('not needed');}}};vm.runInNewContext(line+'\nglobalThis.actual=sessionSeed;',c);assert.equal(c.actual,dailySeed('2026-10-26'));assert.equal(entropy,0);});

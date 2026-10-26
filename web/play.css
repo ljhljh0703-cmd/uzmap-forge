@@ -552,3 +552,18 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
  * outgoing scroll content, keeping the existing top handle above this edge.
  * This non-interactive sticky decoration does not change the viewport size. */
 .app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body.skin-framed::after{content:'';position:sticky;bottom:-20px;z-index:2;order:99;align-self:stretch;flex:0 0 20px;box-sizing:border-box;width:calc(100% + 40px);min-height:20px;height:20px;margin:0 -20px -20px;pointer-events:none;background:#2b2117;border-style:solid;border-color:transparent;border-width:0 18px 18px;border-image-source:url(./assets/ui/approved/frame-panel.png);border-image-slice:72;border-image-width:0 18px 18px 18px;border-image-repeat:stretch;image-rendering:pixelated}
+
+/* I: results use the existing framed walnut card; no gameplay-sized layout changes. */
+.app[data-outcome=true] #bottomPanel,.app[data-outcome=true] #researchShortcut{visibility:hidden;pointer-events:none}
+.game-over{position:fixed;inset:0;z-index:40;overflow-y:auto;padding:16px;overscroll-behavior:contain;align-items:safe center}
+.game-over>.result-card{width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:24px;display:flex;flex-direction:column;gap:10px;text-align:left;scrollbar-width:thin}
+.result-card h2{margin:0;font-size:20px}.result-wave{font-size:clamp(32px,8vw,48px);line-height:1.1;margin:0;color:#f3d383;font-weight:800}
+#goSummary{font-size:12px;line-height:1.6;margin:0}#goCause,#goRecord{font-size:13px;line-height:1.6;margin:0;word-break:keep-all;overflow-wrap:anywhere}
+.result-medal{align-self:flex-start;background:#54431e;border:1px solid #c2a45e;padding:4px 8px;margin:0;color:#f4d87b;font-size:13px}.result-medal[hidden]{display:none}
+#goMetrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0}#goMetrics>div{padding:10px;border-top:1px solid #6c5432;min-width:0}#goMetrics>div:last-child{grid-column:1/-1}#goMetrics dt{font-size:12px;color:#c0ae8a}#goMetrics dd{margin:4px 0 0;font-size:16px;overflow-wrap:anywhere}
+.result-card h3{font-size:13px;margin:0}#goTop{padding:0;margin:0;list-style:none}#goTop li{display:flex;justify-content:space-between;gap:10px;font-size:12px;line-height:1.6;padding:4px 0}#goTop li>span{min-width:0;overflow-wrap:anywhere}#goTop li>b{white-space:nowrap}
+#goActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#goActions button{min-height:44px;font-size:13px}#goRestart{grid-column:1/-1}#goShareStatus{min-height:0;margin:0;font-size:12px}#goShareURL{max-width:100%;width:100%;min-height:44px;font-size:12px}
+#personalRecords{margin-top:12px;border-top:1px solid #705332}#personalRecords>summary{min-height:44px;padding:12px 0;cursor:pointer;font-size:13px}#personalRecordsList{font-size:13px;line-height:1.7;overflow-wrap:anywhere}#startDaily,#startupDaily{min-height:44px;width:100%;font-size:13px;margin-top:8px}
+@media(max-height:600px){.game-over{align-items:flex-start}.game-over>.result-card{max-height:calc(100dvh - 32px)}}
+
+.game-over>.result-card.skin-framed::after{content:'';position:sticky;bottom:-24px;z-index:2;order:99;flex:0 0 24px;box-sizing:border-box;width:calc(100% + 48px);min-height:24px;height:24px;margin:0 -24px -24px;pointer-events:none;background:#2b2117;border-style:solid;border-color:transparent;border-width:0 18px 18px;border-image-source:url(./assets/ui/approved/frame-panel.png);border-image-slice:72;border-image-width:0 18px 18px 18px;border-image-repeat:stretch;image-rendering:pixelated}
