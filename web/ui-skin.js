@@ -143,13 +143,13 @@ export function selectionStageHint(snapshot={}){
 /** Local disclosure gestures and fixed overlay anchors only. The battlefield
  * remains the same DOM host; no game input, command or camera is dispatched. */
 export function createSelectionSheet(doc,{panel,meta,body,summary}){
- let selected=false,interacting=false,gesture=null,blockedClick=null,position='';
+ let selected=false,interacting=false,inline=false,gesture=null,blockedClick=null,position='';
  const listeners=[];
  const on=(node,type,handler)=>{node.addEventListener(type,handler);listeners.push(()=>node.removeEventListener(type,handler));};
  const grip=doc.createElement('button');grip.type='button';grip.id='selectionSheetHandle';grip.className='selection-sheet-handle';grip.textContent='정보 접기';grip.setAttribute('aria-label','선택 정보 접기 · 아래로 밀어 접을 수 있습니다');body.prepend(grip);
  body.id=body.id||'selectionSheetBody';body.setAttribute('role','region');body.setAttribute('aria-label','선택한 개체의 정보와 강화');summary.setAttribute('aria-controls',body.id);summary.dataset.sheetHandle='true';
  const measure=()=>{
-  if(!selected||!meta.open||!panel.getBoundingClientRect)return;
+  if(inline||!selected||!meta.open||!panel.getBoundingClientRect)return;
   const r=panel.getBoundingClientRect(),height=doc.defaultView?.innerHeight;
   if(!Number.isFinite(height)||!Number.isFinite(r.left)||!Number.isFinite(r.top)||!(r.width>0))return;
   const bottom=Math.max(0,height-r.top),fieldHeight=doc.getElementById?.('battlefield')?.getBoundingClientRect?.().height,maxHeight=Math.max(0,(Number.isFinite(fieldHeight)?fieldHeight:r.top)*.5),key=JSON.stringify([r.left,r.width,bottom,maxHeight]);if(key===position)return;position=key;
@@ -195,7 +195,7 @@ export function createSelectionSheet(doc,{panel,meta,body,summary}){
  }
  on(meta,'toggle',sync);
  return {
-  update(state={}){selected=state.selected===true;interacting=state.interacting===true;panel.dataset.selectionSheet=String(selected);if(!selected){release();blockedClick=null;meta.open=false;}sync();},
+  update(state={}){selected=state.selected===true;interacting=state.interacting===true;inline=state.desktop===true;panel.dataset.selectionSheet=String(selected);if(!selected){release();blockedClick=null;meta.open=false;}sync();},
   destroy(){release();for(const remove of listeners)remove();grip.remove();delete summary.dataset.sheetHandle;delete panel.dataset.selectionSheet;delete panel.dataset.sheetOpen;}
  };
 }
@@ -218,7 +218,8 @@ export function createSelectionCard(doc){
   if(hint&&hint.textContent!==text)hint.textContent=text;
   const panel=doc.getElementById('gemPanel'),name=doc.querySelector('.bp-name'),meta=doc.querySelector('.gem-meta'),body=meta?.querySelector('.gem-detail-body'),actions=doc.querySelector('.bp-actions'),summary=meta?.querySelector('summary'),badge=doc.getElementById('gemSpecialBadge');
   if(!panel||!name||!meta||!body||!actions||!summary||!close)return;
-  if(!homes)homes={actions:remember(actions),close:remember(close),badge:badge?remember(badge):null,summary:summary.textContent};
+  const desktop=snapshot.desktop===true;
+  if(!homes)homes={actions:remember(actions),close:remember(close),meta:remember(meta),badge:badge?remember(badge):null,summary:summary.textContent};
   if(!summary.id)summary.id='gemDetailsToggle';
   if(!sheet)sheet=createSelectionSheet(doc,{panel,meta,body,summary});
   const portrait=doc.getElementById('selectedGemPortrait');
@@ -253,8 +254,13 @@ export function createSelectionCard(doc){
    putBack(actions,homes.actions);putBack(close,homes.close);if(badge&&homes.badge)putBack(badge,homes.badge);
    if(summary.textContent!==homes.summary)summary.textContent=homes.summary;
   }
+  // PC uses normal flow after the original actions; mobile restores the same
+  // native disclosure into its name row and retains its verified fixed sheet.
+  if(desktop){if(meta.parentNode!==panel||meta.nextSibling)panel.append(meta);}
+  else putBack(meta,compact?{...homes.meta,next:close}:homes.meta);
+  if(panel.dataset.desktopCard!==String(desktop))panel.dataset.desktopCard=String(desktop);
   summary.hidden=false;
-  sheet.update({selected:Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem),interacting});
+  sheet.update({selected:Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem),interacting,desktop});
   // The original keep button can remain enabled after the source transition.
   // Its preparatory focus belongs on the visible summary when combat starts.
   const focusTarget=compact&&!meta.open&&active&&body.contains(active)?summary:active;
