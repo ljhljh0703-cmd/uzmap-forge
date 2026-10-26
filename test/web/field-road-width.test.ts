@@ -34,7 +34,7 @@ it('landmark surface selection changes no source classes, no-build flags or ordi
  assert.equal(plan.runs.filter(r=>r.landmark).length,1);assert.equal(plan.runs.find(r=>r.col===0).kind,'path');assert.equal(plan.runs.find(r=>r.col===1).landmark,false);assert.equal(plan.runs.find(r=>r.col===2).kind,'wall');assert.equal(plan.runs.find(r=>r.col===2).landmark,false);
  assert.equal(terrainKind(grid.cells[0]),'path');assert.equal(terrainKind(grid.cells[2]),'wall');assert.deepEqual([...grid.cells],before);
 });
-it('localized landmark grass is opaque, ordinary source paving remains, and new masks invalidate the cache',()=>{
+it('no-build turning zones retain visible paving instead of being camouflaged as buildable grass',()=>{
  const old=(globalThis as any).document,grass=Array.from({length:4},(_,i)=>({i})),stone={stone:true},calls:any[]=[],stack:any[]=[];
  const paint:any={globalAlpha:1,save(){stack.push(this.globalAlpha);},restore(){this.globalAlpha=stack.pop();},beginPath(){},rect(){},clip(){},fillRect(){},drawImage(image,...args){calls.push({image,alpha:this.globalAlpha,args});}};
  let canvases=0;(globalThis as any).document={createElement:()=>{canvases++;return {getContext:()=>paint};}};
@@ -42,7 +42,7 @@ it('localized landmark grass is opaque, ordinary source paving remains, and new 
  const sprites={get:key=>({image:key==='terrain:stone'?stone:grass[Number(key.at(-1))],spec:{frame:{x:0,y:0,w:128,h:128}}})};
  try{
   const grid=makeGrid(),options={grid,bounds,project:p=>p,sprites,landmarkRects};drawFieldGround(ctx,options as any);
-  assert.ok(calls.some(c=>grass.includes(c.image)&&c.alpha===1),'opaque real grass covers the obsolete base raster');assert.ok(calls.some(c=>c.image===stone&&c.alpha===.48),'ordinary non-buildable paving is preserved');
+  assert.ok(!calls.some(c=>grass.includes(c.image)&&c.alpha===1),'non-buildable checkpoints must not look like buildable grass');assert.ok(calls.some(c=>c.image===stone&&c.alpha===.48),'ordinary non-buildable paving is preserved');
   const n=calls.length;drawFieldGround(ctx,options as any);assert.equal(calls.length,n);assert.equal(canvases,1);
   drawFieldGround(ctx,{...options,landmarkRects:[]} as any);assert.equal(canvases,2,'landmark mask belongs to the static cache key');
  }finally{if(old===undefined)delete (globalThis as any).document;else (globalThis as any).document=old;}

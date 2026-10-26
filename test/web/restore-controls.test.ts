@@ -83,3 +83,5 @@ it('different cosmetic builds restore through a matching behavior identity and s
 });
 
 it('the drawer status does not offer resume in a terminal or restoring state',async()=>{const f=fixture({ended:true});f.nodes.drawerRunStatus={textContent:''};f.begin();assert.equal(f.nodes.drawerRunStatus.textContent,'복원 중…');await f.finish();assert.equal(f.nodes.drawerRunStatus.textContent,'게임 종료');});
+
+it('failed or unhealthy loader candidates roll back before hash equality can announce restore success',async()=>{for(const [result,failed]of [[false,false],[true,true],[undefined,false]]){const f=fixture();f.trace.tick=0;f.context.loadFromUrl=async()=>{f.context.world={sim:{tickCount:0,stateHash:()=> 'abcdef01',getUnit:()=>undefined},sourceVersion:'fixture-source',runtimeCrashes:[],inputLog:[]};f.context.runtimeFailed=failed;return result;};await f.context.restoreRun(f.trace);assert.equal(f.context.world,f.originalWorld);assert.equal(f.context.runtimeFailed,false);assert.equal(f.nodes.play.disabled,false);assert.ok(!f.messages.some(s=>s.includes('정확히 복원했습니다')));}});

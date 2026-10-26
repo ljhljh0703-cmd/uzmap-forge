@@ -31,7 +31,7 @@ export function restoreFixture({ended=false,mismatch=false}={}){
  const paint=()=>{context.w=context.world;
  vm.runInNewContext(renderStatement,context);};
  context.render=paint;const originalWorld=context.world,originalCam={...context.cam};
- context.loadFromUrl=async()=>{context.world=makeWorld();context.textTags=[];context.goldTags=[];context.attackFx=[];context.playing=true;paint();await new Promise<void>(resolve=>{release=resolve;});};
+ context.loadFromUrl=async()=>{context.world=makeWorld();context.textTags=[];context.goldTags=[];context.attackFx=[];context.playing=true;paint();await new Promise<void>(resolve=>{release=resolve;});return true;};
  context.trainingInterruptionText=trainingInterruptionText;context.drag={on:false};const interruption=['clearPlacement','interruptUiOrders'].map(name=>source.match(new RegExp('^function '+name+'\\([^\\n]*\\{[\\s\\S]*?\\n\\}','m'))?.[0]??'').join('\n');
  const helpers=['captureRunView','restoreRunView','cancelRestore'].map(name=>source.match(new RegExp('^function '+name+'\\([^\\n]*\\{[\\s\\S]*?\\n\\}','m'))?.[0]??'').join('\n');
  vm.runInNewContext(interruption+'\n'+helpers+'\n'+controls+'\n'+restore+'\n'+visibility,context);

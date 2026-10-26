@@ -1,6 +1,6 @@
 /** View-only models. Resolved source facts enter here; no command, VM write or RNG. */
-export function desktopFieldLayout(bounds,width,height,padding=20){
- if(width<=900||!bounds||!Number.isFinite(height)||height<=padding*2)return null;
+export function desktopFieldLayout(bounds,width,height,padding=20,{compactLandscape=false}={}){
+ if(!Number.isFinite(width)||width<=0||width<=900&&!compactLandscape||!bounds||!Number.isFinite(height)||height<=padding*2)return null;
  const bw=bounds.maxX-bounds.minX,bh=bounds.maxY-bounds.minY;
  if(!(bw>0&&bh>0))return null;
  const ratio=bw/bh,fieldWidth=Math.min(width-360,Math.ceil((height-padding*2)*ratio+padding*2));
@@ -33,15 +33,15 @@ export function nextWaveView({state={},total,typeId=null,name='',count=null,def=
 /** Compact rendering of the same source facts used by the PC card. */
 export function formatNextWaveLine(model){
  if(!model)return '';
- return ['다음 '+model.round+'웨이브',model.name,model.count===null?'마리 수 확인 중':model.count+'마리',model.motion,model.band==='boss'?'보스':'',model.life===null?'도착 피해 확인 중':'1마리 도착 = 생명 '+model.life+' 감소'].filter(Boolean).join(' · ');
+ return ['다음 '+model.round+'웨이브',model.name,[model.motion,model.count===null?'마리 수 확인 중':model.count+'마리'].filter(Boolean).join(' '),model.band==='boss'?'보스':'',model.life===null?'피해 확인 중':'생명 -'+model.life+'/마리'].filter(Boolean).join(' · ');
 }
 export function mountNextWave(doc,draw){
  const phone=doc.createElement('p');phone.id='phoneWavePreview';phone.className='phone-wave-preview';phone.hidden=true;doc.querySelector('.phasebar')?.prepend(phone);
  const host=doc.getElementById('bottomPanel'),section=doc.createElement('section'),title=doc.createElement('h2'),art=doc.createElement('canvas'),name=doc.createElement('strong'),facts=doc.createElement('p'),risk=doc.createElement('p');
- section.id='nextWavePreview';section.className='next-wave-preview';section.setAttribute('aria-label','다음 웨이브');art.width=64;art.height=64;art.setAttribute('aria-hidden','true');const text=doc.createElement('div');text.append(title,name,facts,risk);section.append(art,text);host.insertBefore(section,doc.getElementById('gemNone'));let signature='';
+ section.id='nextWavePreview';section.className='next-wave-preview';section.setAttribute('aria-label','다음 웨이브');art.width=64;art.height=64;art.setAttribute('aria-hidden','true');const text=doc.createElement('div');text.append(title,name,facts,risk);section.append(art,text);host.append(section);let signature='';
  return {render(model,{visible=true}={}){
-  phone.hidden=!model||!visible;const line=formatNextWaveLine(model);if(phone.textContent!==line)phone.textContent=line;
-  const key=JSON.stringify([model,Boolean(draw?.ready?.())]);if(key===signature)return;signature=key;
+  section.hidden=!visible;phone.hidden=!model||!visible;const line=formatNextWaveLine(model);if(phone.textContent!==line)phone.textContent=line;phone.title=line;phone.setAttribute('aria-label',model?'다음 '+model.round+'웨이브 · '+model.name+' · '+(model.count===null?'마리 수 확인 중':model.count+'마리')+' · '+model.motion+' · '+(model.life===null?'광산 도착 피해 확인 중':'한 마리가 광산에 도착하면 생명 '+model.life+' 감소'):'');
+  const key=JSON.stringify([model,draw?.ready?.()??false]);if(key===signature)return;signature=key;
   title.textContent=model?'다음 웨이브 · '+model.round:'마지막 웨이브';name.textContent=model?.name??'마지막 적을 막아 주세요';facts.textContent=model?[model.motion,model.count===null?'마리 수 확인 중':model.count+'마리'].join(' · '):'';
   risk.textContent=model?model.life===null?'광산 도착 피해 확인 중':'광산 도착 시 한 마리마다 생명 '+model.life+' 감소':'';
   let ctx;try{ctx=art.getContext('2d');ctx?.clearRect(0,0,64,64);}catch{}art.hidden=!model?.typeId||!ctx||!draw?.(ctx,model,32,32,56);

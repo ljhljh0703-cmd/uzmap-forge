@@ -1,0 +1,2732 @@
+{
+  "state": "provisional",
+  "gate": "gate_pending",
+  "sourceRevision": "9ff5970bd2bf403917de4c6550063b446f5cee93",
+  "metricCalibration": {
+    "identity": 1.0,
+    "constantOffset": 0.9999505134293563,
+    "constantOffsetExpected": 0.9999505134293563,
+    "algorithm": "Gaussian SSIM window11 sigma1.5; population covariance; min RGB mean on black/white composites"
+  },
+  "generatorSha256": {
+    "scripts/optimize-f-assets.py": "18f254770c79f066d7bf506268ca0471da13baab597ffd63b28bc5a5bb2ec958",
+    "scripts/lib/f_asset_quality.py": "519c5e14b4374f38d4663b7c1d69f32c7e71c0e3597497a495dd1d71910ec0cb"
+  },
+  "toolVersions": {
+    "python": "3.14.0",
+    "pillow": "12.0.0"
+  },
+  "outputs": [
+    {
+      "path": "web/assets/sprites/gemtower-f-ground.png",
+      "sha256": "bb1b4e93ff4fc52402e51924236562ebca12c0f06e000b0facf5572e898c6d98",
+      "bytes": 365760,
+      "dimensions": [
+        1024,
+        412
+      ],
+      "keys": [
+        "ground:grass:0",
+        "ground:grass:1",
+        "ground:grass:2",
+        "ground:grass:3",
+        "ground:path:horizontal",
+        "field:checkpoint",
+        "field:entrance",
+        "field:exit"
+      ],
+      "minFrameSsim": 0.9980580386606013,
+      "operation": {
+        "cropRepack": true,
+        "channelStep": 2,
+        "transparentRgbZeroed": true,
+        "alphaChanged": false
+      }
+    },
+    {
+      "path": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "sha256": "6a1e659c1f645b5485beffbd95cfcc0277bc2d6ad889c8cd8198f36d93966cc0",
+      "bytes": 422995,
+      "dimensions": [
+        1024,
+        375
+      ],
+      "keys": [
+        "ground:path:vertical",
+        "ground:path:corner-ne",
+        "ground:path:corner-nw",
+        "ground:path:corner-sw",
+        "ground:path:t-junction",
+        "ground:path:cross",
+        "ground:path:dead",
+        "ground:path:corner-se",
+        "field:bush",
+        "field:pebbles"
+      ],
+      "minFrameSsim": 0.9977170412052679,
+      "operation": {
+        "cropRepack": true,
+        "channelStep": 2,
+        "transparentRgbZeroed": true,
+        "alphaChanged": false
+      }
+    },
+    {
+      "path": "web/assets/sprites/gemtower-f-bases.png",
+      "sha256": "1b1af03f19f54419c3e486a55943baab960954b16681653299e29ebd151417ca",
+      "bytes": 792548,
+      "dimensions": [
+        2048,
+        520
+      ],
+      "keys": [
+        "pedestal:0",
+        "pedestal:1",
+        "pedestal:2",
+        "pedestal:3",
+        "pedestal:4",
+        "pedestal:5",
+        "pedestal:selected:0",
+        "pedestal:selected:1",
+        "pedestal:selected:2",
+        "pedestal:selected:3",
+        "pedestal:selected:4",
+        "pedestal:selected:5",
+        "field:stone",
+        "field:slate",
+        "field:placement"
+      ],
+      "minFrameSsim": 0.9969763467441769,
+      "operation": {
+        "cropRepack": true,
+        "channelStep": 2,
+        "transparentRgbZeroed": true,
+        "alphaChanged": false
+      }
+    },
+    {
+      "path": "web/assets/sprites/gemtower-f-creeps-ground.png",
+      "sha256": "b46c6d02807ae1916b17d8620ec40b1ccdb4af1e3607e4b354db123af36a6171",
+      "bytes": 173845,
+      "dimensions": [
+        1024,
+        293
+      ],
+      "keys": [
+        "creep:mine:goblin",
+        "creep:mine:beetle",
+        "creep:mine:rat"
+      ],
+      "minFrameSsim": 0.9976076423186877,
+      "operation": {
+        "cropRepack": true,
+        "channelStep": 4,
+        "transparentRgbZeroed": true,
+        "alphaChanged": false
+      }
+    },
+    {
+      "path": "web/assets/sprites/gemtower-f-creeps-late.png",
+      "sha256": "9eb1375e3162685c264a7071defd47cc68dabb374f248d19cd7748380905a1cc",
+      "bytes": 91352,
+      "dimensions": [
+        1024,
+        156
+      ],
+      "keys": [
+        "creep:mine:bat",
+        "creep:mine:wisp"
+      ],
+      "minFrameSsim": 0.9968502480580216,
+      "operation": {
+        "cropRepack": true,
+        "channelStep": 4,
+        "transparentRgbZeroed": true,
+        "alphaChanged": false
+      }
+    },
+    {
+      "path": "web/assets/sprites/gemtower-f-creeps-boss.png",
+      "sha256": "227dfc63052c94c753dc9b7612d3e6a8a3583b19093e895fbc85800fcdb0eb73",
+      "bytes": 299387,
+      "dimensions": [
+        1024,
+        408
+      ],
+      "keys": [
+        "creep:mine:ogre"
+      ],
+      "minFrameSsim": 0.9968402320529561,
+      "operation": {
+        "cropRepack": true,
+        "channelStep": 4,
+        "transparentRgbZeroed": true,
+        "alphaChanged": false
+      }
+    },
+    {
+      "path": "web/assets/sprites/gemtower-f-effects.png",
+      "sha256": "6ef73a73178f074823d73f73a8d86810e7523850dd79be16f4304b1cde827289",
+      "bytes": 549065,
+      "dimensions": [
+        1024,
+        635
+      ],
+      "keys": [
+        "effect:poison",
+        "effect:fire",
+        "effect:slow",
+        "effect:stun",
+        "effect:critical",
+        "effect:splash",
+        "effect:air",
+        "effect:ground",
+        "feedback:gold",
+        "feedback:life",
+        "feedback:combine"
+      ],
+      "minFrameSsim": 0.9976037354053773,
+      "operation": {
+        "cropRepack": true,
+        "channelStep": 2,
+        "transparentRgbZeroed": true,
+        "alphaChanged": false
+      }
+    }
+  ],
+  "frames": [
+    {
+      "key": "ground:grass:0",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9983695425563353,
+      "physicalFrameSsim": 0.9983695425563353,
+      "visibleBboxSsim": 0.9983695425563353,
+      "sourceRgbaSha256": "b0196ad731298c08a306cacf8a8558d8167642ef0e5d98ac731ea574863222b6",
+      "targetRgbaSha256": "4db10d42d4f48ac89b996fa68ce59e53c33a8a9a30370d24ce7b3346f381ec79"
+    },
+    {
+      "key": "ground:grass:1",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 134,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 134,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9988782629550154,
+      "physicalFrameSsim": 0.9988782629550154,
+      "visibleBboxSsim": 0.9988782629550154,
+      "sourceRgbaSha256": "6427771da7b8d470bebd5e525c215eff4fd92d364293d52f65990900cad8f2eb",
+      "targetRgbaSha256": "8087c0749063f945672de38413b9b81b6d579dceaf804b51a7781c317262a4df"
+    },
+    {
+      "key": "ground:grass:2",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 266,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 266,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9985779683261791,
+      "physicalFrameSsim": 0.9985779683261791,
+      "visibleBboxSsim": 0.9985779683261791,
+      "sourceRgbaSha256": "5332f6f558a28c4c106bfb75cd58b1d44d2a88cda439b8f2a88138d56a3e4460",
+      "targetRgbaSha256": "e6d7759426173f6c0ddbf1d749bc1af59fd88802d4ea68d25a2aa0e23cf85e11"
+    },
+    {
+      "key": "ground:grass:3",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 398,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 398,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9984644027181853,
+      "physicalFrameSsim": 0.9984644027181853,
+      "visibleBboxSsim": 0.9984644027181853,
+      "sourceRgbaSha256": "15a49197cd15cb940c3fd8a29e4139bf3bbead64305eb04899dc43ab23bbaa3e",
+      "targetRgbaSha256": "6790b7d4c00b7340e63693c2191b6d5623794b39da1084513ec024a5d6957a94"
+    },
+    {
+      "key": "ground:path:horizontal",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 530,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 530,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9980580386606013,
+      "physicalFrameSsim": 0.9980580386606013,
+      "visibleBboxSsim": 0.9980580386606013,
+      "sourceRgbaSha256": "eec6462c92ebb14a849bdc6c0224b97a3a0d0dde6a8c167536b1436222be26f8",
+      "targetRgbaSha256": "1004973ba365d14dfe655e5f6f2b7d31200496d74089c59debc593b0051e378e"
+    },
+    {
+      "key": "field:checkpoint",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 2,
+        "y": 330,
+        "w": 207,
+        "h": 197
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 694,
+        "y": 2,
+        "w": 207,
+        "h": 197
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9986505238619598,
+      "physicalFrameSsim": 0.9986505238619598,
+      "visibleBboxSsim": 0.9986505238619598,
+      "sourceRgbaSha256": "2ad930d68868c5d5f7725671e29809ec9249eb0fc49b2d62038d61624ce790db",
+      "targetRgbaSha256": "de8fb990242b912cc8333fe5c0d63cc3984632f7231c53a337d4ff6d487d92c2"
+    },
+    {
+      "key": "field:entrance",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 213,
+        "y": 330,
+        "w": 219,
+        "h": 207
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 203,
+        "w": 219,
+        "h": 207
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9988361504383171,
+      "physicalFrameSsim": 0.9988361504383171,
+      "visibleBboxSsim": 0.9988361504383171,
+      "sourceRgbaSha256": "3765114967816a4aee62868c8df07eef76570f5e33660e69d53011e28f2038f0",
+      "targetRgbaSha256": "18ce9f398b49e6f6ac8221fa9842aa980b579718b20f9b25ec58676662f5f30c"
+    },
+    {
+      "key": "field:exit",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 436,
+        "y": 330,
+        "w": 226,
+        "h": 207
+      },
+      "target": "web/assets/sprites/gemtower-f-ground.png",
+      "targetFrame": {
+        "x": 225,
+        "y": 203,
+        "w": 226,
+        "h": 207
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9989273189653837,
+      "physicalFrameSsim": 0.9989313897831767,
+      "visibleBboxSsim": 0.9989273189653837,
+      "sourceRgbaSha256": "59c83a3cc2b4bda3c916a2c9f2e13a0e437d4dbe2d9262c1ae2ea2e6c55c8b01",
+      "targetRgbaSha256": "eb9091385127e5d2075aa3ac1ac0dd8ae25e54b373d986b1f8ece50b2da05f5d"
+    },
+    {
+      "key": "ground:path:vertical",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 694,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9979953814417003,
+      "physicalFrameSsim": 0.9979953814417003,
+      "visibleBboxSsim": 0.9979953814417003,
+      "sourceRgbaSha256": "2d8b1efa00069e0031a402ec84e8b7ccf12c7170f005a6ac72f84ccdc925af27",
+      "targetRgbaSha256": "46c346d8c5bd3c5b8fe330187051bb83c0e7765201518851041cf2a9ce26a0c6"
+    },
+    {
+      "key": "ground:path:corner-ne",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 858,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 166,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9980411841271842,
+      "physicalFrameSsim": 0.9980411841271842,
+      "visibleBboxSsim": 0.9980411841271842,
+      "sourceRgbaSha256": "fde46233c89e8d1775103b5ed1c4ef798510e8798feecd446501c9bb23ab9bcf",
+      "targetRgbaSha256": "01206ec1c2e0b396e52b73e1ac3322dc772a43bbd5d240fc90dd0e5caa07480a"
+    },
+    {
+      "key": "ground:path:corner-nw",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 2,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 330,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9980015648782077,
+      "physicalFrameSsim": 0.9980015648782077,
+      "visibleBboxSsim": 0.9980015648782077,
+      "sourceRgbaSha256": "145053d484ac6b59d75e6d24fd55a66f8cd442d95a9166c7286df7f1c2fb56ab",
+      "targetRgbaSha256": "b04b52812331e5f8549b667c396321d1427e63bd300643a0f96910c4268ebb3d"
+    },
+    {
+      "key": "ground:path:corner-sw",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 166,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 494,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9981475870218378,
+      "physicalFrameSsim": 0.9981475870218378,
+      "visibleBboxSsim": 0.9981475870218378,
+      "sourceRgbaSha256": "69e5601cc16532abb34f2e9cc0181a39ef0366db949c04189e74b0d3afa4736f",
+      "targetRgbaSha256": "9481edca727c6903103fae2521bbc5dbc76dca0a3244881f4d3ec516674f34ec"
+    },
+    {
+      "key": "ground:path:t-junction",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 330,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 658,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9978905954140402,
+      "physicalFrameSsim": 0.9978905954140402,
+      "visibleBboxSsim": 0.9978905954140402,
+      "sourceRgbaSha256": "087226d0b7aa144c75788d9893f92423a76e9e871e9d1014388513b3cba4ef85",
+      "targetRgbaSha256": "070cd39f31235ebdb415788540b73e351e545dafb21eed0ea613612b15e6cda8"
+    },
+    {
+      "key": "ground:path:cross",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 494,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 822,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9977170412052679,
+      "physicalFrameSsim": 0.9977170412052679,
+      "visibleBboxSsim": 0.9977170412052679,
+      "sourceRgbaSha256": "a5794b46da8c420af135edd42eeba82e6fd3843b6cc8548157022759fbd9bd74",
+      "targetRgbaSha256": "19074c1fe1a603cfc6101bdcb87ea2d0cc5574474fea0d606ae6fe6d64fd50e5"
+    },
+    {
+      "key": "ground:path:dead",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 658,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9981397270529013,
+      "physicalFrameSsim": 0.9981397270529013,
+      "visibleBboxSsim": 0.9981397270529013,
+      "sourceRgbaSha256": "e3d70bb3f2712fe25f79fdd17a32e5b82baf49e6915c09f2878b91f46bb5dc04",
+      "targetRgbaSha256": "dc294889325ca59f0cf2781a136e21f759ad5fcfbb8aba059a4db5e8302f4845"
+    },
+    {
+      "key": "ground:path:corner-se",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 822,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 166,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9980411841271842,
+      "physicalFrameSsim": 0.9980411841271842,
+      "visibleBboxSsim": 0.9980411841271842,
+      "sourceRgbaSha256": "fde46233c89e8d1775103b5ed1c4ef798510e8798feecd446501c9bb23ab9bcf",
+      "targetRgbaSha256": "01206ec1c2e0b396e52b73e1ac3322dc772a43bbd5d240fc90dd0e5caa07480a"
+    },
+    {
+      "key": "field:bush",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 666,
+        "y": 330,
+        "w": 198,
+        "h": 207
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 330,
+        "y": 166,
+        "w": 198,
+        "h": 207
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9989649939585967,
+      "physicalFrameSsim": 0.9989673589125921,
+      "visibleBboxSsim": 0.9989649939585967,
+      "sourceRgbaSha256": "127553bbb2a6007a77b8977236699af72de89e17985fca9aba54151bb841355c",
+      "targetRgbaSha256": "c6d34f2213aa2230302a7166c188e1da4edb2f568fcfdad0f7c85ca242e7c2e5"
+    },
+    {
+      "key": "field:pebbles",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b1.png",
+      "sourceSha256": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+      "sourceFrame": {
+        "x": 2,
+        "y": 541,
+        "w": 197,
+        "h": 207
+      },
+      "target": "web/assets/sprites/gemtower-f-ground-extra.png",
+      "targetFrame": {
+        "x": 532,
+        "y": 166,
+        "w": 197,
+        "h": 207
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.998954253744178,
+      "physicalFrameSsim": 0.998954253744178,
+      "visibleBboxSsim": 0.998954253744178,
+      "sourceRgbaSha256": "0d09150118834cd861aff149b80e0c90e74adeb38b7b1813379df16f73f97abf",
+      "targetRgbaSha256": "14354589b9cc1c5c97af2aa3216465901063996dd8211476c6b722f44f88ecc4"
+    },
+    {
+      "key": "pedestal:0",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9991815331679959,
+      "physicalFrameSsim": 0.9994760519671793,
+      "visibleBboxSsim": 0.9991815331679959,
+      "sourceRgbaSha256": "fc2934349cf23ca2e6db7170bdf7b3dbc1f2d612931a2035cbf94c78895bc418",
+      "targetRgbaSha256": "d823ca2c7c828400b932e7b6c9ac06679f19c2e949586398d45e4cbb3d2891e3"
+    },
+    {
+      "key": "pedestal:1",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 262,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 262,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9991456207416487,
+      "physicalFrameSsim": 0.9994664965288065,
+      "visibleBboxSsim": 0.9991456207416487,
+      "sourceRgbaSha256": "8b467b064b6af2c7e2762574c59e9936e1fe7bfa1f3b8909dff0010396d59032",
+      "targetRgbaSha256": "acb885e6a97a8b40a5d4852c23e46109de4589bbe8d76853bc5539021fd9e39a"
+    },
+    {
+      "key": "pedestal:2",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 522,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 522,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9990744612389922,
+      "physicalFrameSsim": 0.9994119331855101,
+      "visibleBboxSsim": 0.9990744612389922,
+      "sourceRgbaSha256": "e676823c827f838b15edecdbbb4441de42508597bd6f48f5f6f672751a8d25d6",
+      "targetRgbaSha256": "75c49dc7de5f4bb6d3b57555998f311efa4ad34c324c8194a377f812b0c7c7c5"
+    },
+    {
+      "key": "pedestal:3",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 782,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 782,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9991419418060313,
+      "physicalFrameSsim": 0.9994697904534717,
+      "visibleBboxSsim": 0.9991419418060313,
+      "sourceRgbaSha256": "61fc5b0590d437bdc39903bd93a324467a5b8f0028dcc0a10c47b864f8172d0e",
+      "targetRgbaSha256": "ff9500054ef7b1117c020f50889c3d0336932279a9c0975c19d4d8535aa887ee"
+    },
+    {
+      "key": "pedestal:4",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 1042,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 1042,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9991050439647945,
+      "physicalFrameSsim": 0.9994463171430427,
+      "visibleBboxSsim": 0.9991050439647945,
+      "sourceRgbaSha256": "daf58a6eb8e6af6657555afe5b9082e0abb147cbdbca2fb96c2416e4ec5fe43a",
+      "targetRgbaSha256": "25d1b724a87242dac0e3b9561729e8fd0d687780cf7515101bfb0fe6ea17c68e"
+    },
+    {
+      "key": "pedestal:5",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 1302,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 1302,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9991079193987507,
+      "physicalFrameSsim": 0.999445448573607,
+      "visibleBboxSsim": 0.9991079193987507,
+      "sourceRgbaSha256": "922c8cedb4a2d86a9bd4d036cc0daf95ccab3dd85c4d590ea38672338a29e7ad",
+      "targetRgbaSha256": "2c4ccfac040902584307f25145a607454f4fb03bc59bd2805bb6301c0cde0377"
+    },
+    {
+      "key": "pedestal:selected:0",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 1562,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 1562,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9992956302606311,
+      "physicalFrameSsim": 0.9995108077032774,
+      "visibleBboxSsim": 0.9992956302606311,
+      "sourceRgbaSha256": "0b07a770a3c13cebfa9f4f0f66e43833356b7709acd3488f523f0ac622428946",
+      "targetRgbaSha256": "37653f989d0e90194cd8cb7f8bcb024daaa2776af0f0b5ba0c362460c64be6a9"
+    },
+    {
+      "key": "pedestal:selected:1",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 2,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9992588420945552,
+      "physicalFrameSsim": 0.9994895505102808,
+      "visibleBboxSsim": 0.9992588420945552,
+      "sourceRgbaSha256": "6b0531e4b8f318e968aff79ea63d64321279f5c9706c8603695ee5fc9fe64d68",
+      "targetRgbaSha256": "67937c5d4630ddfcf1e0e8828b60c1a05cf5a43082084e5b52515d83b798b4d1"
+    },
+    {
+      "key": "pedestal:selected:2",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 262,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 262,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9992264805772508,
+      "physicalFrameSsim": 0.9994764137835176,
+      "visibleBboxSsim": 0.9992264805772508,
+      "sourceRgbaSha256": "29b3fbebda4f83bb915f6fa4cd26ceee652e23d9377acfc393c88c713c111b25",
+      "targetRgbaSha256": "93df4a07f84455c323f92e3d6167b705a48540c4f34c456b5317f3b6f2492e1f"
+    },
+    {
+      "key": "pedestal:selected:3",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 522,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 522,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9993017609123392,
+      "physicalFrameSsim": 0.999525901030079,
+      "visibleBboxSsim": 0.9993017609123392,
+      "sourceRgbaSha256": "ee2f376f97770f22030c3e0abebda67791f785b4ce0ca1ab16da2ae240008eb8",
+      "targetRgbaSha256": "fd8fbaccb33f668c85610175dd1de361238056ac4834d261a8f2056d3491a614"
+    },
+    {
+      "key": "pedestal:selected:4",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 782,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 782,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9992140557190108,
+      "physicalFrameSsim": 0.9994571432245104,
+      "visibleBboxSsim": 0.9992140557190108,
+      "sourceRgbaSha256": "dc603a45f692dff0675f7671401b0fba20d9ce5a6531312d7a57831cfc2b7a86",
+      "targetRgbaSha256": "6ee25a5268f7f14c44c4169aca8bb4a864e964d1c5223d1381aeba317e8a3480"
+    },
+    {
+      "key": "pedestal:selected:5",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 1042,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 1042,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9992085305671277,
+      "physicalFrameSsim": 0.9994733297238846,
+      "visibleBboxSsim": 0.9992085305671277,
+      "sourceRgbaSha256": "827c5d7e8085d684748d467f1ac603ef125954354cf2884b615a398051f72dd3",
+      "targetRgbaSha256": "29ca06995466afdd2d54e6f0c3e700de452ca0022199ea6a4b8a52d79af9807a"
+    },
+    {
+      "key": "field:stone",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 1302,
+        "y": 262,
+        "w": 235,
+        "h": 250
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 1302,
+        "y": 262,
+        "w": 235,
+        "h": 250
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9987114171065165,
+      "physicalFrameSsim": 0.9987114171065165,
+      "visibleBboxSsim": 0.9987114171065165,
+      "sourceRgbaSha256": "0ad657d244c55b8a9f7376dfe712eb5f1b720d1469b800f8e17e00366282ecfb",
+      "targetRgbaSha256": "52c4059fc1a377944cca9ed7bd5c30f97d3b2933dbf7391e7cc7845fa82bf081"
+    },
+    {
+      "key": "field:slate",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 1541,
+        "y": 262,
+        "w": 233,
+        "h": 200
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 1541,
+        "y": 262,
+        "w": 233,
+        "h": 200
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9981382271471848,
+      "physicalFrameSsim": 0.9981382271471848,
+      "visibleBboxSsim": 0.9981382271471848,
+      "sourceRgbaSha256": "178e9760591d50004f0dfeb0a07e85361f8b0962d5d9ad033df4c3488f257794",
+      "targetRgbaSha256": "1c678a3b5130c49e53d6b8dee43587ec68947b17ecf4e5a15dc35a1d25e0dfc7"
+    },
+    {
+      "key": "field:placement",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b2.png",
+      "sourceSha256": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+      "sourceFrame": {
+        "x": 1778,
+        "y": 262,
+        "w": 227,
+        "h": 216
+      },
+      "target": "web/assets/sprites/gemtower-f-bases.png",
+      "targetFrame": {
+        "x": 1778,
+        "y": 262,
+        "w": 227,
+        "h": 216
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9969763467441769,
+      "physicalFrameSsim": 0.9969763467441769,
+      "visibleBboxSsim": 0.9969763467441769,
+      "sourceRgbaSha256": "59b8f2d98fb5debcda46461208a928d4defb286017ff9e42f5091372750c0d07",
+      "targetRgbaSha256": "18d92335566f46af588a81c7448e443f7061e476c5f2a01e0feb206221aa55d1"
+    },
+    {
+      "key": "creep:mine:goblin",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 186,
+        "h": 153
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-ground.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 186,
+        "h": 153
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9977302776302015,
+      "physicalFrameSsim": 0.9978319549494005,
+      "visibleBboxSsim": 0.9977302776302015,
+      "sourceRgbaSha256": "960e4ef22a0cfad6b8329e6db67579856e8f085c137cd54785e0c37e5e6c8f0c",
+      "targetRgbaSha256": "6cfc55a52ed2bec0e9a1dbb7a7a868f2ca1bb17edb68b4f26609a65127fb1115"
+    },
+    {
+      "key": "creep:mine:goblin",
+      "index": 1,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 188,
+        "y": 2,
+        "w": 186,
+        "h": 153
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-ground.png",
+      "targetFrame": {
+        "x": 188,
+        "y": 2,
+        "w": 186,
+        "h": 153
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9977127242879731,
+      "physicalFrameSsim": 0.9978632328248228,
+      "visibleBboxSsim": 0.9977127242879731,
+      "sourceRgbaSha256": "409286a2b282954f3d7ea4fe62b1b4ae3e448976600804193d465479fcc4195a",
+      "targetRgbaSha256": "fc141744451b70e07494bd2e40aacbbe5fc89ac6940800afaa62d30bab9f0055"
+    },
+    {
+      "key": "creep:mine:beetle",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 378,
+        "y": 2,
+        "w": 229,
+        "h": 150
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-ground.png",
+      "targetFrame": {
+        "x": 378,
+        "y": 2,
+        "w": 229,
+        "h": 150
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9977850697987699,
+      "physicalFrameSsim": 0.997888596666352,
+      "visibleBboxSsim": 0.9977850697987699,
+      "sourceRgbaSha256": "f4ced8027fb8e2eda0c9e2d2e0b91674404816f4c50757d23a746d1f0e71311f",
+      "targetRgbaSha256": "2b239c605bfa6fbdd300905362f65ce468d13e69cc27698901911eb26ea781c1"
+    },
+    {
+      "key": "creep:mine:beetle",
+      "index": 1,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 607,
+        "y": 2,
+        "w": 229,
+        "h": 150
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-ground.png",
+      "targetFrame": {
+        "x": 607,
+        "y": 2,
+        "w": 229,
+        "h": 150
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9976076423186877,
+      "physicalFrameSsim": 0.9977766027197564,
+      "visibleBboxSsim": 0.9976076423186877,
+      "sourceRgbaSha256": "63acca0712de8b694eb313b9404ab60517fed0cf2c604eab5f67eaf225001079",
+      "targetRgbaSha256": "7e1577116667de42644513e5ec82921e59f5a25dcefea9bf06de5ef640d8f49f"
+    },
+    {
+      "key": "creep:mine:rat",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 840,
+        "y": 2,
+        "w": 249,
+        "h": 132
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-ground.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 159,
+        "w": 249,
+        "h": 132
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9980725222639127,
+      "physicalFrameSsim": 0.9982283783657746,
+      "visibleBboxSsim": 0.9980725222639127,
+      "sourceRgbaSha256": "960ec1abb506d773ab863f62e057ab807d819f94de7cc9c7a2ea764e7eecd366",
+      "targetRgbaSha256": "72a9bc60d4d96bb09dbbe53b97417e1326ec8800d7200d09495b85665eee422a"
+    },
+    {
+      "key": "creep:mine:rat",
+      "index": 1,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 1089,
+        "y": 2,
+        "w": 249,
+        "h": 132
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-ground.png",
+      "targetFrame": {
+        "x": 251,
+        "y": 159,
+        "w": 249,
+        "h": 132
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9982795004157976,
+      "physicalFrameSsim": 0.9983587191960472,
+      "visibleBboxSsim": 0.9982795004157976,
+      "sourceRgbaSha256": "61d3625d3b1f7ff025e9bc0cad04dc3669f7cb892084c9c1848bedbb38c75aca",
+      "targetRgbaSha256": "8d1fb6bf097d1904d2d24cd579cfaafaacae66a2683669d462b0d7daba17a53b"
+    },
+    {
+      "key": "creep:mine:bat",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 1342,
+        "y": 2,
+        "w": 240,
+        "h": 152
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-late.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 240,
+        "h": 152
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9979549652105891,
+      "physicalFrameSsim": 0.9980687233457172,
+      "visibleBboxSsim": 0.9979549652105891,
+      "sourceRgbaSha256": "a7320216c8bc3b44e776fbeb7aeff7d13edeb25f3793bf960757142ca4c0193a",
+      "targetRgbaSha256": "6cff89a77a97f113dac36c11cfc4972859669fc2c2ed5c134969a511ea0facb7"
+    },
+    {
+      "key": "creep:mine:bat",
+      "index": 1,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 1582,
+        "y": 2,
+        "w": 240,
+        "h": 152
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-late.png",
+      "targetFrame": {
+        "x": 242,
+        "y": 2,
+        "w": 240,
+        "h": 152
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.997409119135914,
+      "physicalFrameSsim": 0.9979604131402691,
+      "visibleBboxSsim": 0.997409119135914,
+      "sourceRgbaSha256": "f352e06e40e8fc812652e3a76ed823aba6ab2914863ef20d2a243820f5641ef3",
+      "targetRgbaSha256": "167c674669bedfc5c8527afc3566ea566de981b69abbd8532f8e84b2ec5efe88"
+    },
+    {
+      "key": "creep:mine:wisp",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 2,
+        "y": 159,
+        "w": 173,
+        "h": 140
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-late.png",
+      "targetFrame": {
+        "x": 486,
+        "y": 2,
+        "w": 173,
+        "h": 140
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9968502480580216,
+      "physicalFrameSsim": 0.9970248917222155,
+      "visibleBboxSsim": 0.9968502480580216,
+      "sourceRgbaSha256": "1de5c06a58b0e24678a6f10846b40592c948d6328c4e943540a897f188fb2a35",
+      "targetRgbaSha256": "5e1a56b5400153008d43d4199cde7f5be206bc2c042d0cbaadee4a1c673d0cc2"
+    },
+    {
+      "key": "creep:mine:wisp",
+      "index": 1,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 175,
+        "y": 159,
+        "w": 173,
+        "h": 140
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-late.png",
+      "targetFrame": {
+        "x": 659,
+        "y": 2,
+        "w": 173,
+        "h": 140
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9970121871269267,
+      "physicalFrameSsim": 0.9971539715219911,
+      "visibleBboxSsim": 0.9970121871269267,
+      "sourceRgbaSha256": "830fdd92a830afbbdee4071d5bdceba71fb3843988814e54f92172516771b4d7",
+      "targetRgbaSha256": "0b18d5972b2bb91ee62ce9e6779cef801ec802318bc786b6cf5f8e2c3f2dfbc5"
+    },
+    {
+      "key": "creep:mine:ogre",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 352,
+        "y": 159,
+        "w": 482,
+        "h": 404
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-boss.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 482,
+        "h": 404
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.9968402320529561,
+      "physicalFrameSsim": 0.9969302192415042,
+      "visibleBboxSsim": 0.9968402320529561,
+      "sourceRgbaSha256": "de43b0d1991a4d88e57e0874fbec5ea711cd12284039b6d12c066cc7f59f583b",
+      "targetRgbaSha256": "0cc8fd0fca18052a8d542138279eb2558153285ce3cdaf01ebb4a3b6a77fb564"
+    },
+    {
+      "key": "creep:mine:ogre",
+      "index": 1,
+      "source": "web/assets/sprites/gemtower-b3.png",
+      "sourceSha256": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+      "sourceFrame": {
+        "x": 834,
+        "y": 159,
+        "w": 482,
+        "h": 404
+      },
+      "target": "web/assets/sprites/gemtower-f-creeps-boss.png",
+      "targetFrame": {
+        "x": 484,
+        "y": 2,
+        "w": 482,
+        "h": 404
+      },
+      "channelStep": 4,
+      "alphaExact": true,
+      "ssim": 0.997005013557259,
+      "physicalFrameSsim": 0.9970749176808498,
+      "visibleBboxSsim": 0.997005013557259,
+      "sourceRgbaSha256": "be18d99a9eb537bf48e998e9f5d20036647a952a8104eed8ac1c2472e5c274b6",
+      "targetRgbaSha256": "f135a542859a2120405efda47c2e2a9610173ba02bbb92f7a9c5d457076bce1d"
+    },
+    {
+      "key": "effect:poison",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9978971447631443,
+      "physicalFrameSsim": 0.9978971447631443,
+      "visibleBboxSsim": 0.9978971447631443,
+      "sourceRgbaSha256": "52330d760e0c67d06094638ad29ca981bf5d2deef5b606f4f9464337bfe4afbc",
+      "targetRgbaSha256": "44d187ffff9aa3eb3ceb8d653c9c916a346e36928665c124c4263cb92e55ff3e"
+    },
+    {
+      "key": "effect:fire",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 214,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 214,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9976291630159003,
+      "physicalFrameSsim": 0.9976291630159003,
+      "visibleBboxSsim": 0.9976291630159003,
+      "sourceRgbaSha256": "ea8099491ee2e8d8f6055873d836b942e5eacd80c88efbbc06de58ee7e09349c",
+      "targetRgbaSha256": "1db7fb34023754e5613c8755e44a21d091282d7c153fd95cd2536e89b8637006"
+    },
+    {
+      "key": "effect:slow",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 426,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 426,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9985740253290151,
+      "physicalFrameSsim": 0.9985740253290151,
+      "visibleBboxSsim": 0.9985740253290151,
+      "sourceRgbaSha256": "9fb9fb8c8fe3d5c7a5d1498bdbdceabdb4da67e374d5d237aa54c7839ff36615",
+      "targetRgbaSha256": "8542f1f35ede6c93ab4af9c49d60a6d944a4880e68c2777c3cf8d55771761978"
+    },
+    {
+      "key": "effect:stun",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 637,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 637,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9977068587034685,
+      "physicalFrameSsim": 0.9977068587034685,
+      "visibleBboxSsim": 0.9977068587034685,
+      "sourceRgbaSha256": "4ffd363dd00f630316571c6628ec8f40910b45445ad01ccbca9a41bd91e62190",
+      "targetRgbaSha256": "f6ec99671d07992abff75ef37827efa8d173b570d408098c0fed4f2141f4b0b6"
+    },
+    {
+      "key": "effect:critical",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 2,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9976037354053773,
+      "physicalFrameSsim": 0.9976037354053773,
+      "visibleBboxSsim": 0.9976037354053773,
+      "sourceRgbaSha256": "9335e97de2d1e647ddfbcc17e5607caa191e512e0c99f20cf12a19ee3c0168c4",
+      "targetRgbaSha256": "838953de7a7de979da5fff379a8b906c6e5dcdecf64a85a8c1baf6020448b783"
+    },
+    {
+      "key": "effect:splash",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 214,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 214,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9981316969082061,
+      "physicalFrameSsim": 0.9981316969082061,
+      "visibleBboxSsim": 0.9981316969082061,
+      "sourceRgbaSha256": "00235aaac80debe0c40571f8d23cee4c33d545a61b0078611b9d74f66c1adae6",
+      "targetRgbaSha256": "a8210b6332cfd7ea431fb4e273803400b45ce8eec63306e1c389ce3fcabd6ba9"
+    },
+    {
+      "key": "effect:air",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 426,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 426,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9979985311847527,
+      "physicalFrameSsim": 0.9979985311847527,
+      "visibleBboxSsim": 0.9979985311847527,
+      "sourceRgbaSha256": "d9ecb2d51ce68866a1c23b0067384265ab7da057a1579ba4c18ef04dc1aa2aa3",
+      "targetRgbaSha256": "30463a089038999694b42d06eef5465925d4e0aff9e56ba85e03f92603813f36"
+    },
+    {
+      "key": "effect:ground",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 638,
+        "y": 214,
+        "w": 207,
+        "h": 208
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 638,
+        "y": 214,
+        "w": 207,
+        "h": 208
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9978472202080728,
+      "physicalFrameSsim": 0.9978472202080728,
+      "visibleBboxSsim": 0.9978472202080728,
+      "sourceRgbaSha256": "519e342fe847a2464ed48ee7447fe027b86eb83fbbe79ec267768a355a9c5929",
+      "targetRgbaSha256": "0baa8d0c2e90dfd29034cfb3e18186d1ba5b53c1053a0bdf30ccab8ea1173cfc"
+    },
+    {
+      "key": "feedback:gold",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 2,
+        "y": 426,
+        "w": 211,
+        "h": 200
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 2,
+        "y": 426,
+        "w": 211,
+        "h": 200
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9986148978784049,
+      "physicalFrameSsim": 0.9986148978784049,
+      "visibleBboxSsim": 0.9986148978784049,
+      "sourceRgbaSha256": "44d388a9f8cc2fd14826d1a25aa80b01725e1508c58a301847343a2c4f8ddcfc",
+      "targetRgbaSha256": "2959bb825670ce2138e98bb9ab80788fb1ef7790cd350dcf9e667389804e74de"
+    },
+    {
+      "key": "feedback:life",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 217,
+        "y": 426,
+        "w": 206,
+        "h": 207
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 217,
+        "y": 426,
+        "w": 206,
+        "h": 207
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9982185189183691,
+      "physicalFrameSsim": 0.9982206482824494,
+      "visibleBboxSsim": 0.9982185189183691,
+      "sourceRgbaSha256": "4ca72dd80b0fc3383250ecfd35da411210b80b2e8385ff80095d6427dee55669",
+      "targetRgbaSha256": "1d98766edb8b4077e42eb458d434919736d2d3a18d1408ae2e24bd6743b70699"
+    },
+    {
+      "key": "feedback:combine",
+      "index": 0,
+      "source": "web/assets/sprites/gemtower-b4.png",
+      "sourceSha256": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+      "sourceFrame": {
+        "x": 427,
+        "y": 426,
+        "w": 207,
+        "h": 205
+      },
+      "target": "web/assets/sprites/gemtower-f-effects.png",
+      "targetFrame": {
+        "x": 427,
+        "y": 426,
+        "w": 207,
+        "h": 205
+      },
+      "channelStep": 2,
+      "alphaExact": true,
+      "ssim": 0.9995470243994242,
+      "physicalFrameSsim": 0.9995470243994242,
+      "visibleBboxSsim": 0.9995470243994242,
+      "sourceRgbaSha256": "94c5da12a6eabb5ee2b3a639399ab0b45ca7bde4e4d71a0aeddb729eb683236d",
+      "targetRgbaSha256": "a479db110d389dc502a372e97ff17cabb66d2d6b298aafcd972c7960baf8fad3"
+    }
+  ],
+  "approvedUI": [
+    {
+      "path": "web/assets/ui/approved/btn-gold-disabled.png",
+      "sourceSha256": "74afb4bb9b73feaffd5bc8894e71999109bf8d958e5e9a021cc443c4dfe1f040",
+      "sha256": "e449890072c3cbef0e0155c66ff4ae05d08d632b67fb813ee9e42df2a7dd3ac7",
+      "bytes": 86302,
+      "dimensions": [
+        311,
+        294
+      ],
+      "originalRgbaSha256": "59b9e6a92d39c14cb02b1b7c3ce02e139d88cea8d7ecc1440c66a37250e148d2",
+      "rgbaSha256": "59b9e6a92d39c14cb02b1b7c3ce02e139d88cea8d7ecc1440c66a37250e148d2",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-gold-normal.png",
+      "sourceSha256": "5d9fa42b33cdeb08f89091d4b5bc9b4c0a2c47e5525ba61338b8f0b97b7e33b2",
+      "sha256": "6b40edc9108307633b1663c27225245767eb22e0f015c1b893b47aad9f9586ae",
+      "bytes": 95785,
+      "dimensions": [
+        311,
+        310
+      ],
+      "originalRgbaSha256": "6fbd5e59be1ddbffb0f2efa3042e5b057eafc277c118c2d2e62cccf4019852e1",
+      "rgbaSha256": "6fbd5e59be1ddbffb0f2efa3042e5b057eafc277c118c2d2e62cccf4019852e1",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-gold-pressed.png",
+      "sourceSha256": "87066b955815233afc7eeac0553e7c1b056dc2a08e0eb6ed33a74b214c9ab780",
+      "sha256": "c436bb93911c229aae00f6e86098eac1c688e67cfd748fabbdaeff361dc458a7",
+      "bytes": 93181,
+      "dimensions": [
+        306,
+        288
+      ],
+      "originalRgbaSha256": "2f3b31329ffa9359e665413078dc2f049bf4f70b7fea5c5534159fa6708f3c44",
+      "rgbaSha256": "2f3b31329ffa9359e665413078dc2f049bf4f70b7fea5c5534159fa6708f3c44",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-green-disabled.png",
+      "sourceSha256": "95c269657d6f02b81f9189807ebfac4358d10f29ae9ee867905f92132241619a",
+      "sha256": "fb5b90c01b5a669732d23a1fce40b056aa5f522ffa821d8127320c1883bf8179",
+      "bytes": 87643,
+      "dimensions": [
+        311,
+        294
+      ],
+      "originalRgbaSha256": "9106ede7708f3e9e64707faf8fb3d10112a6ad2463cf7e23bb799e5ef9bb7bd4",
+      "rgbaSha256": "9106ede7708f3e9e64707faf8fb3d10112a6ad2463cf7e23bb799e5ef9bb7bd4",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-green-normal.png",
+      "sourceSha256": "764a9710999be8f1ba72209c32da0c0cf4a52aee0765904586bed9c6d99b7f8c",
+      "sha256": "06d8fbe94b558d3391c91a84a4bef0544389079937b714770a96b20b2cefcee3",
+      "bytes": 98502,
+      "dimensions": [
+        312,
+        311
+      ],
+      "originalRgbaSha256": "5ecb47a23cb1cada9f4600a8ef86aa3509f503ce8a1f7bfdc48461cf3ce652c0",
+      "rgbaSha256": "5ecb47a23cb1cada9f4600a8ef86aa3509f503ce8a1f7bfdc48461cf3ce652c0",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-green-pressed.png",
+      "sourceSha256": "a56a31c61aa56b9ccd8dc8c1f55be2a4b79398cec7ed9925a0c78e805f208e8e",
+      "sha256": "def576491f7a6f856c5c31c3f5d96a2070d857b8ff0f1dc4cdb2e496ae92d1a9",
+      "bytes": 90707,
+      "dimensions": [
+        306,
+        289
+      ],
+      "originalRgbaSha256": "ffff9362e230a36183b9f8e8ba2fc4bdcc8557a62c3e1d23a47c40fc4c96c0ce",
+      "rgbaSha256": "ffff9362e230a36183b9f8e8ba2fc4bdcc8557a62c3e1d23a47c40fc4c96c0ce",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-red-disabled.png",
+      "sourceSha256": "f87c664ce77a1128b740372d17b1a8f6737904f522d0bef6754560536d957dc4",
+      "sha256": "60cf07fb4fe680e2c65ec2af2706067fee5a32393721a026e9a767acad193800",
+      "bytes": 86322,
+      "dimensions": [
+        311,
+        294
+      ],
+      "originalRgbaSha256": "4955f332a010b684afebe4cc150622b50d8ccacb51e402f30cf164fa11c20c7a",
+      "rgbaSha256": "4955f332a010b684afebe4cc150622b50d8ccacb51e402f30cf164fa11c20c7a",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-red-normal.png",
+      "sourceSha256": "1ecf06bc8fd7bf7566965dc90820627a21f16cbc69cffb40e130ea80d0c027e6",
+      "sha256": "1a834a0c4e2d44e660c5d148a0a6128ffa5ec2f05dda24f4c1c35ba416a0e06e",
+      "bytes": 94154,
+      "dimensions": [
+        311,
+        313
+      ],
+      "originalRgbaSha256": "b6c0e001cd27aecd2719b22a11cd4024ed39a0c81c8abadc0b2a7ff1964af6a9",
+      "rgbaSha256": "b6c0e001cd27aecd2719b22a11cd4024ed39a0c81c8abadc0b2a7ff1964af6a9",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/btn-red-pressed.png",
+      "sourceSha256": "cf775d300ba7d9b10e1ce43aa59d56c8809dc15c8aaf149f7d0c418feaa4437d",
+      "sha256": "0794116abe0384301d17c061b493a2876d29a42aa3cd8598de986ffb96930d7e",
+      "bytes": 91580,
+      "dimensions": [
+        306,
+        290
+      ],
+      "originalRgbaSha256": "49e4b7f30473df707fbbc938eef51e0b74b05c12d40dbf17d24a93126aa40ee1",
+      "rgbaSha256": "49e4b7f30473df707fbbc938eef51e0b74b05c12d40dbf17d24a93126aa40ee1",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/frame-panel.png",
+      "sourceSha256": "686628ced66d0013732ec40460369d1a43958c0694937da26cdeffba110173e2",
+      "sha256": "d5075236274efcbf6c1f806a502109abcb2aad755caece02766c76a46e986c03",
+      "bytes": 405095,
+      "dimensions": [
+        738,
+        697
+      ],
+      "originalRgbaSha256": "901a7e38b34780893c55f9ddc7375ba2bd147955b8dd596e8fbe3d1f40541aef",
+      "rgbaSha256": "901a7e38b34780893c55f9ddc7375ba2bd147955b8dd596e8fbe3d1f40541aef",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/frame-topbar.png",
+      "sourceSha256": "b04c1f8bf07b45197463885928acc9d7e9c64160a18ea7f49b3842085bd7f5f1",
+      "sha256": "1355300bc67781b64cc1fefc3e51de83e1a6438191ad324fc2c574585d732b7f",
+      "bytes": 175487,
+      "dimensions": [
+        960,
+        204
+      ],
+      "originalRgbaSha256": "0442834a02ca141056f571376bb3646207f2c9ef554400a75a49192cca4b3564",
+      "rgbaSha256": "0442834a02ca141056f571376bb3646207f2c9ef554400a75a49192cca4b3564",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/frame-tray.png",
+      "sourceSha256": "7ba5b0f00311c180f006b79ee79e5fb7b6c19a1474279bfd1a17b500716ec734",
+      "sha256": "a89ac4b8d0efe0d2f68aa09b2742fe834d7488ba82551797b3763f71a5fb4a7e",
+      "bytes": 230254,
+      "dimensions": [
+        976,
+        271
+      ],
+      "originalRgbaSha256": "259031f00513807b60262623720095976f8e5502485fed12c3503648d29d1f77",
+      "rgbaSha256": "259031f00513807b60262623720095976f8e5502485fed12c3503648d29d1f77",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/icon-attack-sword.png",
+      "sourceSha256": "133f317639e5744e049145db43fdc1d4468064f23caed8b0c157e6a35239dbb1",
+      "sha256": "772ba20921886b087f7a8baa7f752203ae30d5dee34ab3973b910479dc7392b5",
+      "bytes": 39300,
+      "dimensions": [
+        204,
+        217
+      ],
+      "originalRgbaSha256": "0e1294f7c0004e1758ff7bee16a7270591a2c4bd9b55058032b88ad15421cd48",
+      "rgbaSha256": "0e1294f7c0004e1758ff7bee16a7270591a2c4bd9b55058032b88ad15421cd48",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/icon-gold-coin.png",
+      "sourceSha256": "614308e1ee9232dbe9c31eef7c535565b76bb82cfafb4828b822db3c6744e5c0",
+      "sha256": "95a9624aca0a9504fdad2e626285f82d0e427eaabdd9be95ee700f355900f7f1",
+      "bytes": 47437,
+      "dimensions": [
+        194,
+        202
+      ],
+      "originalRgbaSha256": "35e65671f2247f64ab4c30ddfdb1a4a7b1d7949d6f8595de127410c4320cfd1b",
+      "rgbaSha256": "35e65671f2247f64ab4c30ddfdb1a4a7b1d7949d6f8595de127410c4320cfd1b",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/icon-life-heart.png",
+      "sourceSha256": "2b1716aab48a027bb65aa2317c5a1228053d6e7481c93bf3139813201d3e74bb",
+      "sha256": "31071b6ea2c3819bb8da289213371e7c33238cd92964e04aea6620f71d4f352a",
+      "bytes": 38878,
+      "dimensions": [
+        206,
+        193
+      ],
+      "originalRgbaSha256": "0131a192b4d30afbe5889ee438a0ecf09c9c18b55849bd2f73c2a3b187f16a2f",
+      "rgbaSha256": "0131a192b4d30afbe5889ee438a0ecf09c9c18b55849bd2f73c2a3b187f16a2f",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/icon-range-crosshair.png",
+      "sourceSha256": "855a452204dd515b9f7a62d2a88af92c1c600b2456996c9aaa744930e5c18c63",
+      "sha256": "b81ce254bab80f69d88f21708a5479a9872b23df1f50777655bd3f49298e0abf",
+      "bytes": 51823,
+      "dimensions": [
+        216,
+        218
+      ],
+      "originalRgbaSha256": "7ca7e14d3d11e90d0650adfc014672dd8ba73a4945da155f900c6df8a94a000f",
+      "rgbaSha256": "7ca7e14d3d11e90d0650adfc014672dd8ba73a4945da155f900c6df8a94a000f",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/icon-speed-boot.png",
+      "sourceSha256": "d732b1430f9f7034ba15bd2756f48867e1baee445fc65cd66697404dca92d83c",
+      "sha256": "781df746651802f57c086f4e7278667fc994db7314bed5aba857e62f90a770bc",
+      "bytes": 47497,
+      "dimensions": [
+        208,
+        216
+      ],
+      "originalRgbaSha256": "94424637d975a53359f731cae97b1f4dd0ccd24c5a35e213dfae6dc5555aa6a6",
+      "rgbaSha256": "94424637d975a53359f731cae97b1f4dd0ccd24c5a35e213dfae6dc5555aa6a6",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/icon-wave-flag.png",
+      "sourceSha256": "f2a0efe65ddaa4a424dbb91874adb919784de99cf6805b86db6e22d6eb0eaa6f",
+      "sha256": "373fe5b0de9581554dc2c0207a2795e574e01a6481abfc0d2035b77c0406cbd4",
+      "bytes": 44478,
+      "dimensions": [
+        208,
+        245
+      ],
+      "originalRgbaSha256": "8e1d054d8cfc59b4f3f5e51d93a7e398deee4cc64e81badef51d0b76b55c9cf5",
+      "rgbaSha256": "8e1d054d8cfc59b4f3f5e51d93a7e398deee4cc64e81badef51d0b76b55c9cf5",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/slot-blue.png",
+      "sourceSha256": "37ccdd12d1eea7ea30153793705be8bb4a8b9eff45af35ac6bd446554e4328e0",
+      "sha256": "6db82f33c4911be4876a8fe86e24dbf86be73c312626f547c6a80559adb2cb6e",
+      "bytes": 74817,
+      "dimensions": [
+        261,
+        251
+      ],
+      "originalRgbaSha256": "af0c03112e46dd1c6eed7e3dee80c8f77071a213e0ed3d653de54c97bc5a4476",
+      "rgbaSha256": "af0c03112e46dd1c6eed7e3dee80c8f77071a213e0ed3d653de54c97bc5a4476",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/slot-gold.png",
+      "sourceSha256": "d8299dd053c58f422800c88dce86a33e8bea6341b9c539a0e3dd4b65be5968c2",
+      "sha256": "033797e99aeb12e71e02cbef4239ee682cde56ca6008688f5d69d191ddfaac91",
+      "bytes": 78310,
+      "dimensions": [
+        263,
+        251
+      ],
+      "originalRgbaSha256": "cd0c63a93aedd9d8f9a4289e487279946dbee79a8f9a692c908accbd3c0aae58",
+      "rgbaSha256": "cd0c63a93aedd9d8f9a4289e487279946dbee79a8f9a692c908accbd3c0aae58",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/slot-green.png",
+      "sourceSha256": "841a45adb425d038b6ef84aa7e726718e603a34d2a898fc211055a62123d6469",
+      "sha256": "25b2c9aa3d2152c5cab9e980bcd82841bd1bdebe26ba16d3c59dc86ce84203d2",
+      "bytes": 74713,
+      "dimensions": [
+        262,
+        251
+      ],
+      "originalRgbaSha256": "fe23e6977ef6490c2d6ecbf1f20c4971b5e3d214036e199244d85f7a33e91c39",
+      "rgbaSha256": "fe23e6977ef6490c2d6ecbf1f20c4971b5e3d214036e199244d85f7a33e91c39",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/slot-grey.png",
+      "sourceSha256": "d67ffa410ac61a5b58852e87caaebaac63da85f4d36bb9e6a86664fa3198a67b",
+      "sha256": "4a1090402d6b281fc7b8d24687e541874c9df3e361d8009c37deca94fbc9d297",
+      "bytes": 73687,
+      "dimensions": [
+        262,
+        252
+      ],
+      "originalRgbaSha256": "1716573e171622a4f420730378ceebfffad316b272997e4070e646d335929eb7",
+      "rgbaSha256": "1716573e171622a4f420730378ceebfffad316b272997e4070e646d335929eb7",
+      "pixelIdentical": true
+    },
+    {
+      "path": "web/assets/ui/approved/slot-purple.png",
+      "sourceSha256": "ee647c0221fdf8fdeabcb531f10332930e24d776181dffa645d8a63811b9d267",
+      "sha256": "bdecb24562006db8a967c07265391747664070e628370890cc24e02a7825d5f6",
+      "bytes": 76643,
+      "dimensions": [
+        261,
+        251
+      ],
+      "originalRgbaSha256": "d263cc89c1bf76e100e2770bb942c858ff2fa5f74668aeaff5b50e846f697656",
+      "rgbaSha256": "d263cc89c1bf76e100e2770bb942c858ff2fa5f74668aeaff5b50e846f697656",
+      "pixelIdentical": true
+    }
+  ],
+  "manifestSha256": "1f0a35908a6d9526f788fc2379e8952f25fb044a4dca854fe1314b8116e001f3",
+  "preload": [
+    "ground:grass:0",
+    "ground:grass:1",
+    "ground:grass:2",
+    "ground:grass:3",
+    "ground:path:horizontal",
+    "field:checkpoint",
+    "field:entrance",
+    "field:exit",
+    "pedestal:0",
+    "pedestal:1",
+    "pedestal:2",
+    "pedestal:3",
+    "pedestal:4",
+    "pedestal:5",
+    "pedestal:selected:0",
+    "pedestal:selected:1",
+    "pedestal:selected:2",
+    "pedestal:selected:3",
+    "pedestal:selected:4",
+    "pedestal:selected:5",
+    "field:stone",
+    "field:slate",
+    "field:placement",
+    "gem:*",
+    "special:*",
+    "terrain:stone"
+  ],
+  "originalArchive": "artifacts/f-load/original/",
+  "originals": {
+    "web/assets/sprites/acolyte.png": "b809a57ac21e9eb1251dbbfabcc9bca36423d1beb89e005c6c88adcfeeefc6ff",
+    "web/assets/sprites/builder.png": "38b3b0b92c890350b17502c7f3c061b91065378ef510a2516b60695755d9b7a2",
+    "web/assets/sprites/gemtower-b1.png": "cd11a1521851f12f9c848615e8775ca5991aa04c2aff6326293c7b23e26035c8",
+    "web/assets/sprites/gemtower-b2.png": "945e9dab27ff6fc1e36aeb3ccac4bfedbd0609b11227f13ca1d605ef116a21dc",
+    "web/assets/sprites/gemtower-b3.png": "acb74fb90ea340a0af50653943d7b9cb68bd2c37d8a962eb8df1c8b9e7db71ac",
+    "web/assets/sprites/gemtower-b4.png": "2b28b9fa1f4f0ae796a8af00c5ce286a9cf1097e3cd7d187e8d5b2565d5dcf30",
+    "web/assets/sprites/pearl.png": "eef5c2f44f506729962cc35b01e5738c2a7623623872607759322e8312480d28",
+    "web/assets/sprites/props.png": "dfc81b01e9b01021f3700955a1b452f560a8c3031057cedf5527a4dcaeab2f83",
+    "web/assets/sprites/shambler.png": "63d679e023b18abcfb3f13dcc71220ea5f12e59bd3fd1c7ee9ab6f45c604e09d",
+    "web/assets/sprites/slime.png": "73ac878b15816cc0e6cd87c79b363a675104b061adaf6571d1f396a1d74b4006",
+    "web/assets/sprites/tiles.png": "ebdaa9f75547ab62128b076e784c4d17984f6e5ef7e0a74619906b79037b715c",
+    "web/assets/sprites/widow.png": "79fead9947a035953f4b8a17e10de9a91e265a080cdd85b64f90eba355eb0bda",
+    "web/assets/ui/approved/btn-gold-disabled.png": "74afb4bb9b73feaffd5bc8894e71999109bf8d958e5e9a021cc443c4dfe1f040",
+    "web/assets/ui/approved/btn-gold-normal.png": "5d9fa42b33cdeb08f89091d4b5bc9b4c0a2c47e5525ba61338b8f0b97b7e33b2",
+    "web/assets/ui/approved/btn-gold-pressed.png": "87066b955815233afc7eeac0553e7c1b056dc2a08e0eb6ed33a74b214c9ab780",
+    "web/assets/ui/approved/btn-green-disabled.png": "95c269657d6f02b81f9189807ebfac4358d10f29ae9ee867905f92132241619a",
+    "web/assets/ui/approved/btn-green-normal.png": "764a9710999be8f1ba72209c32da0c0cf4a52aee0765904586bed9c6d99b7f8c",
+    "web/assets/ui/approved/btn-green-pressed.png": "a56a31c61aa56b9ccd8dc8c1f55be2a4b79398cec7ed9925a0c78e805f208e8e",
+    "web/assets/ui/approved/btn-red-disabled.png": "f87c664ce77a1128b740372d17b1a8f6737904f522d0bef6754560536d957dc4",
+    "web/assets/ui/approved/btn-red-normal.png": "1ecf06bc8fd7bf7566965dc90820627a21f16cbc69cffb40e130ea80d0c027e6",
+    "web/assets/ui/approved/btn-red-pressed.png": "cf775d300ba7d9b10e1ce43aa59d56c8809dc15c8aaf149f7d0c418feaa4437d",
+    "web/assets/ui/approved/frame-panel.png": "686628ced66d0013732ec40460369d1a43958c0694937da26cdeffba110173e2",
+    "web/assets/ui/approved/frame-topbar.png": "b04c1f8bf07b45197463885928acc9d7e9c64160a18ea7f49b3842085bd7f5f1",
+    "web/assets/ui/approved/frame-tray.png": "7ba5b0f00311c180f006b79ee79e5fb7b6c19a1474279bfd1a17b500716ec734",
+    "web/assets/ui/approved/icon-attack-sword.png": "133f317639e5744e049145db43fdc1d4468064f23caed8b0c157e6a35239dbb1",
+    "web/assets/ui/approved/icon-gold-coin.png": "614308e1ee9232dbe9c31eef7c535565b76bb82cfafb4828b822db3c6744e5c0",
+    "web/assets/ui/approved/icon-life-heart.png": "2b1716aab48a027bb65aa2317c5a1228053d6e7481c93bf3139813201d3e74bb",
+    "web/assets/ui/approved/icon-range-crosshair.png": "855a452204dd515b9f7a62d2a88af92c1c600b2456996c9aaa744930e5c18c63",
+    "web/assets/ui/approved/icon-speed-boot.png": "d732b1430f9f7034ba15bd2756f48867e1baee445fc65cd66697404dca92d83c",
+    "web/assets/ui/approved/icon-wave-flag.png": "f2a0efe65ddaa4a424dbb91874adb919784de99cf6805b86db6e22d6eb0eaa6f",
+    "web/assets/ui/approved/slot-blue.png": "37ccdd12d1eea7ea30153793705be8bb4a8b9eff45af35ac6bd446554e4328e0",
+    "web/assets/ui/approved/slot-gold.png": "d8299dd053c58f422800c88dce86a33e8bea6341b9c539a0e3dd4b65be5968c2",
+    "web/assets/ui/approved/slot-green.png": "841a45adb425d038b6ef84aa7e726718e603a34d2a898fc211055a62123d6469",
+    "web/assets/ui/approved/slot-grey.png": "d67ffa410ac61a5b58852e87caaebaac63da85f4d36bb9e6a86664fa3198a67b",
+    "web/assets/ui/approved/slot-purple.png": "ee647c0221fdf8fdeabcb531f10332930e24d776181dffa645d8a63811b9d267",
+    "web/assets/fonts/Galmuri11-Bold.woff2": "8643094f395aa2dbad6bc4385cc043314801eaec2e759d549435ec8ac4f2d078",
+    "web/assets/fonts/Galmuri11.woff2": "f467d1b10e6b88dfa8399c9f93b38c7643e050abfe4fc15800ac0b000f5a57d6",
+    "web/assets/manifest.json": "297339898823d7bd31b0c4376bae8c760101ac2875478a7151089b1927d3a112",
+    "web/assets/ui/materials.json": "593118769bec71bbdf2a6809fcbc4d3471e4916f6548c82f5ae3235ee3cd8e49",
+    "web/assets/fonts/OFL.txt": "86a3ee9495f942f0243f18c103da9faca27adb88142613edb8bb852e56c892c1"
+  },
+  "beforeEntries": {
+    "gem:*": {
+      "src": "sprites/props.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "trim": {
+        "x": 8,
+        "y": 1,
+        "w": 17,
+        "h": 28
+      }
+    },
+    "special:*": {
+      "src": "sprites/pearl.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "trim": {
+        "x": 22,
+        "y": 24,
+        "w": 84,
+        "h": 79
+      }
+    },
+    "builder": {
+      "src": "sprites/builder.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "frames": 4,
+      "fps": 4
+    },
+    "creep:ground": {
+      "src": "sprites/slime.png",
+      "frame": {
+        "x": 0,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      },
+      "frames": 4,
+      "fps": 8,
+      "trim": {
+        "x": 2,
+        "y": 14,
+        "w": 28,
+        "h": 14
+      }
+    },
+    "creep:flying": {
+      "src": "sprites/acolyte.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "frames": 6,
+      "fps": 8,
+      "trim": {
+        "x": 68,
+        "y": 24,
+        "w": 124,
+        "h": 208
+      },
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ]
+    },
+    "creep:hell": {
+      "src": "sprites/shambler.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "frames": 6,
+      "fps": 8,
+      "trim": {
+        "x": 72,
+        "y": 24,
+        "w": 112,
+        "h": 208
+      }
+    },
+    "creep:boss": {
+      "src": "sprites/widow.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 256,
+        "h": 256
+      },
+      "frames": 6,
+      "fps": 6,
+      "trim": {
+        "x": 68,
+        "y": 22,
+        "w": 134,
+        "h": 100
+      },
+      "frameOrder": [
+        0,
+        2,
+        4,
+        5
+      ]
+    },
+    "stone": {
+      "src": "sprites/tiles.png",
+      "frame": {
+        "x": 0,
+        "y": 16,
+        "w": 16,
+        "h": 16
+      },
+      "frameProvenance": {
+        "metadata": "codex-asset-forge/examples/agentforge-starter/atlas/tileset.json",
+        "sourceId": "tile_wall_block",
+        "use": "길을 막는 돌 블록의 대체 표현",
+        "limit": "벽 타일 재사용이며 고립된 자연 바위 그림이 아님"
+      }
+    },
+    "terrain:stone": {
+      "src": "sprites/tiles.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "frameProvenance": {
+        "metadata": "codex-asset-forge/examples/agentforge-starter/atlas/tileset.json",
+        "sourceId": "tile_floor_stone",
+        "use": "전장 석재 바닥 재질",
+        "limit": "원래 2×2 atlas 중 바닥 한 프레임만 사용"
+      }
+    },
+    "slate:*": {
+      "src": "sprites/tiles.png",
+      "frame": {
+        "x": 16,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "frameProvenance": {
+        "metadata": "codex-asset-forge/examples/agentforge-starter/atlas/tileset.json",
+        "sourceId": "tile_floor_cracked",
+        "use": "평판 슬레이트의 대체 표현",
+        "limit": "균열 바닥 타일 재사용이며 원작 슬레이트 형태나 조각 문양 재현이 아님"
+      }
+    },
+    "ground:grass:0": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:grass:1": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 134,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:grass:2": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 266,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:grass:3": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 398,
+        "y": 2,
+        "w": 128,
+        "h": 128
+      }
+    },
+    "ground:path:horizontal": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 530,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:vertical": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 694,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-ne": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 858,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-nw": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-sw": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 166,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:t-junction": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 330,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:cross": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 494,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:dead": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 658,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-se": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 822,
+        "y": 166,
+        "w": 160,
+        "h": 160
+      },
+      "rotation": 90
+    },
+    "field:checkpoint": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 330,
+        "w": 207,
+        "h": 197
+      }
+    },
+    "field:entrance": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 213,
+        "y": 330,
+        "w": 219,
+        "h": 207
+      }
+    },
+    "field:exit": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 436,
+        "y": 330,
+        "w": 226,
+        "h": 207
+      }
+    },
+    "field:bush": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 666,
+        "y": 330,
+        "w": 198,
+        "h": 207
+      }
+    },
+    "field:pebbles": {
+      "src": "sprites/gemtower-b1.png",
+      "frame": {
+        "x": 2,
+        "y": 541,
+        "w": 197,
+        "h": 207
+      }
+    },
+    "pedestal:0": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:1": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 262,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:2": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 522,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:3": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 782,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:4": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1042,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:5": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1302,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:0": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1562,
+        "y": 2,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:1": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 2,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:2": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 262,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:3": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 522,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:4": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 782,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "pedestal:selected:5": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1042,
+        "y": 262,
+        "w": 256,
+        "h": 256
+      }
+    },
+    "field:stone": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1302,
+        "y": 262,
+        "w": 235,
+        "h": 250
+      }
+    },
+    "field:slate": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1541,
+        "y": 262,
+        "w": 233,
+        "h": 200
+      }
+    },
+    "field:placement": {
+      "src": "sprites/gemtower-b2.png",
+      "frame": {
+        "x": 1778,
+        "y": 262,
+        "w": 227,
+        "h": 216
+      }
+    },
+    "creep:mine:goblin": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 186,
+        "h": 153
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:beetle": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 378,
+        "y": 2,
+        "w": 229,
+        "h": 150
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:rat": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 840,
+        "y": 2,
+        "w": 249,
+        "h": 132
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:bat": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 1342,
+        "y": 2,
+        "w": 240,
+        "h": 152
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:wisp": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 2,
+        "y": 159,
+        "w": 173,
+        "h": 140
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "creep:mine:ogre": {
+      "src": "sprites/gemtower-b3.png",
+      "frame": {
+        "x": 352,
+        "y": 159,
+        "w": 482,
+        "h": 404
+      },
+      "frames": 2,
+      "fps": 4
+    },
+    "effect:poison": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:fire": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 214,
+        "y": 2,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:slow": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 426,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      }
+    },
+    "effect:stun": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 637,
+        "y": 2,
+        "w": 207,
+        "h": 208
+      }
+    },
+    "effect:critical": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 2,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:splash": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 214,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:air": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 426,
+        "y": 214,
+        "w": 208,
+        "h": 208
+      }
+    },
+    "effect:ground": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 638,
+        "y": 214,
+        "w": 207,
+        "h": 208
+      }
+    },
+    "feedback:gold": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 2,
+        "y": 426,
+        "w": 211,
+        "h": 200
+      }
+    },
+    "feedback:life": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 217,
+        "y": 426,
+        "w": 206,
+        "h": 207
+      }
+    },
+    "feedback:combine": {
+      "src": "sprites/gemtower-b4.png",
+      "frame": {
+        "x": 427,
+        "y": 426,
+        "w": 207,
+        "h": 205
+      }
+    }
+  },
+  "beforeAliases": {
+    "h01P": "special:h01P",
+    "h01S": "special:h01S",
+    "h024": "special:h024",
+    "h026": "special:h026",
+    "h028": "special:h028",
+    "h02A": "special:h02A",
+    "h02D": "special:h02D",
+    "h02J": "special:h02J",
+    "h02K": "special:h02K",
+    "h02L": "special:h02L",
+    "h02N": "special:h02N",
+    "h02O": "special:h02O",
+    "h02P": "special:h02P",
+    "h02Q": "special:h02Q",
+    "h02R": "special:h02R",
+    "h02V": "special:h02V",
+    "h02W": "special:h02W",
+    "h033": "special:h033",
+    "h03Y": "special:h03Y",
+    "h03Z": "special:h03Z",
+    "h04S": "special:h04S",
+    "h04T": "special:h04T",
+    "h04W": "special:h04W",
+    "h04Y": "special:h04Y",
+    "h050": "special:h050",
+    "h051": "special:h051",
+    "h052": "special:h052",
+    "n00H": "special:n00H",
+    "h007": "gem:amethyst:*",
+    "h03S": "gem:aquamarine:*",
+    "h008": "gem:diamond:*",
+    "h009": "gem:emerald:*",
+    "h00A": "gem:opal:*",
+    "h00B": "gem:sapphire:*",
+    "h00C": "gem:ruby:*",
+    "e001": "gem:topaz:*",
+    "h00H": "gem:amethyst:*",
+    "h03R": "gem:aquamarine:*",
+    "h00I": "gem:diamond:*",
+    "h00J": "gem:emerald:*",
+    "h00K": "gem:opal:*",
+    "h00L": "gem:sapphire:*",
+    "h00M": "gem:ruby:*",
+    "e002": "gem:topaz:*",
+    "h00N": "gem:amethyst:*",
+    "h03U": "gem:aquamarine:*",
+    "h00O": "gem:diamond:*",
+    "h00S": "gem:emerald:*",
+    "h00P": "gem:opal:*",
+    "h00Q": "gem:sapphire:*",
+    "h00R": "gem:ruby:*",
+    "e003": "gem:topaz:*",
+    "h00V": "gem:amethyst:*",
+    "h03V": "gem:aquamarine:*",
+    "h00Y": "gem:diamond:*",
+    "h00U": "gem:emerald:*",
+    "h00X": "gem:opal:*",
+    "h00W": "gem:sapphire:*",
+    "h00T": "gem:ruby:*",
+    "e004": "gem:topaz:*",
+    "h000": "gem:diamond:0",
+    "h001": "gem:sapphire:0",
+    "h002": "gem:emerald:0",
+    "h003": "gem:opal:0",
+    "h004": "gem:amethyst:0",
+    "h005": "gem:ruby:0",
+    "e000": "gem:topaz:0",
+    "h03T": "gem:aquamarine:0",
+    "h016": "gem:ruby:1"
+  },
+  "newArtGenerated": 0
+}

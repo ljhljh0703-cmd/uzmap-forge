@@ -5,7 +5,7 @@ import { stripTypeScriptTypes } from "node:module";
 import { readdirSync, statSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
-import {webBuildId,replayBuildId,versionedImports,injectWebBuild,normaliseBuildHtml} from "./lib/web-build-version.mjs";
+import {webBuildId,replayBuildId,versionedImports,injectWebBuild,normaliseBuildHtml,preloadModuleGraph} from "./lib/web-build-version.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC = join(ROOT, "src");
@@ -67,6 +67,14 @@ inputs.push(["web/index.html",normaliseBuildHtml(html)],["node",process.versions
 const buildId=webBuildId(inputs),replayBuild=replayBuildId(inputs);
 const modules=[...files.map(path=>"./dist/"+relative(SRC,path).replace(/\\/g,"/").replace(/\.ts$/,".js")),...viewFiles.filter(path=>path.endsWith(".js")).map(path=>"./"+relative(WEB,path))];
 const imports=versionedImports(modules,buildId);
-writeFileSync(htmlPath,injectWebBuild(html,buildId,imports,replayBuild));
+const preloadModules=preloadModuleGraph(new Map(modules.map(key=>[key,readFileSync(join(WEB,key),"utf8")])));
+// Reuse exactly the manifest's required images and the always-visible HUD/tray.
+// Matching URLs let Image() consume these requests instead of waiting for boot.
+const spriteManifest=artFiles.includes(join(WEB,"assets/manifest.json"))?JSON.parse(readFileSync(join(WEB,"assets/manifest.json"),"utf8")):{entries:{}};
+const preloadImages=[...new Set((spriteManifest.preload??[]).map(key=>spriteManifest.entries[spriteManifest.aliases?.[key]??key]?.src).filter(Boolean))].map(src=>"./assets/"+src+"?build="+buildId);
+for(const name of ['slot-grey','frame-topbar','frame-tray','btn-green-disabled','icon-gold-coin','icon-life-heart','icon-wave-flag'])if(artFiles.includes(join(WEB,"assets/ui/approved/"+name+".png")))preloadImages.push("./assets/ui/approved/"+name+".png");
+writeFileSync(htmlPath,injectWebBuild(html,buildId,imports,replayBuild,{preloadFetch:["./assets/manifest.json?build="+buildId,"./assets/ui/materials.json"],preloadImages,preloadModules}));
 writeFileSync(join(WEB,"build-info.json"),JSON.stringify({buildId,replayBuild,modules:modules.length},null,2)+"\n");
 console.log(`[build-web] content build ${buildId}, replay build ${replayBuild}, ${modules.length} versioned modules`);
+
+console.log(`[build-web] ${preloadModules.length} reachable module preloads; ${modules.length} import-map modules retained`);
