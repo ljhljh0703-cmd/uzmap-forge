@@ -1,13 +1,14 @@
 /** Presentation-only source-success responses and reused prototype sounds. */
 export function createActionFeedback({now=()=>performance.now(),play=()=>false,document:doc=null,reducedMotion=()=>false}={}){
- const seen=new Set(),targets=new Map();let active=[],last=null,total=0;
+ const seen=new Set(),targets=new Map();let active=[],last=null,total=0,lastFlashAt=-Infinity;
  const remove=node=>{const entry=targets.get(node);try{entry?.animation?.cancel();}catch{}node.classList.remove('action-success');delete node.dataset.feedbackKind;targets.delete(node);};
  return{
   confirm(event={}){
-   if(event.suppressed||!['place','combine','upgrade'].includes(event.kind)||typeof event.key!=='string'||!event.key||!Number.isSafeInteger(event.unitId)||event.unitId<1||typeof event.name!=='string'||!event.name.trim()||seen.has(event.key))return null;
+   if(event.suppressed||!['place','combine','upgrade','keep'].includes(event.kind)||typeof event.key!=='string'||!event.key||!Number.isSafeInteger(event.unitId)||event.unitId<1||typeof event.name!=='string'||!event.name.trim()||seen.has(event.key))return null;
    seen.add(event.key);if(seen.size>128)seen.delete(seen.values().next().value);
-   last={key:event.key,kind:event.kind,unitId:event.unitId,name:event.name,until:now()+520};active=[...active.filter(item=>item.until>now()),last].slice(-6);total++;
-   try{play(event.kind);}catch{/* Sound failure must never block a successful game action. */}return{...last};
+   const at=now(),rare=event.rare===true,motionAllowed=at-lastFlashAt>=334;if(motionAllowed)lastFlashAt=at;
+   last={key:event.key,kind:event.kind,unitId:event.unitId,name:event.name,at,rare,color:/^#[a-f0-9]{6}$/i.test(event.color??'')?event.color:'#dbc783',hand:(event.hand??[]).slice(0,5).map(x=>({...x})),motionAllowed,until:at+(event.kind==='keep'?560:rare||event.kind==='combine'?780:520)};active=[...active.filter(item=>item.until>now()),last].slice(-6);total++;
+   try{if(event.silent!==true)play(event.kind);}catch{/* Sound failure must never block a successful game action. */}return{...last};
   },
   snapshot(){active=active.filter(item=>item.until>now());return{active:active.map(item=>({...item})),last:last?{...last}:null,total};},
   render(selectedId){
@@ -15,12 +16,15 @@ export function createActionFeedback({now=()=>performance.now(),play=()=>false,d
    for(const item of state.active){for(const node of doc.querySelectorAll(`.round-slot[data-unit-id="${item.unitId}"]`))desired.set(node,item);if(item.unitId===selectedId)for(const id of ['gemName','selectedGemPortrait']){const node=doc.getElementById(id);if(node)desired.set(node,item);}}
    for(const node of targets.keys())if(!desired.has(node))remove(node);
    for(const[node,item]of desired){if(targets.get(node)?.key===item.key)continue;remove(node);node.classList.add('action-success');node.dataset.feedbackKind=item.kind;let animation=null;
-    if(!reducedMotion()&&typeof node.animate==='function')try{animation=node.animate([{filter:'brightness(1.24)'},{filter:'brightness(1)'}],{duration:360,easing:'ease-out'});}catch{}
+    if(item.motionAllowed&&!reducedMotion()&&typeof node.animate==='function')try{animation=node.animate([{filter:'brightness(1.24)'},{filter:'brightness(1)'}],{duration:360,easing:'ease-out'});}catch{}
     targets.set(node,{key:item.key,animation});
    }
+   const app=doc.getElementById('gameApp'),celebration=state.active.findLast(item=>item.kind==='combine'||item.rare);if(app){app.dataset.celebration=String(Boolean(celebration));if(celebration)app.style?.setProperty?.('--celebration-color',celebration.color);}
    const panel=doc.getElementById('bottomPanel');if(panel){panel.dataset.confirmedActions=String(state.total);panel.dataset.lastSuccess=state.last?.kind??'';}
   },
-  clear(){active=[];last=null;total=0;seen.clear();for(const node of targets.keys())remove(node);}
+  pose(unitId){const item=this.snapshot().active.findLast(x=>x.unitId===unitId);if(!item||reducedMotion())return{lift:0,scaleX:1};const age=now()-item.at;return{lift:item.kind==='keep'?3*Math.sin(Math.PI*Math.min(1,age/560)):item.kind==='place'?4*(1-Math.min(1,age/120)):0,scaleX:item.kind==='combine'?Math.max(.15,Math.sin(Math.PI/2*Math.min(1,age/240))):1};},
+  ghosts(){if(reducedMotion())return[];const out=[];for(const item of this.snapshot().active)if(item.kind==='keep'){const age=now()-item.at;item.hand.filter(x=>x.id!==item.unitId).forEach((x,index)=>{if(age<(index+1)*100)out.push({...x,color:item.color});});}return out.slice(0,4);},
+  clear(){active=[];last=null;total=0;lastFlashAt=-Infinity;const app=doc?.getElementById?.('gameApp');if(app)app.dataset.celebration='false';seen.clear();for(const node of targets.keys())remove(node);}
  };
 }
 // Legacy defaults remain for API/tests only. The product injects its separately

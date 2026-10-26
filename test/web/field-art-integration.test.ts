@@ -8,7 +8,7 @@ it('a confirmed source combination emits one sparkle at the actual result, while
  const code=source.match(/^function showActionSuccess\([^\n]*\{[\s\S]*?^\}/m)?.[0];assert.ok(code);
  const unit={id:3,typeId:'h005',x:12,y:34,alive:true},fieldFeedback=createFieldFeedback({now:()=>0});
  const w:any={sim:{tickCount:10,getUnit:(id:number)=>id===3?unit:null},runId:'test',fieldFeedback};
- const c:any={world:w,restoring:false,loadingRun:false,runtimeFailed:false,document:{hidden:false},actionFeedback:{confirm:()=>true},fullName:()=> '루비'};vm.runInNewContext(code,c);
+ const c:any={world:w,restoring:false,loadingRun:false,runtimeFailed:false,document:{hidden:false},actionFeedback:{confirm:()=>true},fullName:()=> '루비',gemVisual:()=>({color:'#cc7733'}),fieldGradeIndex:()=>0,GEMTOWER_BALANCE:{roleTable:{}}};vm.runInNewContext(code,c);
  c.restoring=true;c.showActionSuccess(w,'combine',unit);c.restoring=false;
  c.showActionSuccess(w,'place',unit);c.showActionSuccess(w,'upgrade',unit);c.showActionSuccess(w,'combine',{id:7,typeId:'h005'});
  assert.equal(fieldFeedback.snapshot().active.length,0);
