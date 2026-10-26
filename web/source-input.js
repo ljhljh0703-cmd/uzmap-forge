@@ -1,3 +1,4 @@
+import {inflateZlib} from './dist/formats/mpq/inflate.js';
 /** Device-local intake for the tested GemTower release. No files are sent to a server. */
 export const MAP_SHA256='0c76d191d2ecbbffe0774b300c121d23945abac4169071e9af73ce5eff374339';
 export const PROFILE_SHA256='bf51d723c9dd5ed4970026ff9e342ba9dcbdfd657ce610838df469f3da1ceeaf';
@@ -23,14 +24,26 @@ export function sourceGemPresentation(presentation,mods,getDef){
 }
 
 /** Optional same-origin release inputs. Missing manifest keeps manual local intake. */
-export async function loadHostedPlayFiles(fetcher,parseProfile){
+export async function loadHostedPlayFiles(fetcher,parseProfile,{readBytes=(response)=>response.arrayBuffer(),onReading=async()=>{}}={}){
  const base='./source-inputs/',response=await fetcher(base+'manifest.json',{cache:'no-store'});
  if(response.status===404)return null;
  if(!response.ok)throw Error('게임 자료 목록을 불러오지 못했습니다.');
  const manifest=await response.json();
  if(manifest.format!=='uzmap-hosted-inputs-v1'||manifest.map!=='map.w3x'||manifest.profile!=='unit-abilities.json')throw Error('게임 자료 목록이 올바르지 않습니다.');
- const responses=await Promise.all([fetcher(base+manifest.map+'?sha='+MAP_SHA256),fetcher(base+manifest.profile+'?sha='+PROFILE_SHA256)]);
- if(responses.some(r=>!r.ok))throw Error('게임 자료를 불러오지 못했습니다. 잠시 후 다시 열어주세요.');
- const buffers=await Promise.all(responses.map(r=>r.arrayBuffer())),files=buffers.map(bytes=>({size:bytes.byteLength,arrayBuffer:async()=>bytes}));
+ const transport=manifest.profileTransport;
+ if(transport!=null&&(transport.file!=='unit-abilities.json.zlib'||transport.encoding!=='zlib'||!Number.isSafeInteger(transport.decodedBytes)||transport.decodedBytes<1||transport.decodedBytes>16*1024*1024||!Number.isSafeInteger(transport.bytes)||transport.bytes<1||transport.bytes>96*1024||!/^[a-f0-9]{64}$/.test(transport.sha256)))throw Error('게임 자료 전송 목록이 올바르지 않습니다.');
+ const read=async(file,id)=>{const res=await fetcher(base+file,{cache:'no-store'});if(!res.ok)throw Error('게임 자료를 불러오지 못했습니다. 잠시 후 다시 열어주세요.');return readBytes(res,id);};
+ const profile=async()=>{
+  if(transport)try{
+   const packed=await read(transport.file+'?sha='+transport.sha256,'profile-packed');
+   if(packed.byteLength!==transport.bytes||await digest(packed)!==transport.sha256)throw Error('compressed profile differs');
+   const decoded=inflateZlib(new Uint8Array(packed));
+   if(decoded.byteLength!==transport.decodedBytes||await digest(decoded)!==PROFILE_SHA256)throw Error('decoded profile differs');
+   return decoded.buffer.slice(decoded.byteOffset,decoded.byteOffset+decoded.byteLength);
+  }catch{ /* Old releases/partial deployment retain the exact original JSON route. */ }
+  return read(manifest.profile+'?sha='+PROFILE_SHA256,'profile');
+ };
+ const buffers=await Promise.all([read(manifest.map+'?sha='+MAP_SHA256,'map'),profile()]),files=buffers.map(bytes=>({size:bytes.byteLength,arrayBuffer:async()=>bytes}));
+ await onReading();
  return readPlayFiles(files[0],files[1],parseProfile);
 }

@@ -1,3 +1,4 @@
+import {sourceButtonHelp} from '../../web/source-help.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -14,7 +15,7 @@ function fixture(initialRows:any[]){
  doc.createElement=()=>{creates++;const b:any={dataset:{},children:[],parentElement:null,setAttribute(){},append(...items:any[]){this.children.push(...items);},querySelector(selector:string){return this.children.find((n:any)=>'.'+n.className===selector)??null;},focus(){doc.activeElement=b;},remove(){const host=b.parentElement,at=host?.children.indexOf(b)??-1;if(at>=0){host.children.splice(at,1);removals++;b.parentElement=null;if(doc.activeElement===b)doc.activeElement=null;}}};Object.defineProperty(b,'textContent',{get:()=>b.children.length?b.children.map((n:any)=>n.textContent??'').join(''):b._text??'',set:(v:string)=>{b._text=v;b.children=[];}});Object.defineProperty(b,'nextElementSibling',{get:()=>b.parentElement?.children[b.parentElement.children.indexOf(b)+1]??null});return b;};
  const w:any={vm:{},modeDialog:{clicked:true},sim:{ledger:{gold:()=>gold},pendingTrainings:new Map()}};
  const nodes:any={trainingOptions:options,trainingStatus:status,saveRun:save,casinoTrainingOptions:casino,casinoTrainingStatus:casinoStatus,casinoUse,cancelTrainingBatch:{}};
- const context:any={playing:true,trainingOptionView,checkpointRun:()=>({kind:"saved"}),trainingActions:()=>[...rows],gemTowerPlayerState:()=>({life,difficulty:ready?1:0}),gemTowerCasinoState:()=>({stations:[572,574].map(id=>({id,owned:owned.has(id),spinning:spinning.has(id)}))}),fullName:(_w:any,id:string)=>id,DT:.05,TRAIN_REASON:{busy:'구입 중','insufficient-gold':'골드가 부족합니다'},$:(id:string)=>nodes[id],document:doc};
+ const context:any={sourceButtonHelp,playing:true,trainingOptionView,checkpointRun:()=>({kind:"saved"}),trainingActions:()=>[...rows],gemTowerPlayerState:()=>({life,difficulty:ready?1:0}),gemTowerCasinoState:()=>({stations:[572,574].map(id=>({id,owned:owned.has(id),spinning:spinning.has(id)}))}),fullName:(_w:any,id:string)=>id,DT:.05,TRAIN_REASON:{busy:'구입 중','insufficient-gold':'골드가 부족합니다'},$:(id:string)=>nodes[id],document:doc};
  vm.runInNewContext(fn,context);
  return {w,doc,children,casinoChildren:casino.children,casinoStatus,casinoUse,save,status,render:(world=w)=>context.renderTraining(world),button:(producer:number,type:string,count=1)=>[...children,...casino.children].find(b=>b.dataset.producerId===String(producer)&&b.dataset.trainType===type&&b.dataset.trainCount===String(count)),setGold(v:number){gold=v;},setLife(v:number){life=v;},setReady(v:boolean){ready=v;},setSpinning(ids:number[]){spinning=new Set(ids);},setOwned(ids:number[]){owned=new Set(ids);},setPlaying(v:boolean){context.playing=v;},setRows(v:any[]){rows=v;},stats:()=>({creates,replacements,moves,removals})};
 }
@@ -22,6 +23,7 @@ const coins=()=>[{producerId:572,typeId:'h044',cost:10,durationTicks:20,reason:n
 
 it('only source-spinning machine coin/exit buttons lock and unlock when the source flag changes with identical gold',()=>{
  const f=fixture(coins());f.render();const owned=()=>f.children.filter(b=>b.dataset.producerId==='572');assert.equal(owned().length,2);assert.ok(owned().every(b=>b.disabled));assert.ok(owned().every(b=>/추첨/.test(b.title)));assert.equal(f.button(574,'h044').disabled,false);
+ assert.match(f.button(572,'h044').querySelector('.training-help').textContent,/빠칭코/);assert.match(f.button(572,'h046').querySelector('.training-help').textContent,/기계에서 나와요/);
  f.setSpinning([]);f.render();assert.ok(owned().every(b=>!b.disabled));assert.ok(owned().every(b=>!b.title.includes('추첨')));
 });
 

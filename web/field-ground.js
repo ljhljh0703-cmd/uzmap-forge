@@ -1,5 +1,20 @@
 import {spriteFrame} from './visual-assets.js';
 
+/** Initial view cue only. Source movement and the simulation clock never enter here. */
+export function createRouteIntro({now=()=>performance.now(),duration=3000}={}){
+ let last=null,elapsed=0,finished=false;
+ const span=Number.isFinite(duration)&&duration>0?duration:3000;
+ return {visible({eligible=true,suppressed=false,ended=false}={}){
+  if(ended)finished=true;
+  if(finished)return false;
+  if(!eligible||suppressed){last=null;return false;}
+  const current=now();if(!Number.isFinite(current))return false;
+  if(last!==null)elapsed+=Math.max(0,current-last);last=current;
+  if(elapsed>=span){finished=true;return false;}
+  return true;
+ }};
+}
+
 const opposite={N:'S',S:'N',E:'W',W:'E'};
 /** Join only the supplied observed ground path. Coordinates are never snapped or extended. */
 export function groundPathPlan(points=[]){

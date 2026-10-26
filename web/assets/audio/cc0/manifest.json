@@ -1,0 +1,1629 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "audioRate": 32000,
+  "audioChannels": 1,
+  "selectedBytes": 1168118,
+  "preservedLegacyBytes": 107736,
+  "conservativeAudioBytes": 1275854,
+  "budgetBytes": 1500000,
+  "shortMeasurementPolicy": "decoded short clip repeated without gaps until at least3s; proxy is not intrinsic single-shot LUFS",
+  "files": [
+    {
+      "file": "place.ogg",
+      "kind": "sfx",
+      "cue": "place",
+      "codec": "vorbis",
+      "bytes": 8341,
+      "sha256": "0694889036f4c88536cb97ce53ea194b8a12dbad8fd03f849143df63e225e863",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactMining_000.ogg",
+        "sha256": "36b4ea107222d073c67ca64dde26944975609202d5090b2f2021213c1a7e35cd",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 15.370000000000001,
+        "compressionPasses": 2
+      },
+      "measure": {
+        "integratedLufs": -16.03,
+        "truePeakDbtp": -4.09,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 4,
+        "decodedDurationSeconds": 0.93746875,
+        "raw": {
+          "input_i": "-16.03",
+          "input_tp": "-4.09",
+          "input_lra": "0.70",
+          "input_thresh": "-26.75",
+          "output_i": "-16.01",
+          "output_tp": "-4.04",
+          "output_lra": "0.00",
+          "output_thresh": "-26.68",
+          "normalization_type": "dynamic",
+          "target_offset": "0.01"
+        }
+      }
+    },
+    {
+      "file": "place.m4a",
+      "kind": "sfx",
+      "cue": "place",
+      "codec": "aac-lc",
+      "bytes": 6826,
+      "sha256": "477f03e7e2660a8553416811d877f9836da84ba03fc720740361587c4cda3102",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactMining_000.ogg",
+        "sha256": "36b4ea107222d073c67ca64dde26944975609202d5090b2f2021213c1a7e35cd",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 15.370000000000001,
+        "compressionPasses": 2
+      },
+      "measure": {
+        "integratedLufs": -16.04,
+        "truePeakDbtp": -4.0,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 4,
+        "decodedDurationSeconds": 0.93746875,
+        "raw": {
+          "input_i": "-16.04",
+          "input_tp": "-4.00",
+          "input_lra": "0.80",
+          "input_thresh": "-26.77",
+          "output_i": "-16.00",
+          "output_tp": "-3.92",
+          "output_lra": "0.00",
+          "output_thresh": "-26.67",
+          "normalization_type": "dynamic",
+          "target_offset": "-0.00"
+        }
+      }
+    },
+    {
+      "file": "combine.ogg",
+      "kind": "sfx",
+      "cue": "combine",
+      "codec": "vorbis",
+      "bytes": 6773,
+      "sha256": "aaa3adb2dcfedcbee863c5228017b7944d01e4c6f70f4e8881786314ef3cdf88",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/confirmation_002.ogg",
+        "sha256": "33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": -2.6099999999999994,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -16.18,
+        "truePeakDbtp": -3.61,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 6,
+        "decodedDurationSeconds": 0.53503125,
+        "raw": {
+          "input_i": "-16.18",
+          "input_tp": "-3.61",
+          "input_lra": "0.80",
+          "input_thresh": "-26.26",
+          "output_i": "-16.31",
+          "output_tp": "-3.82",
+          "output_lra": "0.00",
+          "output_thresh": "-26.31",
+          "normalization_type": "dynamic",
+          "target_offset": "0.31"
+        }
+      }
+    },
+    {
+      "file": "combine.m4a",
+      "kind": "sfx",
+      "cue": "combine",
+      "codec": "aac-lc",
+      "bytes": 4477,
+      "sha256": "6fbd40c5a93fdcf0e58435073315f483c1936a5b727e1e9cf9a659e935108009",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/confirmation_002.ogg",
+        "sha256": "33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": -2.6099999999999994,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.86,
+        "truePeakDbtp": -3.51,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 6,
+        "decodedDurationSeconds": 0.53903125,
+        "raw": {
+          "input_i": "-15.86",
+          "input_tp": "-3.51",
+          "input_lra": "0.80",
+          "input_thresh": "-25.93",
+          "output_i": "-16.32",
+          "output_tp": "-4.06",
+          "output_lra": "0.00",
+          "output_thresh": "-26.32",
+          "normalization_type": "dynamic",
+          "target_offset": "0.32"
+        }
+      }
+    },
+    {
+      "file": "upgrade.ogg",
+      "kind": "sfx",
+      "cue": "upgrade",
+      "codec": "vorbis",
+      "bytes": 5206,
+      "sha256": "6e0f07434d1817f445643325cb065913b018ae47ad9b81d11c89623453ca5305",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/confirmation_003.ogg",
+        "sha256": "3091bf0be0497f825769ee0733ca7bdc3bcd59bd6c6e8f2ba8f93d580ff38022",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": -3.5700000000000003,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.96,
+        "truePeakDbtp": -4.36,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 10,
+        "decodedDurationSeconds": 0.31803125,
+        "raw": {
+          "input_i": "-15.96",
+          "input_tp": "-4.36",
+          "input_lra": "0.40",
+          "input_thresh": "-25.96",
+          "output_i": "-16.15",
+          "output_tp": "-4.62",
+          "output_lra": "0.00",
+          "output_thresh": "-26.15",
+          "normalization_type": "dynamic",
+          "target_offset": "0.15"
+        }
+      }
+    },
+    {
+      "file": "upgrade.m4a",
+      "kind": "sfx",
+      "cue": "upgrade",
+      "codec": "aac-lc",
+      "bytes": 3105,
+      "sha256": "a0342b0b966802694ddcfc2a5492133aa6701a7e499e7a4c0ac0ff90755df1d4",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/confirmation_003.ogg",
+        "sha256": "3091bf0be0497f825769ee0733ca7bdc3bcd59bd6c6e8f2ba8f93d580ff38022",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": -3.5700000000000003,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.82,
+        "truePeakDbtp": -4.36,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 10,
+        "decodedDurationSeconds": 0.32203125,
+        "raw": {
+          "input_i": "-15.82",
+          "input_tp": "-4.36",
+          "input_lra": "0.40",
+          "input_thresh": "-25.82",
+          "output_i": "-16.26",
+          "output_tp": "-4.80",
+          "output_lra": "0.00",
+          "output_thresh": "-26.26",
+          "normalization_type": "dynamic",
+          "target_offset": "0.26"
+        }
+      }
+    },
+    {
+      "file": "waveStart.ogg",
+      "kind": "sfx",
+      "cue": "waveStart",
+      "codec": "vorbis",
+      "bytes": 5919,
+      "sha256": "6434198158ddbbd3521af0a8a54ea38bd40a206f2e5451d23e71f3273407f8c7",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/Sax jingles/jingles_SAX00.ogg",
+        "sha256": "f87605d2a3c717e6a26e584f57d24eac44e47f5a01470dad18809e5d6c9eb618",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 1.4800000000000004,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.97,
+        "truePeakDbtp": -5.6,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 8,
+        "decodedDurationSeconds": 0.38665625,
+        "raw": {
+          "input_i": "-15.97",
+          "input_tp": "-5.60",
+          "input_lra": "0.20",
+          "input_thresh": "-25.97",
+          "output_i": "-16.12",
+          "output_tp": "-5.79",
+          "output_lra": "0.00",
+          "output_thresh": "-26.12",
+          "normalization_type": "dynamic",
+          "target_offset": "0.12"
+        }
+      }
+    },
+    {
+      "file": "waveStart.m4a",
+      "kind": "sfx",
+      "cue": "waveStart",
+      "codec": "aac-lc",
+      "bytes": 4099,
+      "sha256": "1a702f9d315e6bedda9ee694d726ee35ece5e42f9d219ed83b8faa168d274336",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/Sax jingles/jingles_SAX00.ogg",
+        "sha256": "f87605d2a3c717e6a26e584f57d24eac44e47f5a01470dad18809e5d6c9eb618",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 1.4800000000000004,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -16.01,
+        "truePeakDbtp": -5.67,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 8,
+        "decodedDurationSeconds": 0.39065625,
+        "raw": {
+          "input_i": "-16.01",
+          "input_tp": "-5.67",
+          "input_lra": "0.30",
+          "input_thresh": "-26.01",
+          "output_i": "-16.14",
+          "output_tp": "-5.84",
+          "output_lra": "0.00",
+          "output_thresh": "-26.14",
+          "normalization_type": "dynamic",
+          "target_offset": "0.14"
+        }
+      }
+    },
+    {
+      "file": "lifeLoss.ogg",
+      "kind": "sfx",
+      "cue": "lifeLoss",
+      "codec": "vorbis",
+      "bytes": 7564,
+      "sha256": "50510382d286f690d1b0a025d6ce6e7fc1bc2e63e12f7663d581e6500409fb04",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactPunch_heavy_000.ogg",
+        "sha256": "b33a8f14068aec24ec69ba85e5e87fdc41228975f6a1a3e44a6e7d6fc3d9f8d8",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 10.670000000000002,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -15.86,
+        "truePeakDbtp": -1.74,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 5,
+        "decodedDurationSeconds": 0.64503125,
+        "raw": {
+          "input_i": "-15.86",
+          "input_tp": "-1.74",
+          "input_lra": "1.00",
+          "input_thresh": "-26.40",
+          "output_i": "-16.11",
+          "output_tp": "-1.94",
+          "output_lra": "0.00",
+          "output_thresh": "-26.40",
+          "normalization_type": "dynamic",
+          "target_offset": "0.11"
+        }
+      }
+    },
+    {
+      "file": "lifeLoss.m4a",
+      "kind": "sfx",
+      "cue": "lifeLoss",
+      "codec": "aac-lc",
+      "bytes": 5322,
+      "sha256": "ba718d636b1806588dc9379dee47340a79ec5eaba53c9c27a6e3ef0acfe384d5",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactPunch_heavy_000.ogg",
+        "sha256": "b33a8f14068aec24ec69ba85e5e87fdc41228975f6a1a3e44a6e7d6fc3d9f8d8",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 10.670000000000002,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -15.99,
+        "truePeakDbtp": -2.25,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 5,
+        "decodedDurationSeconds": 0.64903125,
+        "raw": {
+          "input_i": "-15.99",
+          "input_tp": "-2.25",
+          "input_lra": "0.90",
+          "input_thresh": "-26.53",
+          "output_i": "-16.10",
+          "output_tp": "-2.33",
+          "output_lra": "0.00",
+          "output_thresh": "-26.40",
+          "normalization_type": "dynamic",
+          "target_offset": "0.10"
+        }
+      }
+    },
+    {
+      "file": "kill.ogg",
+      "kind": "sfx",
+      "cue": "kill",
+      "codec": "vorbis",
+      "bytes": 3970,
+      "sha256": "3c20fc527875edc5224fcfd711818f47a2d0d0ffff0ad1230418ccbdf141d7f6",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactSoft_medium_000.ogg",
+        "sha256": "7d3ba0bb5e60a11b5d3e558c141303dcf494256675fbf753c0d252d2cf0481e3",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 9.559999999999999,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -15.78,
+        "truePeakDbtp": -3.35,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 27,
+        "decodedDurationSeconds": 0.111125,
+        "raw": {
+          "input_i": "-15.78",
+          "input_tp": "-3.35",
+          "input_lra": "0.00",
+          "input_thresh": "-25.78",
+          "output_i": "-15.96",
+          "output_tp": "-3.55",
+          "output_lra": "0.00",
+          "output_thresh": "-25.96",
+          "normalization_type": "dynamic",
+          "target_offset": "-0.04"
+        }
+      }
+    },
+    {
+      "file": "kill.m4a",
+      "kind": "sfx",
+      "cue": "kill",
+      "codec": "aac-lc",
+      "bytes": 1877,
+      "sha256": "f488c551fafbbd4668c4b53141ce70652000776ad3657cda4571de1af1eda7da",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactSoft_medium_000.ogg",
+        "sha256": "7d3ba0bb5e60a11b5d3e558c141303dcf494256675fbf753c0d252d2cf0481e3",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 9.559999999999999,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -16.06,
+        "truePeakDbtp": -3.32,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 27,
+        "decodedDurationSeconds": 0.115125,
+        "raw": {
+          "input_i": "-16.06",
+          "input_tp": "-3.32",
+          "input_lra": "0.00",
+          "input_thresh": "-26.06",
+          "output_i": "-16.00",
+          "output_tp": "-3.29",
+          "output_lra": "0.00",
+          "output_thresh": "-26.00",
+          "normalization_type": "dynamic",
+          "target_offset": "0.00"
+        }
+      }
+    },
+    {
+      "file": "boss.ogg",
+      "kind": "sfx",
+      "cue": "boss",
+      "codec": "vorbis",
+      "bytes": 5421,
+      "sha256": "2686ba170ac7702f092668433dd675da6a825e1b17d0ab8a8de6dcb7635bdf70",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/Hit jingles/jingles_HIT00.ogg",
+        "sha256": "e23d8c9e971a4e34484bc834a3ec1d560811ec6f5edd5efa2c61e583c18c504a",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": -2.6999999999999993,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.89,
+        "truePeakDbtp": -3.63,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 11,
+        "decodedDurationSeconds": 0.280125,
+        "raw": {
+          "input_i": "-15.89",
+          "input_tp": "-3.63",
+          "input_lra": "0.10",
+          "input_thresh": "-25.89",
+          "output_i": "-16.03",
+          "output_tp": "-3.81",
+          "output_lra": "0.00",
+          "output_thresh": "-26.03",
+          "normalization_type": "dynamic",
+          "target_offset": "0.03"
+        }
+      }
+    },
+    {
+      "file": "boss.m4a",
+      "kind": "sfx",
+      "cue": "boss",
+      "codec": "aac-lc",
+      "bytes": 2833,
+      "sha256": "ce8f772da38b5940459c970eb4c7b7245a38ae79361be6d14c82413cd335e451",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/Hit jingles/jingles_HIT00.ogg",
+        "sha256": "e23d8c9e971a4e34484bc834a3ec1d560811ec6f5edd5efa2c61e583c18c504a",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": -2.6999999999999993,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.86,
+        "truePeakDbtp": -3.48,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 11,
+        "decodedDurationSeconds": 0.284125,
+        "raw": {
+          "input_i": "-15.86",
+          "input_tp": "-3.48",
+          "input_lra": "0.10",
+          "input_thresh": "-25.86",
+          "output_i": "-16.02",
+          "output_tp": "-3.67",
+          "output_lra": "0.00",
+          "output_thresh": "-26.02",
+          "normalization_type": "dynamic",
+          "target_offset": "0.02"
+        }
+      }
+    },
+    {
+      "file": "air.ogg",
+      "kind": "sfx",
+      "cue": "air",
+      "codec": "vorbis",
+      "bytes": 14246,
+      "sha256": "19c7ca1e4d40695936f96e7a1f3f8d1234cc543dbba1f70fb4509c353be89bf9",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/Sax jingles/jingles_SAX07.ogg",
+        "sha256": "241c8570fbded819ee0205e4be3efa80aeb834a70df89318da88f9e219798b11",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 1.3299999999999983,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.98,
+        "truePeakDbtp": -6.15,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 2,
+        "decodedDurationSeconds": 1.74009375,
+        "raw": {
+          "input_i": "-15.98",
+          "input_tp": "-6.15",
+          "input_lra": "0.20",
+          "input_thresh": "-25.98",
+          "output_i": "-16.05",
+          "output_tp": "-6.29",
+          "output_lra": "0.00",
+          "output_thresh": "-26.05",
+          "normalization_type": "dynamic",
+          "target_offset": "0.05"
+        }
+      }
+    },
+    {
+      "file": "air.m4a",
+      "kind": "sfx",
+      "cue": "air",
+      "codec": "aac-lc",
+      "bytes": 11951,
+      "sha256": "bd13a020c8a6a5ae782cb68cebeebe72c27cc0b12a1470eb95e8f91b06a25f53",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/Sax jingles/jingles_SAX07.ogg",
+        "sha256": "241c8570fbded819ee0205e4be3efa80aeb834a70df89318da88f9e219798b11",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 1.3299999999999983,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -15.99,
+        "truePeakDbtp": -6.03,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 2,
+        "decodedDurationSeconds": 1.74009375,
+        "raw": {
+          "input_i": "-15.99",
+          "input_tp": "-6.03",
+          "input_lra": "0.20",
+          "input_thresh": "-25.99",
+          "output_i": "-16.05",
+          "output_tp": "-6.17",
+          "output_lra": "0.00",
+          "output_thresh": "-26.05",
+          "normalization_type": "dynamic",
+          "target_offset": "0.05"
+        }
+      }
+    },
+    {
+      "file": "keep.ogg",
+      "kind": "sfx",
+      "cue": "keep",
+      "codec": "vorbis",
+      "bytes": 8784,
+      "sha256": "3c9dc454e09bfcf427757a3a5c5f1e56b87645c69db327e3ed16282c2bb534ec",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactMining_003.ogg",
+        "sha256": "4237fa2cd80364ad81cd0af44f67d7497f1c5edcc7bdb02cd22be2ba4580c83d",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 21.57,
+        "compressionPasses": 3
+      },
+      "measure": {
+        "integratedLufs": -16.03,
+        "truePeakDbtp": -2.16,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 4,
+        "decodedDurationSeconds": 0.99175,
+        "raw": {
+          "input_i": "-16.03",
+          "input_tp": "-2.16",
+          "input_lra": "0.00",
+          "input_thresh": "-26.57",
+          "output_i": "-15.50",
+          "output_tp": "-1.81",
+          "output_lra": "0.00",
+          "output_thresh": "-26.12",
+          "normalization_type": "dynamic",
+          "target_offset": "-0.50"
+        }
+      }
+    },
+    {
+      "file": "keep.m4a",
+      "kind": "sfx",
+      "cue": "keep",
+      "codec": "aac-lc",
+      "bytes": 7185,
+      "sha256": "ad12289f4223ac88af9cdd1cfe9d4c926381b6b34dc0cbabf1ab941332f5e7ec",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/impact-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_impact-sounds.zip",
+        "archiveSha256": "029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8",
+        "member": "Audio/impactMining_003.ogg",
+        "sha256": "4237fa2cd80364ad81cd0af44f67d7497f1c5edcc7bdb02cd22be2ba4580c83d",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 21.57,
+        "compressionPasses": 3
+      },
+      "measure": {
+        "integratedLufs": -15.78,
+        "truePeakDbtp": -1.75,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 4,
+        "decodedDurationSeconds": 0.99175,
+        "raw": {
+          "input_i": "-15.78",
+          "input_tp": "-1.75",
+          "input_lra": "0.00",
+          "input_thresh": "-26.32",
+          "output_i": "-15.52",
+          "output_tp": "-1.68",
+          "output_lra": "0.00",
+          "output_thresh": "-26.14",
+          "normalization_type": "dynamic",
+          "target_offset": "-0.48"
+        }
+      }
+    },
+    {
+      "file": "rare.ogg",
+      "kind": "sfx",
+      "cue": "rare",
+      "codec": "vorbis",
+      "bytes": 4358,
+      "sha256": "d19d0988345e6b1a9c2ea8f7124bc3456d9c1979fe00d0dd0cb2f2e01a31f4e2",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/glass_006.ogg",
+        "sha256": "840500be48078f1210f1fd7a9ac4e5665ed9b6f4a2b8dce91a237152a65e94cc",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 20.509999999999998,
+        "compressionPasses": 3
+      },
+      "measure": {
+        "integratedLufs": -15.64,
+        "truePeakDbtp": -4.29,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 24,
+        "decodedDurationSeconds": 0.12809375,
+        "raw": {
+          "input_i": "-15.64",
+          "input_tp": "-4.29",
+          "input_lra": "0.20",
+          "input_thresh": "-25.64",
+          "output_i": "-16.10",
+          "output_tp": "-4.80",
+          "output_lra": "0.00",
+          "output_thresh": "-26.10",
+          "normalization_type": "dynamic",
+          "target_offset": "0.10"
+        }
+      }
+    },
+    {
+      "file": "rare.m4a",
+      "kind": "sfx",
+      "cue": "rare",
+      "codec": "aac-lc",
+      "bytes": 1976,
+      "sha256": "d1edb11ba0a1220200f2f92e88335072156fc49dfbfe5505c72ff924d701a849",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/glass_006.ogg",
+        "sha256": "840500be48078f1210f1fd7a9ac4e5665ed9b6f4a2b8dce91a237152a65e94cc",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 20.509999999999998,
+        "compressionPasses": 3
+      },
+      "measure": {
+        "integratedLufs": -15.94,
+        "truePeakDbtp": -3.59,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 23,
+        "decodedDurationSeconds": 0.13209375,
+        "raw": {
+          "input_i": "-15.94",
+          "input_tp": "-3.59",
+          "input_lra": "0.20",
+          "input_thresh": "-25.94",
+          "output_i": "-16.02",
+          "output_tp": "-3.71",
+          "output_lra": "0.00",
+          "output_thresh": "-26.02",
+          "normalization_type": "dynamic",
+          "target_offset": "0.02"
+        }
+      }
+    },
+    {
+      "file": "research.ogg",
+      "kind": "sfx",
+      "cue": "research",
+      "codec": "vorbis",
+      "bytes": 4556,
+      "sha256": "dc9ce1c50c2b93bce72e10eea01c0461700b61aeb91b171a42eaf72d19b4ee8d",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/maximize_007.ogg",
+        "sha256": "3400931f3f3a1e9cf253efef9069bcdf053edd2234e4ee9bf88977c389943484",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": -4.949999999999999,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -17.09,
+        "truePeakDbtp": -5.11,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 15,
+        "decodedDurationSeconds": 0.214,
+        "raw": {
+          "input_i": "-17.09",
+          "input_tp": "-5.11",
+          "input_lra": "0.30",
+          "input_thresh": "-27.09",
+          "output_i": "-16.04",
+          "output_tp": "-4.17",
+          "output_lra": "0.00",
+          "output_thresh": "-26.04",
+          "normalization_type": "dynamic",
+          "target_offset": "0.04"
+        }
+      }
+    },
+    {
+      "file": "research.m4a",
+      "kind": "sfx",
+      "cue": "research",
+      "codec": "aac-lc",
+      "bytes": 2369,
+      "sha256": "4ae4134b33c1484bc9c4b869d0d36c5aaf022737c3de2b36f6fe8b8a17dcf06d",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/maximize_007.ogg",
+        "sha256": "3400931f3f3a1e9cf253efef9069bcdf053edd2234e4ee9bf88977c389943484",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": -4.949999999999999,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -16.03,
+        "truePeakDbtp": -5.95,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 17,
+        "decodedDurationSeconds": 0.182875,
+        "raw": {
+          "input_i": "-16.03",
+          "input_tp": "-5.95",
+          "input_lra": "0.40",
+          "input_thresh": "-26.03",
+          "output_i": "-16.13",
+          "output_tp": "-6.14",
+          "output_lra": "0.00",
+          "output_thresh": "-26.13",
+          "normalization_type": "dynamic",
+          "target_offset": "0.13"
+        }
+      }
+    },
+    {
+      "file": "waveGold.ogg",
+      "kind": "sfx",
+      "cue": "waveGold",
+      "codec": "vorbis",
+      "bytes": 4367,
+      "sha256": "2023ca721354bdd3816a13e8f907da6d179f1e7107f32ebbafae4c71f1fe74db",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/pluck_001.ogg",
+        "sha256": "be97ec4893a02d6eccfb678daa76c83e34cb2583b834ec2593d2641def739fa4",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 9.670000000000002,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -15.97,
+        "truePeakDbtp": -1.68,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 32,
+        "decodedDurationSeconds": 0.09553125,
+        "raw": {
+          "input_i": "-15.97",
+          "input_tp": "-1.68",
+          "input_lra": "0.20",
+          "input_thresh": "-25.97",
+          "output_i": "-16.03",
+          "output_tp": "-1.78",
+          "output_lra": "0.00",
+          "output_thresh": "-26.03",
+          "normalization_type": "dynamic",
+          "target_offset": "0.03"
+        }
+      }
+    },
+    {
+      "file": "waveGold.m4a",
+      "kind": "sfx",
+      "cue": "waveGold",
+      "codec": "aac-lc",
+      "bytes": 1783,
+      "sha256": "5ceba201d928b67d5bcc7a9da3ecb4705d10c22f1a2ba32d1845d9ef14d953dd",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/pluck_001.ogg",
+        "sha256": "be97ec4893a02d6eccfb678daa76c83e34cb2583b834ec2593d2641def739fa4",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 9.670000000000002,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -16.37,
+        "truePeakDbtp": -2.49,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 31,
+        "decodedDurationSeconds": 0.09953125,
+        "raw": {
+          "input_i": "-16.37",
+          "input_tp": "-2.49",
+          "input_lra": "0.10",
+          "input_thresh": "-26.37",
+          "output_i": "-16.03",
+          "output_tp": "-2.15",
+          "output_lra": "0.00",
+          "output_thresh": "-26.03",
+          "normalization_type": "dynamic",
+          "target_offset": "0.03"
+        }
+      }
+    },
+    {
+      "file": "tap.ogg",
+      "kind": "sfx",
+      "cue": "tap",
+      "codec": "vorbis",
+      "bytes": 4367,
+      "sha256": "2023ca721354bdd3816a13e8f907da6d179f1e7107f32ebbafae4c71f1fe74db",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/pluck_001.ogg",
+        "sha256": "be97ec4893a02d6eccfb678daa76c83e34cb2583b834ec2593d2641def739fa4",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 9.670000000000002,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -15.97,
+        "truePeakDbtp": -1.68,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 32,
+        "decodedDurationSeconds": 0.09553125,
+        "raw": {
+          "input_i": "-15.97",
+          "input_tp": "-1.68",
+          "input_lra": "0.20",
+          "input_thresh": "-25.97",
+          "output_i": "-16.03",
+          "output_tp": "-1.78",
+          "output_lra": "0.00",
+          "output_thresh": "-26.03",
+          "normalization_type": "dynamic",
+          "target_offset": "0.03"
+        }
+      }
+    },
+    {
+      "file": "tap.m4a",
+      "kind": "sfx",
+      "cue": "tap",
+      "codec": "aac-lc",
+      "bytes": 1783,
+      "sha256": "5ceba201d928b67d5bcc7a9da3ecb4705d10c22f1a2ba32d1845d9ef14d953dd",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/interface-sounds",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_interface-sounds.zip",
+        "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+        "member": "Audio/pluck_001.ogg",
+        "sha256": "be97ec4893a02d6eccfb678daa76c83e34cb2583b834ec2593d2641def739fa4",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "f7966c773bbed0eca6a9c75081c44a178b38eae112724dbb5fdfbd4192d118a9",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 9.670000000000002,
+        "compressionPasses": 1
+      },
+      "measure": {
+        "integratedLufs": -16.37,
+        "truePeakDbtp": -2.49,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 31,
+        "decodedDurationSeconds": 0.09953125,
+        "raw": {
+          "input_i": "-16.37",
+          "input_tp": "-2.49",
+          "input_lra": "0.10",
+          "input_thresh": "-26.37",
+          "output_i": "-16.03",
+          "output_tp": "-2.15",
+          "output_lra": "0.00",
+          "output_thresh": "-26.03",
+          "normalization_type": "dynamic",
+          "target_offset": "0.03"
+        }
+      }
+    },
+    {
+      "file": "defeat.ogg",
+      "kind": "sfx",
+      "cue": "defeat",
+      "codec": "vorbis",
+      "bytes": 5816,
+      "sha256": "a19873c65672e2df9cccd34e8440fa51c5d8a167a56990eddcb0c91413456720",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/8-Bit jingles/jingles_NES10.ogg",
+        "sha256": "9fb44945db139fcb2ea16ed786d8aff1b44ca6a749828bc433ad19f383de7e1c",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": -3.6400000000000006,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -16.36,
+        "truePeakDbtp": -6.25,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 7,
+        "decodedDurationSeconds": 0.438,
+        "raw": {
+          "input_i": "-16.36",
+          "input_tp": "-6.25",
+          "input_lra": "0.20",
+          "input_thresh": "-26.36",
+          "output_i": "-16.11",
+          "output_tp": "-6.04",
+          "output_lra": "0.00",
+          "output_thresh": "-26.11",
+          "normalization_type": "dynamic",
+          "target_offset": "0.11"
+        }
+      }
+    },
+    {
+      "file": "defeat.m4a",
+      "kind": "sfx",
+      "cue": "defeat",
+      "codec": "aac-lc",
+      "bytes": 4905,
+      "sha256": "b235d76a8ca89dafd5d7854351ce111bce5eb3212ac399fa8464969fdc1f3a7b",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/8-Bit jingles/jingles_NES10.ogg",
+        "sha256": "9fb44945db139fcb2ea16ed786d8aff1b44ca6a749828bc433ad19f383de7e1c",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": -3.6400000000000006,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -16.07,
+        "truePeakDbtp": -6.48,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 8,
+        "decodedDurationSeconds": 0.40840625,
+        "raw": {
+          "input_i": "-16.07",
+          "input_tp": "-6.48",
+          "input_lra": "0.20",
+          "input_thresh": "-26.07",
+          "output_i": "-16.06",
+          "output_tp": "-6.52",
+          "output_lra": "0.00",
+          "output_thresh": "-26.06",
+          "normalization_type": "dynamic",
+          "target_offset": "0.06"
+        }
+      }
+    },
+    {
+      "file": "clear.ogg",
+      "kind": "sfx",
+      "cue": "clear",
+      "codec": "vorbis",
+      "bytes": 14247,
+      "sha256": "73a570752a979570e9ccbe34f3098f3b8a788b4a4012c5bd8260c76bbe1b01e6",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/8-Bit jingles/jingles_NES00.ogg",
+        "sha256": "1010c9b566d6c090ff03a4aaaf7439e26eb4cc4f20373800d0b7e6a9057b795d",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": -4.6899999999999995,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -16.01,
+        "truePeakDbtp": -6.96,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 2,
+        "decodedDurationSeconds": 1.757875,
+        "raw": {
+          "input_i": "-16.01",
+          "input_tp": "-6.96",
+          "input_lra": "0.10",
+          "input_thresh": "-26.01",
+          "output_i": "-16.05",
+          "output_tp": "-7.03",
+          "output_lra": "0.00",
+          "output_thresh": "-26.05",
+          "normalization_type": "dynamic",
+          "target_offset": "0.05"
+        }
+      }
+    },
+    {
+      "file": "clear.m4a",
+      "kind": "sfx",
+      "cue": "clear",
+      "codec": "aac-lc",
+      "bytes": 11968,
+      "sha256": "63f0d9aa42258466394da1686f86aefee544d6f1f2bc4b7e934d1177a3264d20",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://kenney.nl/assets/music-jingles",
+        "downloadUrl": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+        "downloaded": "2026-10-24",
+        "archive": "kenney_music-jingles.zip",
+        "archiveSha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8",
+        "member": "Audio/8-Bit jingles/jingles_NES00.ogg",
+        "sha256": "1010c9b566d6c090ff03a4aaaf7439e26eb4cc4f20373800d0b7e6a9057b795d",
+        "licenseEvidence": "License.txt",
+        "licenseEvidenceSha256": "373b1c880ee6c7a83c1ccf209f251cf45fc9ea9b1f0330844fa7be64a401adc4",
+        "author": "Kenney"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": -4.6899999999999995,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -16.08,
+        "truePeakDbtp": -6.61,
+        "method": "repeat-to-at-least-3s-no-gap proxy",
+        "repeats": 2,
+        "decodedDurationSeconds": 1.757875,
+        "raw": {
+          "input_i": "-16.08",
+          "input_tp": "-6.61",
+          "input_lra": "0.10",
+          "input_thresh": "-26.08",
+          "output_i": "-16.04",
+          "output_tp": "-6.63",
+          "output_lra": "0.00",
+          "output_thresh": "-26.04",
+          "normalization_type": "dynamic",
+          "target_offset": "0.04"
+        }
+      }
+    },
+    {
+      "file": "bgm-prepare.ogg",
+      "kind": "bgm",
+      "cue": "bgm-prepare",
+      "codec": "vorbis",
+      "bytes": 299223,
+      "sha256": "925b14b0b9ae75cf5d1fad4524820e56dcd1d373f54bd763363ad2bafeb3bac5",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://opengameart.org/content/town-in-ruins-loop",
+        "downloadUrl": "https://opengameart.org/sites/default/files/n3535n5n335n35nj.ogg",
+        "downloaded": "2026-10-24",
+        "archive": "town-in-ruins.ogg",
+        "archiveSha256": "1d1b8611819a6bc4077dab30694f433c6004999bc00c01d8e2405b47215d6d5c",
+        "member": "town-in-ruins.ogg",
+        "sha256": "1d1b8611819a6bc4077dab30694f433c6004999bc00c01d8e2405b47215d6d5c",
+        "licenseEvidence": "prepare-source.html",
+        "licenseEvidenceSha256": "77ece7b8ce1bfdb2879b0d07a82717d0963cc973f16fe924c19f3cc19d9210da",
+        "author": "Brandon Morris (submitted by HaelDB)"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; excerpt and .25s tail/head overlap;1024-sample alignment; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": 10.0,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -20.07,
+        "truePeakDbtp": -4.73,
+        "method": "intrinsic BS.1770 loudnorm input measurement",
+        "repeats": 1,
+        "decodedDurationSeconds": 48.608,
+        "raw": {
+          "input_i": "-20.07",
+          "input_tp": "-4.73",
+          "input_lra": "3.00",
+          "input_thresh": "-30.31",
+          "output_i": "-16.51",
+          "output_tp": "-2.33",
+          "output_lra": "2.60",
+          "output_thresh": "-26.75",
+          "normalization_type": "dynamic",
+          "target_offset": "0.51"
+        }
+      },
+      "loop": {
+        "startSeconds": 0,
+        "sourceSegmentSeconds": 48.858,
+        "crossfadeSeconds": 0.25,
+        "pcmSamples": 1555456,
+        "sampleRate": 32000,
+        "construction": "body[cross:frames] + linear mix(tail[frames:frames+cross],head[0:cross]); wrap is adjacent head samples",
+        "audition": "not run",
+        "decodedPcmSamples": 1555456,
+        "decodedBoundaryJumpDbfs": -31.658414879557455,
+        "decodedHeadRmsDbfs": -17.96458998480262,
+        "decodedTailRmsDbfs": -19.757523131540886
+      }
+    },
+    {
+      "file": "bgm-prepare.m4a",
+      "kind": "bgm",
+      "cue": "bgm-prepare",
+      "codec": "aac-lc",
+      "bytes": 299866,
+      "sha256": "df183e4c0e9874256f5812d5d594923149c9df8a90a1af9b5627918e217a50d9",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://opengameart.org/content/town-in-ruins-loop",
+        "downloadUrl": "https://opengameart.org/sites/default/files/n3535n5n335n35nj.ogg",
+        "downloaded": "2026-10-24",
+        "archive": "town-in-ruins.ogg",
+        "archiveSha256": "1d1b8611819a6bc4077dab30694f433c6004999bc00c01d8e2405b47215d6d5c",
+        "member": "town-in-ruins.ogg",
+        "sha256": "1d1b8611819a6bc4077dab30694f433c6004999bc00c01d8e2405b47215d6d5c",
+        "licenseEvidence": "prepare-source.html",
+        "licenseEvidenceSha256": "77ece7b8ce1bfdb2879b0d07a82717d0963cc973f16fe924c19f3cc19d9210da",
+        "author": "Brandon Morris (submitted by HaelDB)"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; excerpt and .25s tail/head overlap;1024-sample alignment; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": 10.0,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -20.04,
+        "truePeakDbtp": -4.9,
+        "method": "intrinsic BS.1770 loudnorm input measurement",
+        "repeats": 1,
+        "decodedDurationSeconds": 48.608,
+        "raw": {
+          "input_i": "-20.04",
+          "input_tp": "-4.90",
+          "input_lra": "3.10",
+          "input_thresh": "-30.27",
+          "output_i": "-16.52",
+          "output_tp": "-2.43",
+          "output_lra": "2.60",
+          "output_thresh": "-26.76",
+          "normalization_type": "dynamic",
+          "target_offset": "0.52"
+        }
+      },
+      "loop": {
+        "startSeconds": 0,
+        "sourceSegmentSeconds": 48.858,
+        "crossfadeSeconds": 0.25,
+        "pcmSamples": 1555456,
+        "sampleRate": 32000,
+        "construction": "body[cross:frames] + linear mix(tail[frames:frames+cross],head[0:cross]); wrap is adjacent head samples",
+        "audition": "not run",
+        "decodedPcmSamples": 1555456,
+        "decodedBoundaryJumpDbfs": -36.78563251183091,
+        "decodedHeadRmsDbfs": -17.816476277277282,
+        "decodedTailRmsDbfs": -19.556968255754185
+      }
+    },
+    {
+      "file": "bgm-combat.ogg",
+      "kind": "bgm",
+      "cue": "bgm-combat",
+      "codec": "vorbis",
+      "bytes": 196553,
+      "sha256": "744eeec48d237d8840587caab65c4f167c7105f68f44968f33f87780e8359b7b",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://opengameart.org/content/battle-theme-a",
+        "downloadUrl": "https://opengameart.org/sites/default/files/battleThemeA.mp3",
+        "downloaded": "2026-10-24",
+        "archive": "battle-theme-a.mp3",
+        "archiveSha256": "6042399782e581d753d616bc703e66483d5eccb5fb687a20c9a552d68c49e620",
+        "member": "battle-theme-a.mp3",
+        "sha256": "6042399782e581d753d616bc703e66483d5eccb5fb687a20c9a552d68c49e620",
+        "licenseEvidence": "combat-source.html",
+        "licenseEvidenceSha256": "974311c74e5a24442ad29e8adc3e74160a9e49704440f4f6b5e7b34b0e206ee8",
+        "author": "cynicmusic"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; excerpt and .25s tail/head overlap;1024-sample alignment; normalized reference then48kbps ogg",
+      "normalization": {
+        "gainDb": -8.78,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -20.07,
+        "truePeakDbtp": -6.96,
+        "method": "intrinsic BS.1770 loudnorm input measurement",
+        "repeats": 1,
+        "decodedDurationSeconds": 31.744,
+        "raw": {
+          "input_i": "-20.07",
+          "input_tp": "-6.96",
+          "input_lra": "1.20",
+          "input_thresh": "-30.07",
+          "output_i": "-15.98",
+          "output_tp": "-2.98",
+          "output_lra": "1.20",
+          "output_thresh": "-25.98",
+          "normalization_type": "dynamic",
+          "target_offset": "-0.02"
+        }
+      },
+      "loop": {
+        "startSeconds": 32,
+        "sourceSegmentSeconds": 31.994,
+        "crossfadeSeconds": 0.25,
+        "pcmSamples": 1015808,
+        "sampleRate": 32000,
+        "construction": "body[cross:frames] + linear mix(tail[frames:frames+cross],head[0:cross]); wrap is adjacent head samples",
+        "audition": "not run",
+        "decodedPcmSamples": 1015808,
+        "decodedBoundaryJumpDbfs": -32.148028495424015,
+        "decodedHeadRmsDbfs": -18.823349293013912,
+        "decodedTailRmsDbfs": -20.14355956639656
+      }
+    },
+    {
+      "file": "bgm-combat.m4a",
+      "kind": "bgm",
+      "cue": "bgm-combat",
+      "codec": "aac-lc",
+      "bytes": 196082,
+      "sha256": "f1954839cc243a3e1fecf490ea780e73b009fe29a4a66f76e6f1fb9a344fd06b",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "source": {
+        "pageUrl": "https://opengameart.org/content/battle-theme-a",
+        "downloadUrl": "https://opengameart.org/sites/default/files/battleThemeA.mp3",
+        "downloaded": "2026-10-24",
+        "archive": "battle-theme-a.mp3",
+        "archiveSha256": "6042399782e581d753d616bc703e66483d5eccb5fb687a20c9a552d68c49e620",
+        "member": "battle-theme-a.mp3",
+        "sha256": "6042399782e581d753d616bc703e66483d5eccb5fb687a20c9a552d68c49e620",
+        "licenseEvidence": "combat-source.html",
+        "licenseEvidenceSha256": "974311c74e5a24442ad29e8adc3e74160a9e49704440f4f6b5e7b34b0e206ee8",
+        "author": "cynicmusic"
+      },
+      "transformation": "decode to mono32000Hz PCM; source file unchanged; excerpt and .25s tail/head overlap;1024-sample alignment; normalized reference then48kbps m4a",
+      "normalization": {
+        "gainDb": -8.78,
+        "compressionPasses": 0
+      },
+      "measure": {
+        "integratedLufs": -19.86,
+        "truePeakDbtp": -6.28,
+        "method": "intrinsic BS.1770 loudnorm input measurement",
+        "repeats": 1,
+        "decodedDurationSeconds": 31.744,
+        "raw": {
+          "input_i": "-19.86",
+          "input_tp": "-6.28",
+          "input_lra": "1.50",
+          "input_thresh": "-29.86",
+          "output_i": "-15.87",
+          "output_tp": "-2.30",
+          "output_lra": "1.30",
+          "output_thresh": "-25.87",
+          "normalization_type": "dynamic",
+          "target_offset": "-0.13"
+        }
+      },
+      "loop": {
+        "startSeconds": 32,
+        "sourceSegmentSeconds": 31.994,
+        "crossfadeSeconds": 0.25,
+        "pcmSamples": 1015808,
+        "sampleRate": 32000,
+        "construction": "body[cross:frames] + linear mix(tail[frames:frames+cross],head[0:cross]); wrap is adjacent head samples",
+        "audition": "not run",
+        "decodedPcmSamples": 1015808,
+        "decodedBoundaryJumpDbfs": -51.945723722618254,
+        "decodedHeadRmsDbfs": -18.853501029572406,
+        "decodedTailRmsDbfs": -20.09481663967972
+      }
+    }
+  ]
+}

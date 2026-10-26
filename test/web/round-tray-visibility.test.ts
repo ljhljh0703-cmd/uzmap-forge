@@ -5,27 +5,27 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-const {roundSlotModels,primaryActionId}=await import(pathToFileURL(resolve(process.env.UI_SKIN_SOURCE??'web/ui-skin.js')).href);
+const {roundSlotModels,primaryActionId,combinationBadge}=await import(pathToFileURL(resolve(process.env.UI_SKIN_SOURCE??'web/ui-skin.js')).href);
 const source=fs.readFileSync(process.env.UI_SKIN_SOURCE??resolve('web/ui-skin.js'),'utf8');
 const render=source.match(/ function render\(snapshot\)\{[\s\S]*?\n \}/)?.[0];assert.ok(render);
 function fixture(width=1440){
- const tray={hidden:false,dataset:{}},summary={textContent:''},state={textContent:''},title={textContent:''},selectedPortrait:any={dataset:{},getContext:()=>({clearRect(){}})};let slotPaints=0,portraitPaints=0,portraitReady=true;
- const buttons=Array.from({length:5},()=>({dataset:{artReady:'true'},disabled:false,attrs:{},setAttribute(k:string,v:string){this.attrs[k]=v;},style:{setProperty(){}}}));
- const slots:any={get clientWidth(){return tray.hidden?0:width-40;},style:{}},play={disabled:false,dataset:{},getClientRects:()=>[{}]},nodes:any={rosterCount:{textContent:'12'},play};
+ const comboNotice={hidden:true,textContent:''},tray={hidden:false,dataset:{}},summary={textContent:''},state={textContent:''},title={textContent:''},selectedPortrait:any={dataset:{},getContext:()=>({clearRect(){}})};let slotPaints=0,portraitPaints=0,portraitReady=true,widthReads=0;
+ const buttons=Array.from({length:5},()=>{const combo={hidden:true};return {dataset:{artReady:'true'},disabled:false,attrs:{},querySelector:(selector:string)=>selector==='.slot-combination'?combo:null,setAttribute(k:string,v:string){this.attrs[k]=v;},style:{setProperty(){}}};});
+ const slots:any={get clientWidth(){widthReads++;return tray.hidden?0:width-40;},style:{}},play={disabled:false,dataset:{},getClientRects:()=>[{}]},nodes:any={rosterCount:{textContent:'12'},play};
  const bottom={hidden:false},explorer={hidden:false};
- const context:any={frameInteractivePanels(){},fieldGradeIndex,FIELD_GRADE_COLORS,tray,slots,summary,state,title,buttons,selectedPortrait,bottom,explorer,latest:null,signature:'',roundSlotModels,primaryActionId,selectionCard:{render(){}},renderCasino(){},paintSlot(button:any){slotPaints++;button.dataset.artReady='true';},drawGem(){portraitPaints++;return portraitReady;},QUALITY_COLORS:['#aaa'],targetPanel:{},targetButton:{setAttribute(){}},cancelButton:{},targetHint:{},doc:{defaultView:{innerWidth:width,getComputedStyle:()=>({columnGap:'8px'})},getElementById:(id:string)=>nodes[id],querySelectorAll:()=>[]},paintFrames(){},paintButtons(){},paintIcons(){}};
+ const context:any={frameInteractivePanels(){},fieldGradeIndex,FIELD_GRADE_COLORS,comboNotice,tray,slots,summary,state,title,buttons,selectedPortrait,bottom,explorer,latest:null,signature:'',roundSlotModels,primaryActionId,combinationBadge,selectionCard:{render(){}},renderCasino(){},paintSlot(button:any){slotPaints++;button.dataset.artReady='true';},drawGem(){portraitPaints++;return portraitReady;},QUALITY_COLORS:['#aaa'],targetPanel:{},targetButton:{setAttribute(){}},cancelButton:{},targetHint:{},doc:{defaultView:{innerWidth:width,getComputedStyle:()=>({columnGap:'8px'})},getElementById:(id:string)=>nodes[id],querySelectorAll:()=>[]},paintFrames(){},paintButtons(){},paintIcons(){}};
  vm.runInNewContext(render,context);
- return {tray,slots,summary,buttons,selectedPortrait,bottom,explorer,render:(snapshot:any)=>context.render(snapshot),stats:()=>({slotPaints,portraitPaints}),setPortraitReady(v:boolean){portraitReady=v;}};
+ return {comboNotice,tray,slots,summary,buttons,selectedPortrait,bottom,explorer,render:(snapshot:any)=>context.render(snapshot),stats:()=>({slotPaints,portraitPaints}),widthReads:()=>widthReads,setPortraitReady(v:boolean){portraitReady=v;}};
 }
 it('only an empty committed hand collapses while selected portrait and owned summary keep updating',()=>{
  const f=fixture(),snapshot={chosen:true,buildCount:0,candidates:[],selectedGem:{id:99,name:'기존 보석'}};f.render(snapshot);
  assert.equal(f.tray.hidden,true);assert.equal(f.summary.textContent,'보유 12');assert.equal(f.selectedPortrait.dataset.unitId,99);assert.equal(f.bottom.hidden,false);assert.equal(f.explorer.hidden,false);assert.deepEqual(f.stats(),{slotPaints:0,portraitPaints:1});
  f.buttons[0].dataset.artReady='false';f.render(snapshot);assert.deepEqual(f.stats(),{slotPaints:0,portraitPaints:1},'hidden slot retry must not trigger repeated portrait work');
 });
-it('the same five buttons return at PREP and measure their visible width on the first reopening render',()=>{
+it('the same five buttons return at PREP while responsive CSS owns width without hidden-width measurements',()=>{
  for(const width of [360,600,1440]){const f=fixture(width),buttons=[...f.buttons];f.render({chosen:true,buildCount:0,candidates:[]});f.render({chosen:false,buildCount:0,candidates:[{slot:1,id:4,alive:true,name:'이전 보석'}]});
   assert.equal(f.tray.hidden,false);assert.equal(f.buttons.length,5);assert.ok(f.buttons.every((b,i)=>b===buttons[i]));assert.ok(f.buttons.every(b=>b.dataset.unitId===''));assert.equal(f.stats().slotPaints,5);
-  const cell=Number(f.slots.style.gridTemplateColumns.match(/repeat\(5, (\d+)px\)/)?.[1]);assert.ok(cell>=44);if(width===1440)assert.ok(cell>44,'reopening must not use the hidden zero-width measurement');
+  assert.equal(f.widthReads(),0,'CSS layout needs no zero-width snapshot');assert.equal(f.slots.style.gridTemplateColumns,undefined);assert.equal(f.slots.style.paddingLeft,undefined,'reopening cannot reintroduce inline centering');
  }
 });
 it('uncommitted, unknown-state and genuinely populated hands remain visible with the original source slot mapping',()=>{
@@ -43,3 +43,5 @@ it('a hidden tray retries an unready selected portrait on the identical snapshot
 });
 
 it('committed populated hands retain their source buttons in a compact display and reset at preparation',()=>{const f=fixture();f.render({chosen:true,buildCount:5,candidates:[{slot:2,id:42,alive:true,name:'기존 보석'}]});assert.equal(f.tray.dataset.committed,'true');assert.equal(f.tray.hidden,false);assert.equal(f.buttons[1].dataset.unitId,42);f.render({chosen:false,buildCount:0});assert.equal(f.tray.dataset.committed,'false');});
+
+it('source combination markers and result notice update without replacing the five buttons or leaking stale previous hands',()=>{const f=fixture(390),button=f.buttons[0],candidate={slot:1,id:7,name:'최하급 오팔',alive:true,combinable:true};f.render({chosen:false,buildCount:5,candidates:[candidate],specialMessage:'이번 5개로 공작석 만들 수 있어요'});assert.equal(button.querySelector('.slot-combination').hidden,false);assert.match(button.attrs['aria-label'],/조합 가능/);assert.equal(f.comboNotice.hidden,false);assert.match(f.comboNotice.textContent,/공작석/);f.render({chosen:false,buildCount:0,candidates:[candidate],specialMessage:''});assert.equal(f.buttons[0],button);assert.equal(button.querySelector('.slot-combination').hidden,true);assert.doesNotMatch(button.attrs['aria-label'],/조합 가능/);assert.equal(f.comboNotice.hidden,true);assert.equal(f.comboNotice.textContent,'');});

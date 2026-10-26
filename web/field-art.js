@@ -59,11 +59,10 @@ export function fieldGroundPlan(grid,bounds,{landmarkRects=[]}={}){
 }
 function paintGroundTexture(ctx,plan,texture,grass=[]){
  if(grass.every(Boolean)&&grass.length===4){
-  for(const landmark of [false,true]){
-   const runs=plan.runs.filter(run=>landmark?run.landmark:run.kind==='build');if(!runs.length)continue;
-   // Only authored landmark NO_BUILD cells cover the old base raster opaquely.
-   // Their original path kind/flags and no-build boundary remain unchanged.
-   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=landmark?1:.55;
+  const runs=plan.runs.filter(run=>run.kind==='build');
+  if(runs.length){
+   // Checkpoints retain their source NO_BUILD paving. Only buildable cells get grass.
+   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=.55;
    const tile=GROUND_CELL_PX*4,startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
    for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile){const col=Math.floor((plan.minCol+x/GROUND_CELL_PX)/4),row=Math.floor((plan.maxRow-y/GROUND_CELL_PX)/4),index=(Math.imul(col,374761393)^Math.imul(row,668265263))>>>0,t=grass[index%4],f=t.spec.frame;ctx.drawImage(t.image,f.x,f.y,f.w,f.h,x,y,tile,tile);}
    ctx.restore();
@@ -74,7 +73,7 @@ function paintGroundTexture(ctx,plan,texture,grass=[]){
  // Reuse the loaded, unmodified raster. Build ground receives only fine grain;
  // pale no-build cells become worn paving; walls retain their darker source colour.
  for(const [kind,alpha] of [['build',.035],['path',.48],['wall',.32]]){
-  const runs=plan.runs.filter(run=>run.kind===kind&&!run.landmark);if(!runs.length)continue;
+  const runs=plan.runs.filter(run=>run.kind===kind);if(!runs.length)continue;
   ctx.save();ctx.beginPath();for(const run of runs)ctx.rect(run.x,run.y,run.width,run.height);ctx.clip();ctx.globalAlpha=alpha;
   const startX=-(plan.minCol%4)*GROUND_CELL_PX,startY=-((4-plan.maxRow%4)%4)*GROUND_CELL_PX;
   for(let y=startY;y<plan.height;y+=tile)for(let x=startX;x<plan.width;x+=tile)ctx.drawImage(texture.image,f.x,f.y,f.w,f.h,x,y,tile,tile);
@@ -108,15 +107,15 @@ export function drawFieldGround(ctx,{grid,bounds,project,sprites,landmarkRects=[
 }
 
 /** Same observed HP thresholds; integer raster pixels sit above the existing sprite. */
-export function drawCreepHealth(ctx,{x,y,size,hp,maxHp}={}){
+export function drawCreepHealth(ctx,{x,y,size,hp,maxHp,boss=false}={}){
  if(![x,y,size,hp,maxHp].every(Number.isFinite)||size<=0||maxHp<=0||hp>=maxHp)return false;
  const width=Math.max(24,Math.round(size*.75)),left=Math.round(x-width/2),top=Math.round(y-size*.8-6),fraction=Math.max(0,Math.min(1,hp/maxHp)),pixels=width-4;
- const colour=fraction>.5?'#53a64f':fraction>.25?'#c18b30':'#d74e3c';
- ctx.save();ctx.imageSmoothingEnabled=false;ctx.fillStyle='#170f0b';ctx.fillRect(left-1,top-1,width+2,5);
+ const colour=fraction>.5?'#53a64f':fraction>.25?'#c18b30':'#d74e3c',height=boss?6:3;
+ ctx.save();ctx.imageSmoothingEnabled=false;ctx.fillStyle='#170f0b';ctx.fillRect(left-1,top-1,width+2,height+2);
  for(let index=0;index<5;index++){
   const start=Math.floor(index*pixels/5)+index,end=Math.floor((index+1)*pixels/5)+index,segment=end-start,part=Math.max(0,Math.min(1,fraction*5-index));
-  ctx.fillStyle='#332218';ctx.fillRect(left+start,top,segment,3);
-  if(part>0){ctx.fillStyle=colour;ctx.fillRect(left+start,top,Math.max(1,Math.round(segment*part)),3);}
+  ctx.fillStyle='#332218';ctx.fillRect(left+start,top,segment,height);
+  if(part>0){ctx.fillStyle=colour;ctx.fillRect(left+start,top,Math.max(1,Math.round(segment*part)),height);}
  }
  ctx.restore();return true;
 }
@@ -143,4 +142,22 @@ export function drawAirborneMark(ctx,{x,y,size,airborne}={}){
  const cy=Math.round(y+size*.2+6),half=Math.min(7,Math.max(3,size*.18));
  ctx.save();ctx.beginPath();ctx.moveTo(x-half,cy+2);ctx.lineTo(x-half/2,cy);ctx.lineTo(x,cy+2);ctx.lineTo(x+half/2,cy);ctx.lineTo(x+half,cy+2);
  ctx.lineWidth=3;ctx.strokeStyle='#17241f';ctx.stroke();ctx.lineWidth=1;ctx.strokeStyle='#8ad8ef';ctx.stroke();ctx.restore();return true;
+}
+
+/** Enlarge the already-rendered field beside the touch; the map camera never changes. */
+export function placementLoupeBox({width,height,fingerX,fingerY}={}){
+ if(![width,height,fingerX,fingerY].every(Number.isFinite)||width<=0||height<=0)return null;
+ const x=Math.max(0,Math.min(width,fingerX)),y=Math.max(0,Math.min(height,fingerY));
+ const size=Math.floor(Math.min(120,width-16,height-40,Math.max(x,width-x)-28));if(size<48)return null;
+ const left=Math.max(8,Math.min(width-size-8,x<width/2?x+20:x-size-20));
+ const top=Math.max(8,Math.min(height-size-32,y-size-24));return {left,top,size};
+}
+export function drawPlacementLoupe(ctx,source,point,{cellPixels=0}={}){
+ const size=ctx?.canvas?.width;if(!ctx||!source||![size,source.width,source.height,point?.x,point?.y].every(Number.isFinite)||size<=0||source.width<=0||source.height<=0||point.x<0||point.y<0||point.x>source.width||point.y>source.height)return null;
+ const side=Math.min(size/3,source.width,source.height),sx=Math.max(0,Math.min(source.width-side,point.x-side/2)),sy=Math.max(0,Math.min(source.height-side,point.y-side/2)),scale=size/side;
+ const x=(point.x-sx)*scale,y=(point.y-sy)*scale;
+ ctx.save();ctx.clearRect(0,0,size,size);ctx.globalAlpha=1;ctx.imageSmoothingEnabled=false;ctx.drawImage(source,sx,sy,side,side,0,0,size,size);
+ ctx.strokeStyle='#ffe08a';ctx.lineWidth=2;if(Number.isFinite(cellPixels)&&cellPixels>0){const span=cellPixels*scale;ctx.strokeRect(x-span/2,y-span/2,span,span);}
+ ctx.beginPath();ctx.moveTo(x-5,y);ctx.lineTo(x+5,y);ctx.moveTo(x,y-5);ctx.lineTo(x,y+5);ctx.stroke();ctx.restore();
+ return {crop:{x:sx,y:sy,size:side},point:{x,y},scale};
 }

@@ -13,11 +13,11 @@ async function fixture(){
  const data=new Map<string,string>();let quota=false,writes=0,hashReads=0;
  const storage={get length(){return data.size},key(i:number){return [...data.keys()][i]??null},getItem(k:string){return data.get(k)??null},setItem(k:string,v:string){if(quota)throw Error('quota');writes++;data.set(k,v)}};
  const nodes:any={automaticSaveStatus:{textContent:'',dataset:{}},gameDrawer:{hidden:true}};
- const callbacks:any={},messages:string[]=[];let paints=0;
+ const callbacks:any={},messages:string[]=[];let paints=0,recordingStops=0;
  const state={difficulty:1,round:1,life:15},world:any={runId:'ui-checkpoint-001',runMode:'race',modeDialog:{clicked:true},runtimeCrashes:[],inputLog:[],selectedGemId:null,sourceVersion:'fixture',vm:{},sim:{tickCount:35,stateHash:()=>{hashReads++;return '844b2f8b';}}};
- const context:any={world,restoring:false,runtimeFailed:false,loadingRun:false,playing:true,contentBuild:'a'.repeat(16),replayBuild:'b'.repeat(16),sessionSeed:6,cam:{cx:0,cy:0,zoom:1},gemTowerPlayerState:()=>state,localStorage:storage,createRunCheckpoint,saveRunRecord,isRunCompatible,$:(id:string)=>nodes[id],flash:(text:string)=>messages.push(text),refreshSavedRuns(){},Date,frameClock:{reset(){}},renderControls(){paints++;},document:{hidden:true,documentElement:{dataset:{}},addEventListener:(type:string,fn:any)=>callbacks[type]=fn},window:{addEventListener:(type:string,fn:any)=>callbacks[type]=fn}};
+ const context:any={loadingScreen:{begin(){},receive(){},async reading(){},finish(){},intake(){},error(){}},visualReady:Promise.resolve(),readResponseBytes:async r=>r.arrayBuffer(),soundRecording:{stop(){recordingStops++;}},world,restoring:false,runtimeFailed:false,loadingRun:false,playing:true,contentBuild:'a'.repeat(16),replayBuild:'b'.repeat(16),sessionSeed:6,cam:{cx:0,cy:0,zoom:1},gemTowerPlayerState:()=>state,localStorage:storage,createRunCheckpoint,saveRunRecord,isRunCompatible,$:(id:string)=>nodes[id],flash:(text:string)=>messages.push(text),refreshSavedRuns(){},Date,frameClock:{reset(){}},renderControls(){paints++;},document:{hidden:true,documentElement:{dataset:{}},addEventListener:(type:string,fn:any)=>callbacks[type]=fn},window:{addEventListener:(type:string,fn:any)=>callbacks[type]=fn}};
  vm.runInNewContext(snapshot+'\n'+checkpoint,context);
- return {code,context,world,state,nodes,storage,data,messages,callbacks,quota:(value:boolean)=>{quota=value;},writes:()=>writes,hashReads:()=>hashReads,paints:()=>paints,list:()=>listRunRecords(storage,context.contentBuild,context.replayBuild)};
+ return {code,context,world,state,nodes,storage,data,messages,callbacks,quota:(value:boolean)=>{quota=value;},writes:()=>writes,hashReads:()=>hashReads,paints:()=>paints,recordingStops:()=>recordingStops,list:()=>listRunRecords(storage,context.contentBuild,context.replayBuild)};
 }
 it('actual checkpoint adapter creates a separate auto record with current replay identity and leaves manual bytes unchanged',async()=>{
  const f=await fixture();f.data.set('uzmap.gemtower.runs.v2.'+'a'.repeat(16)+'.manual001','manual exact bytes');
@@ -56,18 +56,18 @@ async function restoreFixture(){
  const f=await fixture(),restore=f.code.match(/^async function restoreRun\([^\n]*\{[\s\S]*?^\}/m)?.[0];assert.ok(restore);
  const {validateInputReplay}=await import('../../web/gem-actions.js');const {restoredRunId}=await import('../../web/run-storage.js');
  for(const id of ['restoreProgressText','cancelRestore','researchToggle','msg'])f.nodes[id]={textContent:'',disabled:false,style:{},focus(){}};
- const original=f.world;Object.assign(f.context,{validateInputReplay,restoredRunId,restoreCancelled:false,performance:{now:()=>0},captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{f.context.world=before.world;},loadFromUrl:async()=>{f.context.world={sim:{tickCount:0,stateHash:()=> '11223344',getUnit(){}},sourceVersion:'fixture',runtimeCrashes:[]};},render(){},setDrawer(){},commitSessionSeed(){}});
+ const original=f.world;Object.assign(f.context,{validateInputReplay,restoredRunId,restoreCancelled:false,performance:{now:()=>0},captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{f.context.world=before.world;},loadFromUrl:async()=>{f.context.world={sim:{tickCount:0,stateHash:()=> '11223344',getUnit(){}},sourceVersion:'fixture',runtimeCrashes:[]};return true;},render(){},setDrawer(){},commitSessionSeed(){}});
  vm.runInNewContext(restore,f.context);
  const trace={format:'uzmap-ui-input-v1',runId:'other-restored-001',mode:'race',build:f.context.contentBuild,replayBuild:f.context.replayBuild,seed:77,tick:0,stateHash:'11223344',sourceVersion:'fixture',actions:[]};
  return {...f,trace};
 }
 it('successful resume first checkpoints the healthy old run before entering the restoration exclusion window',async()=>{
  const f=await restoreFixture();f.world.sim.tickCount=34;f.context.checkpointRun(f.world,true,100);f.world.sim.tickCount=35;f.world.inputLog.push({tick:35,kind:'chat',playerId:0,text:'-길찾기'});
- await f.context.restoreRun(f.trace);assert.notEqual(f.context.world,f.world);const old=f.list().find((r:any)=>r.trace?.runId===f.world.runId)!;assert.equal(old.trace.tick,35);assert.equal(old.trace.actions.length,1);assert.equal(f.writes(),2);
+ await f.context.restoreRun(f.trace);assert.notEqual(f.context.world,f.world);const old=f.list().find((r:any)=>r.trace?.runId===f.world.runId)!;assert.equal(old.trace.tick,35);assert.equal(old.trace.actions.length,1);assert.equal(f.writes(),2);assert.equal(f.recordingStops(),1,'only an accepted restore stops the local recording');
 });
 it('resume refuses to replace healthy unsaved progress when the safety checkpoint fails',async()=>{
  const f=await restoreFixture();f.world.sim.tickCount=34;f.context.checkpointRun(f.world,true,100);f.world.sim.tickCount=35;f.quota(true);
- await f.context.restoreRun(f.trace);assert.equal(f.context.world,f.world);assert.equal(f.context.restoring,false);assert.equal(f.list()[0].trace.tick,34);assert.match(f.messages.at(-1)??'',/보관하지 못해/);
+ await f.context.restoreRun(f.trace);assert.equal(f.context.world,f.world);assert.equal(f.context.restoring,false);assert.equal(f.list()[0].trace.tick,34);assert.match(f.messages.at(-1)??'',/보관하지 못해/);assert.equal(f.recordingStops(),0,'checkpoint refusal preserves the current recording too');
 });
 
 it('unchanged checkpoints do not repeatedly replace the live-region text on every animation frame',async()=>{

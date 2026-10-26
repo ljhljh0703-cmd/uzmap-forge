@@ -1,13 +1,16 @@
 import {parseUnitAbilityProfile} from "./dist/formats/stock-unit-abilities.js";
 /** This path is gitignored local input and must be excluded from public bundles. */
-export async function loadLocalStockProfile() {
+export async function loadLocalStockProfile({readBytes=null,beforeParse=async()=>{}}={}) {
   const response=await fetch("../fixtures/stock/unit-abilities.json",{cache:"no-store"});
   if (response.status===404) {
     console.warn("[stock] No local ability profile; base abilities remain unresolved.");
     return undefined;
   }
   if (!response.ok) throw new Error("기본 능력 자료 읽기 실패: " + response.status);
-  const profile=parseUnitAbilityProfile(await response.json());
+  const bytes=readBytes?await readBytes(response,'profile'):null;
+  await beforeParse();
+  const raw=bytes?JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)):await response.json();
+  const profile=parseUnitAbilityProfile(raw);
   console.info(`[stock] Local ${profile.sourceVersion}: ${profile.units.length} unit ability lists; balance provider unchanged.`);
   return profile;
 }

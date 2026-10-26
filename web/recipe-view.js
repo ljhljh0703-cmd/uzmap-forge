@@ -5,7 +5,7 @@ export function mountRecipeBook(doc){
  const summary=doc.createElement('summary');summary.textContent='보석 · 슬레이트 조합표';group.append(summary);
  const intro=doc.createElement('p');intro.className='recipe-intro';intro.textContent='보석을 선택하면 사용할 수 있는 조합 버튼이 나옵니다.';
  const filters=doc.createElement('div');filters.className='recipe-filters';filters.setAttribute('role','group');filters.setAttribute('aria-label','조합 종류');
- let category='gem',book=null,query='';const choices=[];
+ let category='gem',book=null,query='',priorityIds=[];const choices=[];
  for(const [value,label] of [['gem','보석'],['slate','슬레이트'],['all','전체']]){
   const button=doc.createElement('button');button.type='button';button.textContent=label;button.dataset.recipeCategory=value;button.setAttribute('aria-pressed',String(value===category));
   button.addEventListener('click',()=>{category=value;render();});filters.append(button);choices.push(button);
@@ -18,15 +18,15 @@ export function mountRecipeBook(doc){
  group.append(intro,filters,label,search,status,list,warning);doc.getElementById('saveOptions').before(group);
  search.addEventListener('input',()=>{query=search.value;render();});
  function render(){
-  const rows=recipeBookRows(book??{rows:[]},{category,query});
+  const rows=recipeBookRows(book??{rows:[]},{category,query,priorityIds});
   for(const button of choices)button.setAttribute('aria-pressed',String(button.dataset.recipeCategory===category));
   status.textContent=rows.length?`${rows.length}개 항목 · 원작 레시피 책`:'검색 결과가 없습니다';list.replaceChildren();
   for(const row of rows){
    const item=doc.createElement('details');item.className='recipe-item';item.dataset.recipeId=row.id;item.open=Boolean(query.trim());
-   const title=doc.createElement('summary');title.textContent=row.title;
+   const title=doc.createElement('summary');title.textContent=row.title;if(priorityIds.includes(row.id)){const available=doc.createElement('span');available.className='recipe-available';available.textContent=' · 조합 가능';title.append(available);}
    const description=doc.createElement('p');description.textContent=row.description;item.append(title,description);list.append(item);
   }
   warning.hidden=!(book?.warnings?.length);warning.textContent=warning.hidden?'':'일부 조합 설명을 불러오지 못했습니다.';
  }
- render();return {setBook(next){if(book===next)return;book=next;render();}};
+ render();return {setBook(next){if(book===next)return;book=next;render();},setPriority(next=[]){const ids=[...new Set(next)];if(JSON.stringify(ids)===JSON.stringify(priorityIds))return;priorityIds=ids;render();}};
 }

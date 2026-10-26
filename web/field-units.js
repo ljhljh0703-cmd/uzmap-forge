@@ -84,3 +84,23 @@ export function drawMineCreep(ctx,options={}){
  return sprites.draw(ctx,key,x,y,size,{tick:reducedMotion?0:tick,anchor:.8,flip,
   ...(airborne?{shadow:false}:{shadowColor:'rgba(0,0,0,.3)'})});
 }
+
+/** HP rail denominator only; never change an entity, RNG, input or save.
+ * Supplied GemTower_Max_7C source: race spawn -> Ib/Wae (CR-normalized
+ * lines 53236-53254), Wve sets sA/pA (53216-53232). Easy uses pA; normal
+ * uses it from authored wave35. Native SetUnitLifePercentBJ/setLife applies
+ * max*max(0,percent)*.01, Math.round, then [0,max] clamp in that order.
+ * The caller supplies Be, sA/pA for the unit's source field and its matching
+ * GEMTOWER_BALANCE role. b[1..50] has 50 unique IDs matching role.wave exactly
+ * (health-audit evidence); current round is deliberately never consulted.
+ * Classic, special/event units and unknown roles have no such spawn proof.
+ * maxHp below is a presentation baseline, not the unit's physical hpMax.
+ * Re-derive it after restore or an unseen same-tick hit; never learn it from
+ * the first rendered HP. Healing above the baseline stays untouched. */
+export function creepHealthPresentation(entity,{sourceMode,difficulty,creepLifePercent}={},role){
+ const hp=entity?.hp,maxHp=entity?.hpMax,raw={hp,maxHp};
+ if(sourceMode!==2||role?.kind!=='creep'||!Number.isInteger(role.wave)||role.wave<1||role.wave>50||
+  entity?.typeId==='h04Q'||entity?.typeId==='H04B'||!Number.isFinite(maxHp)||maxHp<=0||!Number.isFinite(creepLifePercent))return raw;
+ if(difficulty!==1&&!(difficulty===2&&role.wave>=35))return raw;
+ return {hp,maxHp:Math.max(0,Math.min(maxHp,Math.round(maxHp*Math.max(0,creepLifePercent)*.01)))};
+}

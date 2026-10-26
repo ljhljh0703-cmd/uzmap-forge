@@ -39,6 +39,16 @@ export type TickPhase = "timers" | "unitLoop" | "combat" | "triggerBridge" | "re
 export const TICK_PHASES: readonly TickPhase[] = ["timers", "unitLoop", "combat", "triggerBridge", "rebucket"];
 
 export type TickHook = (sim: Sim) => void;
+/** Detached optional view evidence; not part of SimEvent or persisted state. */
+export type ObservedDeathUnit = Readonly<Pick<UnitEntity, "id" | "typeId" | "owner" | "x" | "y">>;
+export interface ObservedUnitDeath {
+  readonly unitId: number;
+  readonly killerUnitId?: number;
+  readonly unit: ObservedDeathUnit | null;
+  readonly killer: ObservedDeathUnit | null;
+  readonly creditedOwner?: number;
+}
+
 
 /** FNV-1a 32bit — 의존성 0, stateHash() 전용. */
 function fnv1a(input: string): string {
@@ -67,6 +77,10 @@ export class Sim implements IWorld {
     rebucket: [],
   };
   private readonly eventQueue: SimEvent[] = [];
+  private readonly unitDeathObservers = new Set<(death: ObservedUnitDeath) => void>();
+  /** The existing settlement's chosen owner, keyed without extending its event. */
+  private readonly unitDeathCredits = new WeakMap<SimEvent, number>();
+
   /** R-207: injectChat()으로 쌓인 미소비 채팅 입력 — triggerBridge 단계 훅이 drainChat()으로 소비. */
   private readonly chatQueue: Array<{ playerId: number; text: string }> = [];
   /** R-307b: injected headless dialog clicks, consumed in injection order by triggerBridge. */
@@ -267,7 +281,9 @@ export class Sim implements IWorld {
         }
       }else if(this.bountyMode==='engine'||this.bountyMode==='both')this.ledger.adjustGold(owner,rollBounty(this.rng,def.bounty.base,def.bounty.spreadPm),'bounty');
     }
-    this.emit({kind:'UnitDied',unitId,killerUnitId});this.removeUnit(unitId);return true;
+    const event: SimEvent={kind:'UnitDied',unitId,killerUnitId};
+    if(owner!==undefined&&Number.isSafeInteger(owner)&&owner>=0)this.unitDeathCredits.set(event,owner);
+    this.emit(event);this.removeUnit(unitId);return true;
   }
 
   private processLifeTimeouts(): void {
@@ -320,12 +336,30 @@ export class Sim implements IWorld {
     this.hooks[phase].push(fn);
   }
 
+  /** Optional detached death snapshots; no new settlement or event channel. */
+  observeUnitDeaths(listener: (death: ObservedUnitDeath) => void): () => void {
+    this.unitDeathObservers.add(listener);
+    return () => { this.unitDeathObservers.delete(listener); };
+  }
+
   /** 훅이 이벤트를 큐에 넣는 유일한 경로(event stream 채널). R-207 확장: bridgeEventQueue에도 동시
    *  적재(같은 이벤트의 두 번째 사본) — natives/bridge.ts가 같은 틱 내 RectEntered/UnitDied를 drainEvents()
    *  의 외부 소비 계약을 건드리지 않고 소비할 수 있게 한다. */
   emit(event: SimEvent): void {
     this.eventQueue.push(event);
     this.bridgeEventQueue.push(event);
+    if(event.kind==="UnitDied"&&this.unitDeathObservers.size){
+      const snapshot=(unit:UnitEntity|undefined):ObservedDeathUnit|null=>unit
+        ?Object.freeze({id:unit.id,typeId:unit.typeId,owner:unit.owner,x:unit.x,y:unit.y}):null;
+      const creditedOwner=this.unitDeathCredits.get(event);
+      const death:ObservedUnitDeath=Object.freeze({unitId:event.unitId,killerUnitId:event.killerUnitId,
+        unit:snapshot(this._entities.get(event.unitId)),killer:snapshot(this._entities.get(event.killerUnitId??-1)),
+        ...(creditedOwner!==undefined?{creditedOwner}:{}),
+      });
+      for(const listener of [...this.unitDeathObservers]){
+        try{listener(death);}catch{ /* View/audio failure must not change settlement or either event channel. */ }
+      }
+    }
   }
 
   /** R-207: 헤드리스·M3 공용 입력 seam. 즉시 처리하지 않고 큐잉만 한다(triggerBridge 단계가 소비 —

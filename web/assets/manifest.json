@@ -171,7 +171,7 @@
       }
     },
     "ground:grass:0": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
         "x": 2,
         "y": 2,
@@ -180,7 +180,7 @@
       }
     },
     "ground:grass:1": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
         "x": 134,
         "y": 2,
@@ -189,7 +189,7 @@
       }
     },
     "ground:grass:2": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
         "x": 266,
         "y": 2,
@@ -198,7 +198,7 @@
       }
     },
     "ground:grass:3": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
         "x": 398,
         "y": 2,
@@ -207,7 +207,7 @@
       }
     },
     "ground:path:horizontal": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
         "x": 530,
         "y": 2,
@@ -216,25 +216,61 @@
       }
     },
     "ground:path:vertical": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground-extra.png",
       "frame": {
-        "x": 694,
+        "x": 2,
         "y": 2,
         "w": 160,
         "h": 160
       }
     },
     "ground:path:corner-ne": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground-extra.png",
       "frame": {
-        "x": 858,
+        "x": 166,
         "y": 2,
         "w": 160,
         "h": 160
       }
     },
     "ground:path:corner-nw": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground-extra.png",
+      "frame": {
+        "x": 330,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:corner-sw": {
+      "src": "sprites/gemtower-f-ground-extra.png",
+      "frame": {
+        "x": 494,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:t-junction": {
+      "src": "sprites/gemtower-f-ground-extra.png",
+      "frame": {
+        "x": 658,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:cross": {
+      "src": "sprites/gemtower-f-ground-extra.png",
+      "frame": {
+        "x": 822,
+        "y": 2,
+        "w": 160,
+        "h": 160
+      }
+    },
+    "ground:path:dead": {
+      "src": "sprites/gemtower-f-ground-extra.png",
       "frame": {
         "x": 2,
         "y": 166,
@@ -242,46 +278,10 @@
         "h": 160
       }
     },
-    "ground:path:corner-sw": {
-      "src": "sprites/gemtower-b1.png",
+    "ground:path:corner-se": {
+      "src": "sprites/gemtower-f-ground-extra.png",
       "frame": {
         "x": 166,
-        "y": 166,
-        "w": 160,
-        "h": 160
-      }
-    },
-    "ground:path:t-junction": {
-      "src": "sprites/gemtower-b1.png",
-      "frame": {
-        "x": 330,
-        "y": 166,
-        "w": 160,
-        "h": 160
-      }
-    },
-    "ground:path:cross": {
-      "src": "sprites/gemtower-b1.png",
-      "frame": {
-        "x": 494,
-        "y": 166,
-        "w": 160,
-        "h": 160
-      }
-    },
-    "ground:path:dead": {
-      "src": "sprites/gemtower-b1.png",
-      "frame": {
-        "x": 658,
-        "y": 166,
-        "w": 160,
-        "h": 160
-      }
-    },
-    "ground:path:corner-se": {
-      "src": "sprites/gemtower-b1.png",
-      "frame": {
-        "x": 822,
         "y": 166,
         "w": 160,
         "h": 160
@@ -289,52 +289,52 @@
       "rotation": 90
     },
     "field:checkpoint": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
-        "x": 2,
-        "y": 330,
+        "x": 694,
+        "y": 2,
         "w": 207,
         "h": 197
       }
     },
     "field:entrance": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
-        "x": 213,
-        "y": 330,
+        "x": 2,
+        "y": 203,
         "w": 219,
         "h": 207
       }
     },
     "field:exit": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground.png",
       "frame": {
-        "x": 436,
-        "y": 330,
+        "x": 225,
+        "y": 203,
         "w": 226,
         "h": 207
       }
     },
     "field:bush": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground-extra.png",
       "frame": {
-        "x": 666,
-        "y": 330,
+        "x": 330,
+        "y": 166,
         "w": 198,
         "h": 207
       }
     },
     "field:pebbles": {
-      "src": "sprites/gemtower-b1.png",
+      "src": "sprites/gemtower-f-ground-extra.png",
       "frame": {
-        "x": 2,
-        "y": 541,
+        "x": 532,
+        "y": 166,
         "w": 197,
         "h": 207
       }
     },
     "pedestal:0": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 2,
         "y": 2,
@@ -343,7 +343,7 @@
       }
     },
     "pedestal:1": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 262,
         "y": 2,
@@ -352,7 +352,7 @@
       }
     },
     "pedestal:2": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 522,
         "y": 2,
@@ -361,7 +361,7 @@
       }
     },
     "pedestal:3": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 782,
         "y": 2,
@@ -370,7 +370,7 @@
       }
     },
     "pedestal:4": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 1042,
         "y": 2,
@@ -379,7 +379,7 @@
       }
     },
     "pedestal:5": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 1302,
         "y": 2,
@@ -388,7 +388,7 @@
       }
     },
     "pedestal:selected:0": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 1562,
         "y": 2,
@@ -397,7 +397,7 @@
       }
     },
     "pedestal:selected:1": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 2,
         "y": 262,
@@ -406,7 +406,7 @@
       }
     },
     "pedestal:selected:2": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 262,
         "y": 262,
@@ -415,7 +415,7 @@
       }
     },
     "pedestal:selected:3": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 522,
         "y": 262,
@@ -424,7 +424,7 @@
       }
     },
     "pedestal:selected:4": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 782,
         "y": 262,
@@ -433,7 +433,7 @@
       }
     },
     "pedestal:selected:5": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 1042,
         "y": 262,
@@ -442,7 +442,7 @@
       }
     },
     "field:stone": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 1302,
         "y": 262,
@@ -451,7 +451,7 @@
       }
     },
     "field:slate": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 1541,
         "y": 262,
@@ -460,7 +460,7 @@
       }
     },
     "field:placement": {
-      "src": "sprites/gemtower-b2.png",
+      "src": "sprites/gemtower-f-bases.png",
       "frame": {
         "x": 1778,
         "y": 262,
@@ -469,7 +469,7 @@
       }
     },
     "creep:mine:goblin": {
-      "src": "sprites/gemtower-b3.png",
+      "src": "sprites/gemtower-f-creeps-ground.png",
       "frame": {
         "x": 2,
         "y": 2,
@@ -480,7 +480,7 @@
       "fps": 4
     },
     "creep:mine:beetle": {
-      "src": "sprites/gemtower-b3.png",
+      "src": "sprites/gemtower-f-creeps-ground.png",
       "frame": {
         "x": 378,
         "y": 2,
@@ -491,10 +491,10 @@
       "fps": 4
     },
     "creep:mine:rat": {
-      "src": "sprites/gemtower-b3.png",
+      "src": "sprites/gemtower-f-creeps-ground.png",
       "frame": {
-        "x": 840,
-        "y": 2,
+        "x": 2,
+        "y": 159,
         "w": 249,
         "h": 132
       },
@@ -502,9 +502,9 @@
       "fps": 4
     },
     "creep:mine:bat": {
-      "src": "sprites/gemtower-b3.png",
+      "src": "sprites/gemtower-f-creeps-late.png",
       "frame": {
-        "x": 1342,
+        "x": 2,
         "y": 2,
         "w": 240,
         "h": 152
@@ -513,10 +513,10 @@
       "fps": 4
     },
     "creep:mine:wisp": {
-      "src": "sprites/gemtower-b3.png",
+      "src": "sprites/gemtower-f-creeps-late.png",
       "frame": {
-        "x": 2,
-        "y": 159,
+        "x": 486,
+        "y": 2,
         "w": 173,
         "h": 140
       },
@@ -524,10 +524,10 @@
       "fps": 4
     },
     "creep:mine:ogre": {
-      "src": "sprites/gemtower-b3.png",
+      "src": "sprites/gemtower-f-creeps-boss.png",
       "frame": {
-        "x": 352,
-        "y": 159,
+        "x": 2,
+        "y": 2,
         "w": 482,
         "h": 404
       },
@@ -535,7 +535,7 @@
       "fps": 4
     },
     "effect:poison": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 2,
         "y": 2,
@@ -544,7 +544,7 @@
       }
     },
     "effect:fire": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 214,
         "y": 2,
@@ -553,7 +553,7 @@
       }
     },
     "effect:slow": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 426,
         "y": 2,
@@ -562,7 +562,7 @@
       }
     },
     "effect:stun": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 637,
         "y": 2,
@@ -571,7 +571,7 @@
       }
     },
     "effect:critical": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 2,
         "y": 214,
@@ -580,7 +580,7 @@
       }
     },
     "effect:splash": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 214,
         "y": 214,
@@ -589,7 +589,7 @@
       }
     },
     "effect:air": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 426,
         "y": 214,
@@ -598,7 +598,7 @@
       }
     },
     "effect:ground": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 638,
         "y": 214,
@@ -607,7 +607,7 @@
       }
     },
     "feedback:gold": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 2,
         "y": 426,
@@ -616,7 +616,7 @@
       }
     },
     "feedback:life": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 217,
         "y": 426,
@@ -625,7 +625,7 @@
       }
     },
     "feedback:combine": {
-      "src": "sprites/gemtower-b4.png",
+      "src": "sprites/gemtower-f-effects.png",
       "frame": {
         "x": 427,
         "y": 426,
@@ -803,6 +803,48 @@
       "sourceRecord": "wiki/projects/design-aesthetic-returns/2026-10-23-gemtower-parts-b/README.md",
       "derivationRecord": "docs/assets/gemtower-b/parts/_boxes.json",
       "state": "provisional"
+    },
+    {
+      "file": "sprites/gemtower-f-ground.png",
+      "sha256": "bb1b4e93ff4fc52402e51924236562ebca12c0f06e000b0facf5572e898c6d98",
+      "source": "F2 derivative of recorded B source atlas; see image-variants ledger",
+      "license": "existing supplied generated art; source provenance retained"
+    },
+    {
+      "file": "sprites/gemtower-f-ground-extra.png",
+      "sha256": "6a1e659c1f645b5485beffbd95cfcc0277bc2d6ad889c8cd8198f36d93966cc0",
+      "source": "F2 derivative of recorded B source atlas; see image-variants ledger",
+      "license": "existing supplied generated art; source provenance retained"
+    },
+    {
+      "file": "sprites/gemtower-f-bases.png",
+      "sha256": "1b1af03f19f54419c3e486a55943baab960954b16681653299e29ebd151417ca",
+      "source": "F2 derivative of recorded B source atlas; see image-variants ledger",
+      "license": "existing supplied generated art; source provenance retained"
+    },
+    {
+      "file": "sprites/gemtower-f-creeps-ground.png",
+      "sha256": "b46c6d02807ae1916b17d8620ec40b1ccdb4af1e3607e4b354db123af36a6171",
+      "source": "F2 derivative of recorded B source atlas; see image-variants ledger",
+      "license": "existing supplied generated art; source provenance retained"
+    },
+    {
+      "file": "sprites/gemtower-f-creeps-late.png",
+      "sha256": "9eb1375e3162685c264a7071defd47cc68dabb374f248d19cd7748380905a1cc",
+      "source": "F2 derivative of recorded B source atlas; see image-variants ledger",
+      "license": "existing supplied generated art; source provenance retained"
+    },
+    {
+      "file": "sprites/gemtower-f-creeps-boss.png",
+      "sha256": "227dfc63052c94c753dc9b7612d3e6a8a3583b19093e895fbc85800fcdb0eb73",
+      "source": "F2 derivative of recorded B source atlas; see image-variants ledger",
+      "license": "existing supplied generated art; source provenance retained"
+    },
+    {
+      "file": "sprites/gemtower-f-effects.png",
+      "sha256": "6ef73a73178f074823d73f73a8d86810e7523850dd79be16f4304b1cde827289",
+      "source": "F2 derivative of recorded B source atlas; see image-variants ledger",
+      "license": "existing supplied generated art; source provenance retained"
     }
   ],
   "palette": {
@@ -814,5 +856,38 @@
     "sapphire": "#3e93ba",
     "ruby": "#d74e3c",
     "topaz": "#d4ac43"
+  },
+  "preload": [
+    "ground:grass:0",
+    "ground:grass:1",
+    "ground:grass:2",
+    "ground:grass:3",
+    "ground:path:horizontal",
+    "field:checkpoint",
+    "field:entrance",
+    "field:exit",
+    "pedestal:0",
+    "pedestal:1",
+    "pedestal:2",
+    "pedestal:3",
+    "pedestal:4",
+    "pedestal:5",
+    "pedestal:selected:0",
+    "pedestal:selected:1",
+    "pedestal:selected:2",
+    "pedestal:selected:3",
+    "pedestal:selected:4",
+    "pedestal:selected:5",
+    "field:stone",
+    "field:slate",
+    "field:placement",
+    "gem:*",
+    "special:*",
+    "terrain:stone"
+  ],
+  "optimization": {
+    "contract": "F2 author-approved derivatives; UI lossless decoded-pixel equality",
+    "sourceRevision": "9ff5970bd2bf403917de4c6550063b446f5cee93",
+    "proof": "docs/assets/gemtower-f/image-variants.json"
   }
 }
