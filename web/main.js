@@ -1,3 +1,5 @@
+import {createRecordBook,createResultStats,koreanDate,dailySeed,challengeFromQuery,challengeURL,shareChallenge} from './result-records.js';
+import {mountResultView} from './result-view.js';
 import {FIRST_RUN_TIPS} from './first-run-guide.js';
 import {H_AUDIO_CUES,H_BGM,H_CUE_SETTINGS} from './audio-catalog.js';
 import {mountAudioSettings} from './audio-settings.js';
@@ -12,7 +14,7 @@ import {createButtonReasonView,unavailableReason} from './button-reasons.js';
 import {desktopFieldLayout,sourceWaveCounts,nextWaveView,mountNextWave,attackRangeModels,drawAttackRanges,isExitThreat,creepStatusIcons,hasEnemySlowAura,drawCreepStatus,drawExitThreat,mountHudLifeCue} from './battlefield-readability.js';
 import {parseJass} from './dist/jass/parser.js';
 import {fourCC} from './dist/ir/fourcc.js';
-import {drawFieldGem,drawFieldStone,drawFieldSlate,drawFieldPlacement,drawMineCreep,creepHealthPresentation} from './field-units.js';
+import {drawFieldGem,drawFieldStone,drawFieldSlate,drawFieldPlacement,drawMineCreep,creepHealthPresentation,fieldGradeIndex} from './field-units.js';
 import {createRouteIntro,drawFieldLandmarks} from './field-ground.js';
 import {createPrecisionCamera} from './precision-camera.js';
 import {mountGameMenu} from './game-menu.js';
@@ -65,6 +67,8 @@ const gemSkin=mountGemSkin({document,
 simplifyPlayShell(document);
 const recipeGuide=mountRecipeBook(document);
 const gameMenu=mountGameMenu(document);
+const recordBook=createRecordBook(()=>globalThis.localStorage);
+const resultView=mountResultView(document,{same:model=>startChallenge(model.profile),today:()=>startChallenge({seed:dailySeed(koreanDate()),dailyDate:koreanDate(),mode:'race',difficulty:0}),share:model=>shareChallenge(navigator,{title:'보석타워',text:`보석타워 ${model.profile.dailyDate?'오늘의 판 ':''}${model.wave}웨이브 · 같은 첫 보석으로 도전하기`,url:challengeURL(location.href,model.profile)})});
 const buttonReasons=createButtonReasonView(document);
 const roundSlotsHelp=document.createElement('small');roundSlotsHelp.id='roundSlotsHelp';roundSlotsHelp.className='round-slots-help';roundSlotsHelp.hidden=true;$('roundTray').append(roundSlotsHelp);
 const researchShortcut=mountResearchShortcut(document,{purchase:techId=>requestResearch(world,techId),reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches});
@@ -108,7 +112,8 @@ const visualReady=sprites.load(artManifestURL.href,{lazy:true}).then(()=>{
 });
 const NEUTRAL_GC = { armorFactorPm: 60, strHitPointBonus: 0, agiDefenseBonusPm: 0, intManaBonusPm: 0 };
 const sessionQuery = new URLSearchParams(location.search);
-let sessionSeed = parseSessionSeed(sessionQuery.get("seed"),null) ?? freshSessionSeed(undefined,crypto);
+const launchChallenge=challengeFromQuery(sessionQuery);
+let sessionSeed = launchChallenge?.seed ?? parseSessionSeed(sessionQuery.get("seed"),null) ?? freshSessionSeed(undefined,crypto);
 const MAP_URL = "../fixtures/maps/GemTower_Max_7C.w3x";
 const localSourceMode=isLocalGameHost(location.hostname)&&sessionQuery.get("input")!=="files";
 let selectedSource=null;
@@ -353,8 +358,9 @@ function boot(bytes, presentation, stockProfile, seed) {
   rectEntered = 0; deaths = 0; gatePassed = 0;
   w.recordInput=input=>recordInput(w,input);
   focusPlayer(w);
+  w.resultStats=createResultStats();
   w.soundRouter=createSoundEventRouter({playerId:0});w.soundQueue=[];w.soundCalls=[];w.soundWaveSeen=new Set();w.soundState=null;w.soundDeaths=new Map();
-  w.deathUnsubscribe=sim.observeUnitDeaths?.(death=>{const bounds=w.mobileFields?.[0]?.bounds;if(restoring||loadingRun||runtimeFailed||document.hidden||!bounds||death.unit?.owner!==11||!pointInBattlefield(death.unit,bounds))return;w.soundDeaths.set(death.unitId,death);if(w.soundDeaths.size>128)w.soundDeaths.delete(w.soundDeaths.keys().next().value);});
+  w.deathUnsubscribe=sim.observeUnitDeaths?.(death=>{w.resultStats.death(death,death.killer?fullName(w,death.killer.typeId):'');const bounds=w.mobileFields?.[0]?.bounds;if(restoring||loadingRun||runtimeFailed||document.hidden||!bounds||death.unit?.owner!==11||!pointInBattlefield(death.unit,bounds))return;w.soundDeaths.set(death.unitId,death);if(w.soundDeaths.size>128)w.soundDeaths.delete(w.soundDeaths.keys().next().value);});
   w.soundUnsubscribe=vm.observeSoundCalls?.(call=>{if(!restoring&&!loadingRun&&!runtimeFailed&&!document.hidden){w.soundCalls.push(call);if(w.soundCalls.length>64)w.soundCalls.shift();}});
   w.viewFeedback=actionFeedback;w.cueAudio=actionAudio;w.lifeHud=lifeHud;w.observePlayView=()=>{observeWaveWarnings(w);observeFirstEnemy(w);};
   w.fieldFeedback=createFieldFeedback({reducedMotion:()=>reducedMotion.matches});
@@ -1152,6 +1158,7 @@ function render(w,preservePendingDialog=false) {
     }
   }
   const sourceState=gemTowerPlayerState(w.vm),difficulty=sourceState.difficulty??0;
+  renderResultDetails(w);
   const difficultyName=difficulty?w.vm.getGlobalIndexed('vI',30+difficulty):null;
   $("difficultyTag").textContent=sourceDifficultyChoices(w)[difficulty-1]?.label??(difficultyName?.t==='string'?sourceText(w,difficultyName.v):w.startupChoice?'선택한 난이도 적용 중':'선택 전');
   const dialog=w.registry.dialogIds.map(id=>w.vm.handles.get(id)).find(d=>d?.kind==='dialog'&&d.id!==w.modeDialog?.dialogId&&(d.data.visibleTo??[]).includes(0)&&d.data.buttons?.length);
@@ -1353,6 +1360,7 @@ function renderTraining(w){
 
 function stepN(w, n) {
   for (let i = 0; i < n; i++) {
+    const resultLifeBefore=w.resultStats?gemTowerPlayerState(w.vm).life:null,resultMineAttackers=[];
     w.sim.step();
     // G-6: hp 차분 → 특수뎀/엔진뎀 통합 TextTag(재구현 0 — 엔진이 이미 깎은 hp를 관측만). 사망 유닛은
     // step()에서 제거된 사망 유닛의 마지막 HP 전이는 아래 UnitDied 처리에서 관측한다.
@@ -1436,6 +1444,7 @@ function stepN(w, n) {
         }
       } else if (ev.kind === "UpgradeFinished") {
         flash("강화 완료: " + fullName(w,ev.targetTypeId));
+        if(ev.owner===0)w.resultStats?.replace([ev.unitId],{id:ev.unitId,name:fullName(w,ev.targetTypeId)});
         if(ev.owner===0)showActionSuccess(w,'upgrade',{id:ev.unitId,typeId:ev.targetTypeId});
       } else if(ev.kind === "UpgradeRejected") {
         flash(ev.reason==='not-owner'?'라운드가 바뀌어 강화를 취소했습니다 · 전투 중 다시 선택하세요':ev.reason==='insufficient-gold'?'강화할 골드가 부족합니다':ev.reason==='busy'?'이미 강화 중입니다':'강화 조건이 바뀌어 요청을 취소했습니다');
@@ -1449,6 +1458,8 @@ function stepN(w, n) {
       } else if (ev.kind === "ResearchFinished" || ev.kind === "ResearchRejected") {
         observeResearchResult(w,ev);
       } else if (ev.kind === "Attacked") {
+        const attacker=lastPos.get(ev.attackerUnitId),target=lastPos.get(ev.targetUnitId);
+        if(attacker?.owner===11&&target?.owner===0&&GEMTOWER_BALANCE.roleTable[target.typeId]?.archetype==='mine')resultMineAttackers.push({id:ev.attackerUnitId,name:fullName(w,attacker.typeId)});
         if (w.sim.getUnit(ev.attackerUnitId)?.owner === 0) w.observedAttacks++;
         // U-2e: 발사 성공마다(사망 무관, world_api.ts 주석 "G-1") 발화 — 좌표는 lastPos 스냅샷에서
         // 가져온다(위 hp루프가 이번 틱 종료 시점 위치로 갱신, 사망 타겟은 직전 틱 위치 폴백). 색은
@@ -1477,7 +1488,7 @@ function stepN(w, n) {
         if (w.selectedGemId === req.unitId || w.selectedGemId === null) w.selectedGemId = observed.result.id;
         const combined=["A007","A00R","A03M"].includes(req.abilityId);
         flash((combined?"조합 완료: ":"시전 결과: ") + fullName(w, observed.result.typeId));
-        if(combined){w.guideChoiceConfirmed=true;showActionSuccess(w,'combine',observed.result);observeRareGemSound(w,observed.result);}
+        if(combined){w.resultStats?.replace([req.unitId],{id:observed.result.id,name:fullName(w,observed.result.typeId)});w.guideChoiceConfirmed=true;showActionSuccess(w,'combine',observed.result);observeRareGemSound(w,observed.result);}
       } else {
         const kept=w.sim.getUnit(req.unitId);
         flash(req.abilityId==='A009'&&kept?.alive&&kept.owner===0&&gemTowerPlayerState(w.vm).chosen===true?keepResultNotice(fullName(w,kept.typeId),kept.id,req.hand,ownedRocks(w)):"능력 사용됨");
@@ -1486,6 +1497,7 @@ function stepN(w, n) {
     }
     // P-4: 종결 후에도 sim.step()이 계속 도는 것은 무의미(endGame은 멱등이지만 자원 낭비+오버레이 표시
     // 중 배경이 계속 바뀌는 것은 D5 "관측 가능성"과 무관한 잡음) — 즉시 배치 중단.
+    w.resultStats?.loss(resultLifeBefore,gemTowerPlayerState(w.vm).life,resultMineAttackers);
     observeGameSoundState(w);flushGameSound(w);
     if (w.gameOver) break;
   }
@@ -1987,11 +1999,31 @@ function startNewGame(showSetup=false){
  if(checkpointRun(world,true).kind==='failed')return false;
  setDrawer(false);return loadFromUrl(freshSessionSeed(sessionSeed,crypto),{showSetup});
 }
-function commitSessionSeed(seed) {
+function startChallenge(profile){
+ if(!profile)return false;
+ if(world&&!world.gameOver&&!confirm('진행 중인 판을 저장하고 도전을 새로 시작할까요?'))return false;
+ if(checkpointRun(world,true).kind==='failed')return false;
+ setDrawer(false);return loadFromUrl(profile.seed,{startupProfile:profile});
+}
+function renderResultDetails(w){
+ if(!w?.gameOver){resultView.render(null);resultView.records(recordBook.list());return;}
+ if(restoring||loadingRun||runtimeFailed)return;
+ const state=gemTowerPlayerState(w.vm),stats=w.resultStats?.snapshot()??{kills:0,unattributed:0,top:[],lastLoss:null};
+ const gems=gemTowerPlayerGemIds(w.vm,0).map(id=>w.sim.getUnit(id)).filter(e=>e?.alive&&e.owner===0);
+ const highest=gems.map(e=>({name:fullName(w,e.typeId),rank:fieldGradeIndex(fullName(w,e.typeId))??-1})).sort((a,b)=>b.rank-a.rank)[0]?.name??'';
+ const profile={seed:w.seed,mode:w.runMode??'race',difficulty:Math.max(0,(state.difficulty??1)-1),dailyDate:w.challengeDate??null};
+ const model={runId:w.runId,seed:w.seed,mode:profile.mode,difficulty:profile.difficulty+1,dailyDate:profile.dailyDate,wave:state.round??waveNum,tick:w.sim.tickCount,winner:w.gameOver.winner};
+ w.resultRecord??=recordBook.record(model);
+ const units=stats.lastLoss?.units??[],cause=model.winner===0?'모든 웨이브를 클리어했습니다':units.length?'마지막 광산 공격: '+units.map(e=>e.name+' '+e.count+'마리').join(' · '):'광산의 생명을 모두 잃었습니다';
+ resultView.render({...model,profile,stats,cause,gems:gems.length,highest,record:w.resultRecord});resultView.records(recordBook.list());
+}
+function commitSessionSeed(seed,profile=null) {
   const url=new URL(location.href);url.searchParams.set('seed',String(seed));
+  for(const key of ['daily','mode','difficulty'])url.searchParams.delete(key);
+  if(profile){url.searchParams.set('mode',profile.mode);url.searchParams.set('difficulty',String(profile.difficulty));if(profile.dailyDate)url.searchParams.set('daily',profile.dailyDate);}
   history.replaceState(history.state,'',url);sessionSeed=seed;
 }
-async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false}={}) {
+async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false,startupProfile=null}={}) {
   if(loadingRun)return false;
   checkpointRun(world,true);
   const priorWorld=world,priorFailure=runtimeFailed;let loaded=false;
@@ -2027,13 +2059,14 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false}={
     $("engineTag").textContent = "보석 5개 건설 → 보석 선택 또는 같은 보석 조합";
     playing = false; $("play").textContent = "방식 선택";
     let returning=true;try{returning=listRunRecords(localStorage,contentBuild,replayBuild).some(r=>r.trace);}catch{ /* Storage access failure keeps the explicit choice screen. */ }
-    if(!restoring&&!showSetup&&!returning)chooseStartup('race',0);
+    if(!restoring&&!showSetup&&startupProfile){world.challengeDate=startupProfile.dailyDate??null;chooseStartup(startupProfile.mode,startupProfile.difficulty);}
+    else if(!restoring&&!showSetup&&!returning)chooseStartup('race',0);
     render(world);
     if(!restoring){await visualReady;if(document.fonts?.ready)await document.fonts.ready;}
     if(!restoring)world?.syncDeviceView?.();
     if(runtimeFailed||world?.runtimeCrashes?.length)throw Error('게임 화면을 준비하지 못했습니다. 다시 열어 주세요.');
     if(!restoring)loadingScreen.finish();
-    if(publishSeed)commitSessionSeed(seed);
+    if(publishSeed)commitSessionSeed(seed,startupProfile);
     loaded=true;return true;
   } catch (e) {
     const alreadyFailed=runtimeFailed;
@@ -2080,7 +2113,7 @@ window.addEventListener("pagehide", () => {
 window.addEventListener("pageshow", event => {
  frameClock.reset();if(event?.persisted)playing=false;renderControls(world);
 });
-resize(); requestAnimationFrame(loop); loadFromUrl();
+resize(); requestAnimationFrame(loop); loadFromUrl(sessionSeed,{startupProfile:launchChallenge});
 
 function renderStartupOptions(w){
  if(!w?.modeDialog||w.modeDialog.clicked)return;

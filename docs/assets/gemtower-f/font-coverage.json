@@ -1189,6 +1189,7 @@
       51064,
       51068,
       51069,
+      51075,
       51076,
       51077,
       51080,
@@ -1378,7 +1379,7 @@
       55180,
       55192
     ],
-    "uiGlyphHash": "2b667fd06fc7083e1926cc532e92bfa4bbe6b81d4940aed6e65a31980bfb9580",
+    "uiGlyphHash": "548ac4b39f33bdb6894a2d264e3f35d6efa0cfe4da43872bcc890a5f47d084d1",
     "uiFiles": [
       "web/index.html",
       "web/play.css",
@@ -1408,6 +1409,8 @@
       "web/precision-camera.js",
       "web/recipe-book.js",
       "web/recipe-view.js",
+      "web/result-records.js",
+      "web/result-view.js",
       "web/run-checkpoint.js",
       "web/run-storage.js",
       "web/sound-events.js",
