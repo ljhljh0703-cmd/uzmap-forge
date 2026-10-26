@@ -1,3 +1,4 @@
+import {setHidden,setText,setData,setStyle,setProperty,setAttribute} from './dom-state.js';
 /** View-only models. Resolved source facts enter here; no command, VM write or RNG. */
 export function desktopFieldLayout(bounds,width,height,padding=20,{compactLandscape=false}={}){
  if(!Number.isFinite(width)||width<=0||width<=900&&!compactLandscape||!bounds||!Number.isFinite(height)||height<=padding*2)return null;
@@ -36,15 +37,15 @@ export function formatNextWaveLine(model){
  return ['다음 '+model.round+'웨이브',model.name,[model.motion,model.count===null?'마리 수 확인 중':model.count+'마리'].filter(Boolean).join(' '),model.band==='boss'?'보스':'',model.life===null?'피해 확인 중':'생명 -'+model.life+'/마리'].filter(Boolean).join(' · ');
 }
 export function mountNextWave(doc,draw){
- const phone=doc.createElement('p');phone.id='phoneWavePreview';phone.className='phone-wave-preview';phone.hidden=true;doc.querySelector('.phasebar')?.prepend(phone);
+ const phone=doc.createElement('p');phone.id='phoneWavePreview';phone.className='phone-wave-preview';setHidden(phone,true);doc.querySelector('.phasebar')?.prepend(phone);
  const host=doc.getElementById('bottomPanel'),section=doc.createElement('section'),title=doc.createElement('h2'),art=doc.createElement('canvas'),name=doc.createElement('strong'),facts=doc.createElement('p'),risk=doc.createElement('p');
- section.id='nextWavePreview';section.className='next-wave-preview';section.setAttribute('aria-label','다음 웨이브');art.width=64;art.height=64;art.setAttribute('aria-hidden','true');const text=doc.createElement('div');text.append(title,name,facts,risk);section.append(art,text);host.append(section);let signature='';
+ section.id='nextWavePreview';section.className='next-wave-preview';setAttribute(section,'aria-label','다음 웨이브');art.width=64;art.height=64;setAttribute(art,'aria-hidden','true');const text=doc.createElement('div');text.append(title,name,facts,risk);section.append(art,text);host.append(section);let signature='';
  return {render(model,{visible=true}={}){
-  section.hidden=!visible;phone.hidden=!model||!visible;const line=formatNextWaveLine(model);if(phone.textContent!==line)phone.textContent=line;phone.title=line;phone.setAttribute('aria-label',model?'다음 '+model.round+'웨이브 · '+model.name+' · '+(model.count===null?'마리 수 확인 중':model.count+'마리')+' · '+model.motion+' · '+(model.life===null?'광산 도착 피해 확인 중':'한 마리가 광산에 도착하면 생명 '+model.life+' 감소'):'');
+  setHidden(section,!visible);setHidden(phone,!model||!visible);const line=formatNextWaveLine(model);if(phone.textContent!==line)setText(phone,line);setProperty(phone,"title",line);setAttribute(phone,'aria-label',model?'다음 '+model.round+'웨이브 · '+model.name+' · '+(model.count===null?'마리 수 확인 중':model.count+'마리')+' · '+model.motion+' · '+(model.life===null?'광산 도착 피해 확인 중':'한 마리가 광산에 도착하면 생명 '+model.life+' 감소'):'');
   const key=JSON.stringify([model,draw?.ready?.()??false]);if(key===signature)return;signature=key;
-  title.textContent=model?'다음 웨이브 · '+model.round:'마지막 웨이브';name.textContent=model?.name??'마지막 적을 막아 주세요';facts.textContent=model?[model.motion,model.count===null?'마리 수 확인 중':model.count+'마리'].join(' · '):'';
-  risk.textContent=model?model.life===null?'광산 도착 피해 확인 중':'광산 도착 시 한 마리마다 생명 '+model.life+' 감소':'';
-  let ctx;try{ctx=art.getContext('2d');ctx?.clearRect(0,0,64,64);}catch{}art.hidden=!model?.typeId||!ctx||!draw?.(ctx,model,32,32,56);
+  setText(title,model?'다음 웨이브 · '+model.round:'마지막 웨이브');setText(name,model?.name??'마지막 적을 막아 주세요');setText(facts,model?[model.motion,model.count===null?'마리 수 확인 중':model.count+'마리'].join(' · '):'');
+  setText(risk,model?model.life===null?'광산 도착 피해 확인 중':'광산 도착 시 한 마리마다 생명 '+model.life+' 감소':'');
+  let ctx;try{ctx=art.getContext('2d');ctx?.clearRect(0,0,64,64);}catch{}setHidden(art,!model?.typeId||!ctx||!draw?.(ctx,model,32,32,56));
  }};
 }
 
@@ -115,7 +116,7 @@ export function drawExitThreat(ctx,{x,y,size}={}){
 /** Uses the existing feedback queue for timing/dedup; an independent view canvas
  * reaches the HUD without widening the battlefield clip or its picking surface. */
 export function mountHudLifeCue({document:doc,sprites,feedback,now=()=>performance.now(),reducedMotion=()=>false}={}){
- const app=doc.getElementById('gameApp'),canvas=doc.createElement('canvas');canvas.id='lifeLossOverlay';canvas.className='life-loss-overlay';canvas.setAttribute('aria-hidden','true');app.append(canvas);const ctx=canvas.getContext('2d');
+ const app=doc.getElementById('gameApp'),canvas=doc.createElement('canvas');canvas.id='lifeLossOverlay';canvas.className='life-loss-overlay';setAttribute(canvas,'aria-hidden','true');app.append(canvas);const ctx=canvas.getContext('2d');
  return {emit({key}={}){return feedback.emit({kind:'life',key,x:0,y:0,space:'screen'});},clear(){feedback.clear();ctx?.clearRect(0,0,canvas.width,canvas.height);},draw(){
   if(!ctx)return;const width=app.clientWidth,height=app.clientHeight;if(canvas.width!==width)canvas.width=width;if(canvas.height!==height)canvas.height=height;ctx.clearRect(0,0,width,height);
   if(doc.hidden)return;

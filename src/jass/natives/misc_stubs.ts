@@ -15,6 +15,25 @@ function registerVoidStubs(vm: JassVm, names: string[]): void {
 }
 
 export function registerMiscStubs(vm: JassVm): void {
+  // Final source review2026-10-27: these30 GemTower calls are replaced by
+  // the web HUD/audio, or refer only to unavailable legacy presentation.
+  // Keep this explicit; unknown gameplay natives must still emit INV-D5.
+  // Null presentation handles deliberately allocate nothing, preserving the
+  // game-unit handle stream and avoiding fake visual-object lifetime leaks.
+  registerVoidStubs(vm, [
+    "LeaderboardDisplayBJ", "DestroyBoolExpr", "LeaderboardSetLabelColorBJ",
+    "LeaderboardSetValueColorBJ", "LeaderboardSetPlayerItemLabelColorBJ",
+    "LeaderboardSetPlayerItemLabelBJ", "TimerDialogDisplay", "SetUserControlForceOn",
+    "SetPlayerName", "MultiboardDisplay", "MultiboardSetItemStyleBJ",
+    "MultiboardSetItemColorBJ", "MultiboardSetItemValueBJ", "MultiboardSetItemWidthBJ",
+    "MultiboardMinimize", "FlashQuestDialogButton", "QuestMessageBJ", "PlaySoundAtPointBJ",
+    "DestroyEffect", "SetDestructableInvulnerable", "SetUnitVertexColorBJ", "PlaySoundBJ",
+    "SetTextTagPermanentBJ", "SetTextTagLifespanBJ",
+  ]);
+  for (const name of ["CreateFogModifierRectBJ", "CreateMultiboardBJ", "CreateQuestBJ",
+    "AddSpecialEffectLocBJ", "CreateTextTagLocBJ", "AddSpecialEffectTargetUnitBJ"]) {
+    vm.registerNative(name, () => vhandle(null));
+  }
   // 사운드 — 완전 no-op(D-4: 로그만, 소리는 M3 몫).
   registerVoidStubs(vm, [
     "CreateSound",

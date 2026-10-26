@@ -583,3 +583,18 @@ aside .drawer-head h2{font-size:18px;line-height:1.5;margin:0}.drawer-head #draw
 .precise-placement,.damage-option,.sound-volume{min-height:44px}
 
 .daily-note{font-size:12px;line-height:1.6;color:var(--dim);word-break:keep-all}
+
+/* Final review F2: setup gets the same viewport-based modal as results.
+ * Keep the existing board dimensions. The daily action is a fixed card child;
+ * short screens scroll only the inset body, so text cannot cross the frame. */
+#modeSelect{position:fixed;inset:0;z-index:40;padding:16px;align-items:safe center}
+#modeSelect>.mode-card{display:flex;flex-direction:column;max-height:calc(100dvh - 32px);min-height:0;overflow:hidden;gap:8px}
+#modeSelect>.mode-card>.eyebrow,#modeSelect>.mode-card>h2,#startupDaily{flex-shrink:0}
+#modeSelect .mode-card-scroll{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:2px 4px 12px;margin:0 -4px}
+#modeSelect .mode-card-scroll>.mode-note{margin-bottom:0}
+#modeSelect #startupDaily{order:-1;margin:0;min-height:44px}
+.field-daily{position:absolute;left:12px;bottom:12px;z-index:8;min-height:44px;padding:8px 12px;font-size:13px;background:#2b2117}
+.field-daily[hidden]{display:none}
+#startDaily{margin-top:12px}
+
+.precise-placement input,.damage-option input{accent-color:#d5b568}

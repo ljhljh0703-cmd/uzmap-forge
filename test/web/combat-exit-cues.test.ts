@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,7 +19,7 @@ it('the actual source-life view announces one observed decrease in the HUD regio
  const source=fs.readFileSync('web/main.js','utf8'),fn=source.match(/^function renderFieldView\([^\n]*\{[\s\S]*?\n\}/m)?.[0];assert.ok(fn);const nodes:any={},span={textContent:''};let writes=0,notice='';
  const node=(id:string)=>nodes[id]??=( {dataset:{},textContent:'',hidden:false,inert:false,tabIndex:0,setAttribute(){},querySelector:()=>span,closest:()=>({dataset:{}})} );
  const live=node('lifeLossStatus');Object.defineProperty(live,'textContent',{get:()=>notice,set:(s:string)=>{notice=s;if(s)writes++;}});
- let life=15,now=100,cues=0;const context:any={lifeHud:{emit(){cues++;}},document:{hidden:false},$:node,gemTowerPlayerState:()=>({life,round:1,chosen:true}),lifeLossFeedback,selectionStageHint,restoring:false,RESEARCH_IDS:[],performance:{now:()=>now}};vm.runInNewContext(fn!,context);
+ let life=15,now=100,cues=0;const context:any={lifeHud:{emit(){cues++;}},document:{hidden:false},$:node,gemTowerPlayerState:()=>({life,round:1,chosen:true}),lifeLossFeedback,selectionStageHint,restoring:false,RESEARCH_IDS:[],performance:{now:()=>now}};vm.runInNewContext(fn!,Object.assign(context,domState));
  const w:any={viewPlayerId:0,selectedGemId:null,sim:{playerState:{getSlotState:(id:number)=>id===0?1:0}},vm:{},modeDialog:{clicked:true},pendingBuilds:[]};
  context.renderFieldView(w);life=16;context.renderFieldView(w);assert.equal(writes,0);life=13;context.renderFieldView(w);assert.match(notice,/생명 3 감소/);assert.match(notice,/13/);assert.equal(writes,1);assert.equal(cues,1);
  for(let i=0;i<10;i++)context.renderFieldView(w);assert.equal(writes,1);assert.equal(node('exitMarker').dataset.hit,'true');now+=1801;context.renderFieldView(w);assert.equal(node('exitMarker').dataset.hit,'false');

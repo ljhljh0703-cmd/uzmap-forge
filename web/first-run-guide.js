@@ -1,3 +1,4 @@
+import {setHidden,setText,setData,setStyle,setProperty,setAttribute} from './dom-state.js';
 /** UI-only observation. Source snapshots stay read-only; the single storage key
  * is a visit preference, never a run/replay/save field or a game command. */
 export const FIRST_RUN_GUIDE_KEY='uzmap.ui.gemtower.tutorial.v1';
@@ -208,14 +209,14 @@ export function createResearchAffordance(){
 export function mountResearchShortcut(doc,{purchase=()=>false,reducedMotion=()=>false}={}){
  const host=doc.getElementById('bottomPanel');
  const section=doc.createElement('section'),button=doc.createElement('button'),info=doc.createElement('button'),detail=doc.createElement('p');
- section.id='researchShortcut';section.className='research-shortcut';section.hidden=true;section.setAttribute('aria-label','보석 등급 연구');
- button.id='quickResearch';button.type='button';info.id='quickResearchInfo';info.type='button';info.className='sec';info.textContent='ⓘ';info.setAttribute('aria-label','연구 효과 보기');info.setAttribute('aria-expanded','false');info.setAttribute('aria-controls','quickResearchDetail');
- detail.id='quickResearchDetail';detail.hidden=true;detail.className='research-shortcut-detail';button.setAttribute('aria-describedby',detail.id);section.append(button,info,detail);host.append(section);
+ section.id='researchShortcut';section.className='research-shortcut';setHidden(section,true);setAttribute(section,'aria-label','보석 등급 연구');
+ button.id='quickResearch';button.type='button';info.id='quickResearchInfo';info.type='button';info.className='sec';setText(info,'ⓘ');setAttribute(info,'aria-label','연구 효과 보기');setAttribute(info,'aria-expanded','false');setAttribute(info,'aria-controls','quickResearchDetail');
+ detail.id='quickResearchDetail';setHidden(detail,true);detail.className='research-shortcut-detail';setAttribute(button,'aria-describedby',detail.id);section.append(button,info,detail);host.append(section);
  const cue=createResearchAffordance();let latest=null,signature='';button.onclick=()=>{if(latest&&!button.disabled)purchase(latest.techId);};
- info.onclick=()=>{detail.hidden=!detail.hidden;info.setAttribute('aria-expanded',String(!detail.hidden));};
+ info.onclick=()=>{setHidden(detail,!detail.hidden);setAttribute(info,'aria-expanded',String(!detail.hidden));};
  return {render(model,{runId=null,suppressed=false}={}){
-  latest=model;section.hidden=!model;if(!model)return;
-  const key=JSON.stringify(model);if(key!==signature){signature=key;button.textContent=(model.techId==='R000'?'보석 등급':'찬스 확률')+(model.level>=model.maxLevel?' · 완료':' · '+model.cost+'골드');button.setAttribute('aria-label',model.label);button.disabled=Boolean(model.disabled);button.dataset.techId=model.techId;button.title=model.reason||'';detail.textContent=model.explanation+' · '+model.level+'/'+model.maxLevel+'단계';}
+  latest=model;setHidden(section,!model);if(!model)return;
+  const key=JSON.stringify(model);if(key!==signature){signature=key;setText(button,(model.techId==='R000'?'보석 등급':'찬스 확률')+(model.level>=model.maxLevel?' · 완료':' · '+model.cost+'골드'));setAttribute(button,'aria-label',model.label);setProperty(button,"disabled",Boolean(model.disabled));setData(button,"techId",model.techId);setProperty(button,"title",model.reason||'');setText(detail,model.explanation+' · '+model.level+'/'+model.maxLevel+'단계');}
   if(cue.observe(runId,model,suppressed)&&!reducedMotion())try{button.animate?.([{filter:'brightness(1)'},{filter:'brightness(1.5)'},{filter:'brightness(1)'}],{duration:650,iterations:1});}catch{}
  }};
 }
@@ -223,11 +224,11 @@ export function mountResearchShortcut(doc,{purchase=()=>false,reducedMotion=()=>
 /** Small adjacent guide; existing game controls remain active throughout. */
 export function mountFirstRunGuide(doc,{skip=()=>{},next=()=>{}}={}){
  const host=doc.getElementById('playPhase')??doc.getElementById('bottomPanel'),section=doc.createElement('section'),head=doc.createElement('div'),progress=doc.createElement('strong'),text=doc.createElement('p'),nextButton=doc.createElement('button'),skipButton=doc.createElement('button');
- section.id='firstRunGuide';section.className='first-run-guide';section.hidden=true;section.setAttribute('aria-label','첫 판 안내');head.className='first-run-guide-head';progress.id='tutorialProgress';text.id='tutorialText';text.setAttribute('role','status');
- nextButton.id='tutorialNext';nextButton.type='button';nextButton.className='sec';nextButton.textContent='다음';nextButton.onclick=next;skipButton.id='tutorialSkip';skipButton.type='button';skipButton.className='sec';skipButton.textContent='건너뛰기';skipButton.onclick=skip;head.append(progress,nextButton,skipButton);section.append(head,text);host.append(section);
+ section.id='firstRunGuide';section.className='first-run-guide';setHidden(section,true);setAttribute(section,'aria-label','첫 판 안내');head.className='first-run-guide-head';progress.id='tutorialProgress';text.id='tutorialText';setAttribute(text,'role','status');
+ nextButton.id='tutorialNext';nextButton.type='button';nextButton.className='sec';setText(nextButton,'다음');nextButton.onclick=next;skipButton.id='tutorialSkip';skipButton.type='button';skipButton.className='sec';setText(skipButton,'건너뛰기');skipButton.onclick=skip;head.append(progress,nextButton,skipButton);section.append(head,text);host.append(section);
  let target=null;return {render(model){
-  section.hidden=!model;host.dataset.guideActive=String(Boolean(model));let desired=null;
-  if(model){progress.textContent='안내 '+model.step+'/4';text.textContent=model.text;text.title=model.text;skipButton.textContent=model.manual?'닫기':'건너뛰기';nextButton.hidden=!model.manual;nextButton.textContent=model.step===4?'닫기':'다음';desired=doc.querySelector(({build:'.build-cell:not(:disabled)',hand:'.round-slots',life:'#hudLife',research:'#quickResearch'})[model.anchor]);if(desired?.getClientRects&&!desired.getClientRects().length)desired=null;section.dataset.step=String(model.step);}
+  setHidden(section,!model);setData(host,"guideActive",String(Boolean(model)));let desired=null;
+  if(model){setText(progress,'안내 '+model.step+'/4');setText(text,model.text);setProperty(text,"title",model.text);setText(skipButton,model.manual?'닫기':'건너뛰기');setHidden(nextButton,!model.manual);setText(nextButton,model.step===4?'닫기':'다음');desired=doc.querySelector(({build:'.build-cell:not(:disabled)',hand:'.round-slots',life:'#hudLife',research:'#quickResearch'})[model.anchor]);if(desired?.getClientRects&&!desired.getClientRects().length)desired=null;setData(section,"step",String(model.step));}
   if(target!==desired){target?.classList.remove('tutorial-target');desired?.classList.add('tutorial-target');target=desired;}
  }};
 }

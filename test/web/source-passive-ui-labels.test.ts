@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
 import {combatEffectLabels,attackDisplay,attackTargetLabel} from '../../web/play-ui.js';
 import {rawCodeOf} from '../../src/ir/fourcc.ts';import {resolveWtsText} from '../../src/formats/wts.ts';
@@ -14,8 +15,8 @@ function selectedEffects(){
  const sourceText=source.match(/^function sourceText\([^\n]*$/m)?.[0];assert.ok(sourceText);
  const historical=new Set(['FIRE','Adts']),abilities=new Map([[rawCodeOf('FIRE'),1],[rawCodeOf('Adts'),1]]),node:any={hidden:true,textContent:''},catalog={effects:()=>[],unresolved:historical,unresolvedFor:(current:Map<number,number>)=>(current.get(rawCodeOf('FIRE'))??0)===1?['FIRE']:[]};
  const w={sim:{abilityEffects:catalog,mapIr:{objectMods:[{kind:'ability',baseId:'Aliq',newId:'FIRE',mods:[{field:'anam',value:'TRIGSTR_42'}]}]}},strings:new Map([[42,'|cffff0000원작의 불꽃|r']])};
- const context:any={effectIcons:{render(){}},w,d:{},selected:{abilities},DT:.05,$:()=>node,combatEffectLabels,attackDisplay,attackTargetLabel,resolveWtsText};vm.runInNewContext(sourceText,context);
- return {paint:()=>vm.runInNewContext('{\n'+source.slice(start,end)+'\n}',context),abilities,node,catalog,w};
+ const context:any={effectIcons:{render(){}},w,d:{},selected:{abilities},DT:.05,$:()=>node,combatEffectLabels,attackDisplay,attackTargetLabel,resolveWtsText};vm.runInNewContext(sourceText,Object.assign(context,domState));
+ return {paint:()=>vm.runInNewContext('{\n'+source.slice(start,end)+'\n}',Object.assign(context,domState)),abilities,node,catalog,w};
 }
 it('selected-unit unsupported warnings use current grant/level and original WTS names, not the historical global unresolved set',()=>{
  const f=selectedEffects();f.paint();assert.equal(f.node.hidden,false);assert.match(f.node.textContent,/원작의 불꽃/);assert.match(f.node.textContent,/미지원|지원하지|확인 중/);assert.doesNotMatch(f.node.textContent,/FIRE|Adts|TRIGSTR|NaN|undefined/);

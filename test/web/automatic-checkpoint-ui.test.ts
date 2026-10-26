@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {trainingInterruptionText} from '../../web/play-ui.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
@@ -16,7 +17,7 @@ async function fixture(){
  const callbacks:any={},messages:string[]=[];let paints=0,recordingStops=0;
  const state={difficulty:1,round:1,life:15},world:any={runId:'ui-checkpoint-001',runMode:'race',modeDialog:{clicked:true},runtimeCrashes:[],inputLog:[],selectedGemId:null,sourceVersion:'fixture',vm:{},sim:{tickCount:35,stateHash:()=>{hashReads++;return '844b2f8b';}}};
  const context:any={loadingScreen:{begin(){},receive(){},async reading(){},finish(){},intake(){},error(){}},visualReady:Promise.resolve(),readResponseBytes:async r=>r.arrayBuffer(),soundRecording:{stop(){recordingStops++;}},world,restoring:false,runtimeFailed:false,loadingRun:false,playing:true,contentBuild:'a'.repeat(16),replayBuild:'b'.repeat(16),sessionSeed:6,cam:{cx:0,cy:0,zoom:1},gemTowerPlayerState:()=>state,localStorage:storage,createRunCheckpoint,saveRunRecord,isRunCompatible,$:(id:string)=>nodes[id],flash:(text:string)=>messages.push(text),refreshSavedRuns(){},Date,frameClock:{reset(){}},renderControls(){paints++;},document:{hidden:true,documentElement:{dataset:{}},addEventListener:(type:string,fn:any)=>callbacks[type]=fn},window:{addEventListener:(type:string,fn:any)=>callbacks[type]=fn}};
- vm.runInNewContext(snapshot+'\n'+checkpoint,context);
+ vm.runInNewContext(snapshot+'\n'+checkpoint,Object.assign(context,domState));
  return {code,context,world,state,nodes,storage,data,messages,callbacks,quota:(value:boolean)=>{quota=value;},writes:()=>writes,hashReads:()=>hashReads,paints:()=>paints,recordingStops:()=>recordingStops,list:()=>listRunRecords(storage,context.contentBuild,context.replayBuild)};
 }
 it('actual checkpoint adapter creates a separate auto record with current replay identity and leaves manual bytes unchanged',async()=>{
@@ -41,14 +42,14 @@ it('storage failure preserves the last automatic bytes, stays nonfatal and repor
 });
 it('actual visibility and page lifecycle hooks pause, save once and never resume on return',async()=>{
  const f=await fixture(),visibility=f.code.match(/document[.]addEventListener\("visibilitychange",[\s\S]*?\n\}\);/)?.[0],pagehide=f.code.match(/window[.]addEventListener\("pagehide",[\s\S]*?\n\}\);/)?.[0],pageshow=f.code.match(/window[.]addEventListener\("pageshow",[\s\S]*?\n\}\);/)?.[0];assert.ok(visibility&&pagehide&&pageshow);
- f.context.trainingInterruptionText=trainingInterruptionText;f.context.drag={on:false};const clear=f.code.match(/^function clearPlacement\([^\n]*\{[\s\S]*?^\}/m)?.[0],interrupt=f.code.match(/^function interruptUiOrders\([^\n]*\{[\s\S]*?^\}/m)?.[0];assert.ok(clear&&interrupt);vm.runInNewContext(clear+'\n'+interrupt+'\n'+visibility+'\n'+pagehide+'\n'+pageshow,f.context);f.callbacks.visibilitychange();assert.equal(f.context.playing,false);assert.equal(f.writes(),1);f.callbacks.pagehide();assert.equal(f.writes(),1);f.context.document.hidden=false;f.callbacks.pageshow();assert.equal(f.context.playing,false);assert.ok(f.paints()>0);
+ f.context.trainingInterruptionText=trainingInterruptionText;f.context.drag={on:false};const clear=f.code.match(/^function clearPlacement\([^\n]*\{[\s\S]*?^\}/m)?.[0],interrupt=f.code.match(/^function interruptUiOrders\([^\n]*\{[\s\S]*?^\}/m)?.[0];assert.ok(clear&&interrupt);vm.runInNewContext(clear+'\n'+interrupt+'\n'+visibility+'\n'+pagehide+'\n'+pageshow,Object.assign(f.context,domState));f.callbacks.visibilitychange();assert.equal(f.context.playing,false);assert.equal(f.writes(),1);f.callbacks.pagehide();assert.equal(f.writes(),1);f.context.document.hidden=false;f.callbacks.pageshow();assert.equal(f.context.playing,false);assert.ok(f.paints()>0);
 });
 it('new load checkpoints the healthy old world before clearing its failure flag and never checkpoints a restoring world',async()=>{
  for(const restoring of [false,true]){
   const f=await fixture();f.context.restoring=restoring;
   const load=f.code.match(/^async function loadFromUrl\([^\n]*\{[\s\S]*?^\}/m)?.[0];assert.ok(load);
   Object.assign(f.context,{selectedSource:null,localSourceMode:false,setMsg(){},loadHostedPlayFiles:async()=>null,parseStockProfile(){},showSourceFiles(){},globalThis:{fetch:()=>{}},console});
-  vm.runInNewContext(load,f.context);await f.context.loadFromUrl();assert.equal(f.writes(),restoring?0:1);assert.equal(f.context.loadingRun,false);
+  vm.runInNewContext(load,Object.assign(f.context,domState));await f.context.loadFromUrl();assert.equal(f.writes(),restoring?0:1);assert.equal(f.context.loadingRun,false);
  }
 });
 
@@ -57,7 +58,7 @@ async function restoreFixture(){
  const {validateInputReplay}=await import('../../web/gem-actions.js');const {restoredRunId}=await import('../../web/run-storage.js');
  for(const id of ['restoreProgressText','cancelRestore','researchToggle','msg'])f.nodes[id]={textContent:'',disabled:false,style:{},focus(){}};
  const original=f.world;Object.assign(f.context,{validateInputReplay,restoredRunId,restoreCancelled:false,performance:{now:()=>0},captureRunView:()=>({world:original}),restoreRunView:(before:any)=>{f.context.world=before.world;},loadFromUrl:async()=>{f.context.world={sim:{tickCount:0,stateHash:()=> '11223344',getUnit(){}},sourceVersion:'fixture',runtimeCrashes:[]};return true;},render(){},setDrawer(){},commitSessionSeed(){}});
- vm.runInNewContext(restore,f.context);
+ vm.runInNewContext(restore,Object.assign(f.context,domState));
  const trace={format:'uzmap-ui-input-v1',runId:'other-restored-001',mode:'race',build:f.context.contentBuild,replayBuild:f.context.replayBuild,seed:77,tick:0,stateHash:'11223344',sourceVersion:'fixture',actions:[]};
  return {...f,trace};
 }
@@ -76,5 +77,5 @@ it('unchanged checkpoints do not repeatedly replace the live-region text on ever
 });
 
 it('initial pageshow preserves an explicitly started first game while a back-forward return stays paused',async()=>{
- const f=await fixture(),hook=f.code.match(/window[.]addEventListener\("pageshow",[\s\S]*?\n\}\);/)?.[0];assert.ok(hook);vm.runInNewContext(hook,f.context);f.context.playing=true;f.callbacks.pageshow({persisted:false});assert.equal(f.context.playing,true);f.callbacks.pageshow({persisted:true});assert.equal(f.context.playing,false);
+ const f=await fixture(),hook=f.code.match(/window[.]addEventListener\("pageshow",[\s\S]*?\n\}\);/)?.[0];assert.ok(hook);vm.runInNewContext(hook,Object.assign(f.context,domState));f.context.playing=true;f.callbacks.pageshow({persisted:false});assert.equal(f.context.playing,true);f.callbacks.pageshow({persisted:true});assert.equal(f.context.playing,false);
 });

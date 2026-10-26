@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -14,7 +15,7 @@ function selectionFixture(){
  const world:any={selectedGemId:11,availableComboIds:[22],pendingPointAbility:{unitId:11,abilityId:'A02J'},pendingCombatFocus:true,showRocks:false,sim:{getUnit:(id:number)=>id===22?rock:null},vm:{}};
  const calls:any={renders:0,targets:0,revealed:[]};
  const context:any={gameMenu:{reveal:(id:string)=>calls.revealed.push(id)},world,playing:false,$:(id:string)=>nodes[id],refreshSavedRuns(){},render(){calls.renders++;},cancelGemTarget,gemTowerPlayerGemIds:()=>[],requestGemTarget:()=>{calls.targets++;return true;},availableGemCombinations:()=>[22]};
- vm.runInNewContext(fn('clearPlacement')+'\n'+fn('setDrawer')+'\n'+fn('selectGemById'),context);
+ vm.runInNewContext(fn('clearPlacement')+'\n'+fn('setDrawer')+'\n'+fn('selectGemById'),Object.assign(context,domState));
  return {world,nodes,calls,context};
 }
 it('blocked-path rock entry opens the real drawer and explorer before the existing roster selection',()=>{
@@ -22,7 +23,7 @@ it('blocked-path rock entry opens the real drawer and explorer before the existi
  const path=source.split('\n').find(line=>line.startsWith('$("pathWarning").onclick='));assert.ok(path);
  const a=source.indexOf('$("gemRoster").addEventListener("click"'),b=source.indexOf('// S-A2d',a);
  f.nodes.gemRoster.addEventListener=(_kind:string,handler:Function)=>f.nodes.gemRoster.click=handler;
- vm.runInNewContext(path+'\n'+source.slice(a,b),f.context);f.nodes.pathWarning.onclick();
+ vm.runInNewContext(path+'\n'+source.slice(a,b),Object.assign(f.context,domState));f.nodes.pathWarning.onclick();
  assert.deepEqual(f.calls.revealed,['ownedExplorer']);assert.equal(f.world.showRocks,true);assert.equal(f.nodes.gameDrawer.hidden,false);assert.equal(f.nodes.drawerScrim.hidden,false);assert.equal(f.nodes.ownedExplorer.open,true);
  f.nodes.gemRoster.click({target:{closest:()=>({dataset:{unitId:'22'}})}});assert.equal(f.world.selectedGemId,22,'advertised rock is selectable through the existing roster handler');
 });
@@ -30,7 +31,7 @@ it('combination candidate selection reuses the common selection cleanup instead 
  for(const pendingTarget of [null,{unitId:11,abilityId:'A05L'}]){
   const f=selectionFixture();f.world.pendingTargetAbility=pendingTarget;
   const a=source.indexOf('$("findCombination").onclick=()=>{'),b=source.indexOf('$("showRocks").onclick',a);
-  vm.runInNewContext(source.slice(a,b),f.context);f.nodes.findCombination.onclick();
+  vm.runInNewContext(source.slice(a,b),Object.assign(f.context,domState));f.nodes.findCombination.onclick();
   assert.equal(f.world.selectedGemId,22);assert.equal(f.world.pendingPointAbility,null);assert.equal(f.world.pendingTargetAbility,null);assert.equal(f.world.pendingCombatFocus,false);assert.equal(f.calls.targets,0);
  }
 });
@@ -40,7 +41,7 @@ function renderedActions(reason:string){
  const w:any={sim:{mapIr:{objectMods:['A009','A007','A00R','A03M','A02G','A008','A02J'].map(id=>({kind:'ability',newId:id,mods:[{field:'anam',value:'보유 능력 '+id}]}))},validateAbilityOrder:(_p:number,_u:number,id:string)=>['A03M','A02J','A02G','A008'].includes(id)?reason:'missing-ability'}};
  const a=source.indexOf('    const actions = gemActions(w, selected.id);'),b=source.indexOf('\n\n  } else {',a);assert.ok(a>0&&b>a);
  const context:any={w,selected:{id:22},gemActions,$:(id:string)=>nodes[id],showGemAction,gemActionConditions};
- vm.runInNewContext(fn('abilityOrderReason')+'\n'+source.slice(a,b),context);
+ vm.runInNewContext(fn('abilityOrderReason')+'\n'+source.slice(a,b),Object.assign(context,domState));
  return {nodes,reasonText:context.abilityOrderReason(reason)};
 }
 it('acquired blocked auxiliary actions stay visible with a touch-readable reason instead of a title-only or CSS-hidden reason',()=>{

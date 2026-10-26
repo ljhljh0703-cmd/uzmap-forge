@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 /** Standalone review regression. Can also be copied to test/web/*.test.ts unchanged.
  * Only a synthetic map is used; no product or private original files are written. */
 import {sourceDifficultyLabel} from '../../web/first-minute.js';
@@ -54,8 +55,8 @@ function surface(world){
  const host={children:[],replaceChildren(){this.children=[];},append(b){this.children.push(b);},querySelector(){return this.children[0];},addEventListener(_kind,fn){this.click=fn;}};
  const nodes={sourceDialog:{},sourceDialogTitle:{},sourceDialogButtons:host};
  const context={world,w:world,preservePendingDialog:false,sourceDifficultyLabel:(_w,d,b,f)=>f,$:id=>nodes[id],sourceText:(_w,text)=>text,document:{createElement:()=>({dataset:{},focus(){}})},recordInput:(w,a)=>w.inputLog.push({tick:w.sim.tickCount,...a}),render(){}};
- vm.runInNewContext(clickSource,context);
- return {context,host,paint(preserve=false){context.preservePendingDialog=preserve;vm.runInNewContext("(()=>{\n"+paintSource+"\n})()",context);},paintRestored(){context.render=(w,preserve)=>{assert.equal(w,world);this.paint(preserve);};vm.runInNewContext(finalRestoreRender,context);},click(id){const d=world.vm.getGlobal('d').v;host.click({target:{closest:()=>({dataset:{dialogId:String(d),dialogButton:String(id)}})}});}};
+ vm.runInNewContext(clickSource,Object.assign(context,domState));
+ return {context,host,paint(preserve=false){context.preservePendingDialog=preserve;vm.runInNewContext("(()=>{\n"+paintSource+"\n})()",Object.assign(context,domState));},paintRestored(){context.render=(w,preserve)=>{assert.equal(w,world);this.paint(preserve);};vm.runInNewContext(finalRestoreRender,Object.assign(context,domState));},click(id){const d=world.vm.getGlobal('d').v;host.click({target:{closest:()=>({dataset:{dialogId:String(d),dialogButton:String(id)}})}});}};
 }
 function tick(w,n=1,ui){for(let i=0;i<n;i++){w.sim.step();ui?.paint();}}
 function saveTrace(w){return validateInputReplay({format:'uzmap-ui-input-v1',seed:6,tick:w.sim.tickCount,stateHash:w.sim.stateHash(),actions:w.inputLog});}

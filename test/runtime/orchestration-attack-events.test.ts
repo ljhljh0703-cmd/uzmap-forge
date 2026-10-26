@@ -119,3 +119,5 @@ endfunction`);emitAttack(w);
  assert.equal(w.vm.getGlobal('individualHits').v,1);assert.equal(w.vm.getGlobal('playerSeen').v,11);
  assert.equal(w.vm.getGlobal('unitSeen').v,w.vm.getGlobal('victim').v);assert.equal(w.vm.getGlobal('attackerSeen').v,w.vm.getGlobal('attacker').v);
 });
+
+it('attack-start event damage remains zero and does not activate a damage-event-only branch',()=>{const w=boot('if GetEventDamage()>0. then\nset oneHits=oneHits+1000\nendif');emitAttack(w);assert.equal(w.vm.getGlobal('elevenHits').v,1);assert.equal(w.vm.getGlobal('oneHits').v,0);assert.equal(w.vm.drainEvents().some(e=>e.kind==='UnimplementedNative'&&e.name==='GetEventDamage'),false);});

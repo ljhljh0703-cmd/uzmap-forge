@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 /** Actual browser control-flow functions with model world/storage/render; no browser or original-map input. */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -24,7 +25,7 @@ const c={world:old,playing:true,restoring:false,loadingRun:false,runtimeFailed:f
  gemTowerPlayerState:()=>({round:1,life:15,buildCount:0,chosen:false,active:true,difficulty:1}),createRunCheckpoint,
  saveRunRecord:(_storage,trace)=>{writes.push({runId:trace.runId,tick:trace.tick});return{key:'saved'}},contentBuild:'build',replayBuild:'replay',cam:{},flash(){},refreshSavedRuns(){},console:{error(e){errors.push(String(e))}},
  prevHp:new Map(),prevGold:[],textTags:[],goldTags:[],lastPos:new Map(),attackFx:[],waveNum:0,prevCreeps:0,waveFlashUntil:0,rectEntered:0,deaths:0,gatePassed:0};
-vm.runInNewContext(code,c);const pending=c.loadFromUrl(6);for(let i=0;i<8;i++)await Promise.resolve();
+vm.runInNewContext(code,Object.assign(c,domState));const pending=c.loadFromUrl(6);for(let i=0;i<8;i++)await Promise.resolve();
 const whilePending={oldTick:old.sim.tickCount,newTick:created.sim.tickCount,playing:c.playing,loadingRun:c.loadingRun};
 if(failure==='render'){c.render=()=>{throw Error('loading render failed');};c.loop(0);c.render=()=>{};resolveVisual();}else rejectVisual(Error('post-boot visual refresh failed'));const result=await pending;
 const afterFailure={result:result??null,world:c.world.id,playing:c.playing,loadingRun:c.loadingRun,runtimeFailed:c.runtimeFailed,loader,appInert:app.inert,tick:created.sim.tickCount,writes:writes.length};
@@ -41,4 +42,4 @@ assert.equal(writes.length,0,'failed new world must not reach the checkpoint wri
 }
 });
 
-it('a restore candidate with unavailable hosted input returns false without opening ordinary file intake over rollback',async()=>{const source=fs.readFileSync(new URL('../../web/main.js',import.meta.url),'utf8'),body=source.match(/^async function loadFromUrl[^\n]*\{[\s\S]*?^\}/m)[0];let intake=0;const prior={id:'old'},c:any={world:prior,playing:true,restoring:true,loadingRun:false,runtimeFailed:false,sessionSeed:6,selectedSource:null,localSourceMode:false,frameClock:{reset(){}},document:{documentElement:{dataset:{}}},checkpointRun(){},loadingScreen:{},readResponseBytes(){},setMsg(){},loadHostedPlayFiles:async()=>null,fetch(){},parseStockProfile(){},showSourceFiles(){intake++;},console};vm.runInNewContext(body,c);assert.equal(await c.loadFromUrl(),false);assert.equal(c.world,prior);assert.equal(c.playing,false);assert.equal(c.runtimeFailed,false);assert.equal(intake,0);});
+it('a restore candidate with unavailable hosted input returns false without opening ordinary file intake over rollback',async()=>{const source=fs.readFileSync(new URL('../../web/main.js',import.meta.url),'utf8'),body=source.match(/^async function loadFromUrl[^\n]*\{[\s\S]*?^\}/m)[0];let intake=0;const prior={id:'old'},c:any={world:prior,playing:true,restoring:true,loadingRun:false,runtimeFailed:false,sessionSeed:6,selectedSource:null,localSourceMode:false,frameClock:{reset(){}},document:{documentElement:{dataset:{}}},checkpointRun(){},loadingScreen:{},readResponseBytes(){},setMsg(){},loadHostedPlayFiles:async()=>null,fetch(){},parseStockProfile(){},showSourceFiles(){intake++;},console};vm.runInNewContext(body,Object.assign(c,domState));assert.equal(await c.loadFromUrl(),false);assert.equal(c.world,prior);assert.equal(c.playing,false);assert.equal(c.runtimeFailed,false);assert.equal(intake,0);});

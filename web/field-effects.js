@@ -1,3 +1,4 @@
+import {setHidden,setText,setData,setStyle,setProperty,setAttribute} from './dom-state.js';
 /** Read-only presentation of resolved source effects. This module has no world,
  * VM, command, clock scheduling, selection or save-state access. */
 const LABELS=Object.freeze({poison:'독',fire:'화염',slow:'감속',stun:'기절',critical:'치명타',splash:'범위 공격',air:'공중 공격',ground:'지상 공격'});
@@ -30,7 +31,7 @@ const drawIcon=(sprites,ctx,key,x,y,size)=>{try{return Boolean(ctx&&sprites?.dra
 export function mountEffectIcons({document:doc,host,sprites}={}){
  if(!doc?.createElement||!host?.append)return {render:()=>[],destroy(){}};
  const list=doc.createElement('ul'),rows=new Map();let destroyed=false;
- list.className='field-effect-icons';list.setAttribute('aria-label','보석 효과');list.hidden=true;host.append(list);
+ list.className='field-effect-icons';setAttribute(list,'aria-label','보석 효과');setHidden(list,true);host.append(list);
  return {
   render({effects=[],def=null}={}){
    if(destroyed)return [];
@@ -38,11 +39,11 @@ export function mountEffectIcons({document:doc,host,sprites}={}){
    for(const[kind,row]of rows)if(!wanted.has(kind)){row.node.remove();rows.delete(kind);}
    for(const model of models){
     let row=rows.get(model.kind);
-    if(!row){const node=doc.createElement('li'),canvas=doc.createElement('canvas'),label=doc.createElement('span');canvas.width=24;canvas.height=24;canvas.style.width='24px';canvas.style.height='24px';canvas.setAttribute('aria-hidden','true');label.textContent=model.label;node.append(canvas,label);list.append(node);row={node,canvas,label};rows.set(model.kind,row);}
+    if(!row){const node=doc.createElement('li'),canvas=doc.createElement('canvas'),label=doc.createElement('span');canvas.width=24;canvas.height=24;setStyle(canvas,"width",'24px');setStyle(canvas,"height",'24px');setAttribute(canvas,'aria-hidden','true');setText(label,model.label);node.append(canvas,label);list.append(node);row={node,canvas,label};rows.set(model.kind,row);}
     let ctx=null;try{ctx=row.canvas.getContext('2d');ctx?.clearRect(0,0,24,24);}catch{}
-    row.canvas.hidden=!drawIcon(sprites,ctx,model.key,12,12,24);
+    setHidden(row.canvas,!drawIcon(sprites,ctx,model.key,12,12,24));
    }
-   list.hidden=models.length===0;return models;
+   setHidden(list,models.length===0);return models;
   },
   destroy(){if(destroyed)return;destroyed=true;rows.clear();list.remove();}
  };

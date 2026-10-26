@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -5,7 +6,7 @@ import vm from 'node:vm';
 import {selectionStageHint} from '../../web/ui-skin.js';
 const source=fs.readFileSync('web/main.js','utf8');
 const assignment=source.match(/^ const hint=\$\('gemNone'\)[^\n]+/m)?.[0];assert.ok(assignment,'actual final field hint writer exists');
-function hint(w:any,state:any){const span={textContent:''};vm.runInNewContext(assignment!,{w,state,playing:false,selectionStageHint,$:()=>({querySelector:()=>span})});return span.textContent;}
+function hint(w:any,state:any){const span={textContent:''};vm.runInNewContext(assignment!,Object.assign({w,state,playing:false,selectionStageHint,$:()=>({querySelector:()=>span})},domState));return span.textContent;}
 it('the final field renderer preserves the shared stage guidance instead of overwriting it after skin render',()=>{
  const w={pendingBuilds:[],precisePlacement:false};assert.match(hint(w,{buildCount:3,chosen:false}),/2개/);assert.match(hint(w,{buildCount:5,chosen:false}),/남기기/);assert.match(hint(w,{buildCount:5,chosen:true}),/능력.*강화/);
 });

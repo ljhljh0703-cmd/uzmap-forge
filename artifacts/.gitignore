@@ -1,3 +1,6 @@
 # Private hosted-input copies in local previews are never source commits.
 **/source-inputs/
 **/fixtures/
+# Include relocated preview directory links as well as real directories.
+**/source-inputs
+**/fixtures

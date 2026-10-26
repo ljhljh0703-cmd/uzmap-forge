@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -16,18 +17,18 @@ it('fits every source battle waypoint with padding after phone resize and panel 
 it('a field tab switch changes only the view and rejects a third player',()=>{
  const source=readFileSync(new URL('../../web/main.js',import.meta.url),'utf8');const fn=source.match(/function switchField\([^\n]*\{[\s\S]*?\n\}/)?.[0];assert.ok(fn,'real field handler exists');
  let fit=0,render=0;const w:any={viewPlayerId:0,selectedGemId:73,pendingPointAbility:{abilityId:'A02J'},sim:{tickCount:500},inputLog:[{kind:'place'}]};
- const ctx:any={actionFeedback:{clear(){}},goldTags:[],goldGain:{hidden:false},drag:{on:false,cell:null},fitPlayerField:()=>fit++,render:()=>render++,MAX_FIELD_PLAYERS:2};vm.runInNewContext(fn!,ctx);
+ const ctx:any={actionFeedback:{clear(){}},goldTags:[],goldGain:{hidden:false},drag:{on:false,cell:null},fitPlayerField:()=>fit++,render:()=>render++,MAX_FIELD_PLAYERS:2};vm.runInNewContext(fn!,Object.assign(ctx,domState));
  const before=JSON.stringify([w.sim,w.inputLog,w.selectedGemId,w.pendingPointAbility]);ctx.switchField(w,1);assert.equal(w.viewPlayerId,1);assert.equal(w.cameraMode,'fit');assert.equal(fit,1);assert.equal(render,1);assert.equal(JSON.stringify([w.sim,w.inputLog,w.selectedGemId,w.pendingPointAbility]),before);
  ctx.switchField(w,2);assert.equal(w.viewPlayerId,1);assert.equal(fit,1);ctx.switchField(w,0);assert.equal(w.viewPlayerId,0);
 });
 it('the actual placement entry refuses input while observing the other field',()=>{
  const source=readFileSync(new URL('../../web/main.js',import.meta.url),'utf8');const fn=source.match(/function placeTower\([^\n]*\{[\s\S]*?\n\}/)![0];let messages:string[]=[];
- const ctx:any={flash:(s:string)=>messages.push(s)};vm.runInNewContext(fn,ctx);assert.equal(ctx.placeTower({viewPlayerId:1},10,20),false);assert.ok(messages[0].includes('관전'));
+ const ctx:any={flash:(s:string)=>messages.push(s)};vm.runInNewContext(fn,Object.assign(ctx,domState));assert.equal(ctx.placeTower({viewPlayerId:1},10,20),false);assert.ok(messages[0].includes('관전'));
 });
 
 it('the real field fitter keeps my existing edge towers visible without fitting the other player',()=>{
  const source=readFileSync(new URL('../../web/main.js',import.meta.url),'utf8'),fn=source.match(/function fitPlayerField\([^\n]*\{[\s\S]*?\n\}/)![0];
- const ctx:any={cam:{},cv:{width:390,height:500},battlefieldCamera:ui.battlefieldCamera,battlefieldBounds:ui.battlefieldBounds,gemTowerPlayerGemIds:()=>[],defOf:()=>({meta:{role:{kind:'tower'}}})};vm.runInNewContext(source.match(/function sourceIndexedRect\([^\n]*\{[\s\S]*?\n\}/)![0]+'\n'+fn,ctx);
+ const ctx:any={cam:{},cv:{width:390,height:500},battlefieldCamera:ui.battlefieldCamera,battlefieldBounds:ui.battlefieldBounds,gemTowerPlayerGemIds:()=>[],defOf:()=>({meta:{role:{kind:'tower'}}})};vm.runInNewContext(source.match(/function sourceIndexedRect\([^\n]*\{[\s\S]*?\n\}/)![0]+'\n'+fn,Object.assign(ctx,domState));
  const w:any={viewPlayerId:0,fieldRects:[[{minX:-3872,minY:5600,maxX:-1760,maxY:8224}]],knownGemIds:new Set(),sim:{entities:new Map([[1,{id:1,alive:true,owner:0,typeId:'gem',x:-5000,y:7000}],[2,{id:2,alive:true,owner:1,typeId:'gem',x:6000,y:7000}]])}};
  ctx.fitPlayerField(w);const x=(-5000-ctx.cam.cx)*ctx.cam.zoom+195;assert.ok(x>=20&&x<=370,'existing edge tower remains visible');assert.ok(ctx.cam.cx<-3000,'other field does not widen mine');
 });

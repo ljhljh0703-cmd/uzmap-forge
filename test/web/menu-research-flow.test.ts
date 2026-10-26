@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -19,7 +20,7 @@ function fixture(playing=true){
  for(const id of ['R000','R001','R002']){const cost:any={textContent:'',hidden:false,previousSibling:{textContent:''},nextSibling:{textContent:''}};nodes['rs'+id+'Lv']={textContent:''};nodes['rs'+id+'Cost']=cost;nodes['rs'+id+'Btn']={disabled:false,title:'',attrs:{},setAttribute(k:string,v:string){this.attrs[k]=v;}};}
  const world:any={sim,gameOver:null,inputLog:[]},messages:string[]=[],sounds:any[]=[];
  const c:any={queueSoundEvent:(world:any,kind:string,details:any)=>sounds.push({world,kind,details}),world,w:world,playing,restoring:false,loadingRun:false,runtimeFailed:false,RESEARCH_IDS:['R000','R001','R002'],GEMTOWER_BALANCE,researchCostForLevel,RESEARCH_REJECT_LABEL:{'insufficient-gold':'골드 부족'},$:(id:string)=>nodes[id],frameClock:{reset(){}},clearPlacement(){},checkpointRun(){},refreshSavedRuns(){},renderControls(){},flash:(s:string)=>messages.push(s),recordInput:(w:any,x:any)=>w.inputLog.push(x),trainingTechName:(_w:any,id:string)=>id};
- c.render=()=>vm.runInNewContext(researchRender,c);vm.runInNewContext(fn('requestResearch')+'\n'+fn('observeResearchResult')+'\n'+fn('setDrawer')+'\n'+handlers,c);c.render();
+ c.render=()=>vm.runInNewContext(researchRender,Object.assign(c,domState));vm.runInNewContext(fn('requestResearch')+'\n'+fn('observeResearchResult')+'\n'+fn('setDrawer')+'\n'+handlers,Object.assign(c,domState));c.render();
  return{c,world,sim,nodes,messages,sounds,click:()=>nodes.rsR000Btn.onclick(),step(){sim.step();for(const event of sim.drainEvents())if(c.observeResearchResult)c.observeResearchResult(world,event);c.render();}};
 }
 it('menu navigation preserves both running and deliberately paused state, without stepping the simulation',()=>{
@@ -27,8 +28,8 @@ it('menu navigation preserves both running and deliberately paused state, withou
 });
 it('the actual research control accepts one request until the original bridge settles it and then supports the next level with the menu still open',()=>{
  const f=fixture();f.c.setDrawer(true);const gold=f.sim.ledger.gold(0),button=f.nodes.rsR000Btn;f.click();f.click();assert.equal(f.world.inputLog.length,1,'double click cannot queue the next cost before it is displayed');assert.equal(button.disabled,true);assert.equal(button.attrs['aria-busy'],'true');assert.equal(f.sim.getResearchLevel(0,'R000'),0,'no view-owned immediate result');assert.equal(f.sim.ledger.gold(0),gold);
- f.step();assert.equal(f.sim.getResearchLevel(0,'R000'),1);assert.equal(f.sim.ledger.gold(0),gold-20);assert.equal(f.nodes.rsR000Cost.textContent,50);assert.equal(button.disabled,false);assert.equal(f.nodes.rsR000Btn,button);assert.equal(f.nodes.gameDrawer.hidden,false);assert.match(f.nodes.researchStatus.textContent,/1.*레벨/);assert.equal(f.sounds.length,1);assert.equal(f.sounds[0].world,f.world);assert.equal(f.sounds[0].kind,'research');assert.equal(f.sounds[0].details.key,'research:R000:1');
- f.click();f.step();assert.equal(f.sim.getResearchLevel(0,'R000'),2);assert.equal(f.sim.ledger.gold(0),gold-70);assert.equal(f.world.inputLog.length,2);assert.equal(f.nodes.rsR000Cost.textContent,80);assert.equal(f.c.playing,true);assert.deepEqual(f.sounds.map(s=>s.details.key),['research:R000:1','research:R000:2']);
+ f.step();assert.equal(f.sim.getResearchLevel(0,'R000'),1);assert.equal(f.sim.ledger.gold(0),gold-20);assert.equal(f.nodes.rsR000Cost.textContent,'50');assert.equal(button.disabled,false);assert.equal(f.nodes.rsR000Btn,button);assert.equal(f.nodes.gameDrawer.hidden,false);assert.match(f.nodes.researchStatus.textContent,/1.*레벨/);assert.equal(f.sounds.length,1);assert.equal(f.sounds[0].world,f.world);assert.equal(f.sounds[0].kind,'research');assert.equal(f.sounds[0].details.key,'research:R000:1');
+ f.click();f.step();assert.equal(f.sim.getResearchLevel(0,'R000'),2);assert.equal(f.sim.ledger.gold(0),gold-70);assert.equal(f.world.inputLog.length,2);assert.equal(f.nodes.rsR000Cost.textContent,'80');assert.equal(f.c.playing,true);assert.deepEqual(f.sounds.map(s=>s.details.key),['research:R000:1','research:R000:2']);
 });
 it('a source rejection releases the pending control and explains the actual failure',()=>{
  const f=fixture();f.click();f.sim.ledger.adjustGold(0,-1000,'script');f.step();assert.equal(f.sim.getResearchLevel(0,'R000'),0);assert.equal(f.world.pendingResearch,null);assert.equal(f.nodes.rsR000Btn.attrs['aria-busy'],'false');assert.match(f.nodes.researchStatus.textContent,/골드/);assert.equal(f.nodes.rsR000Btn.disabled,true);assert.equal(f.sounds.length,0,'a rejected source research cannot announce completion');
@@ -43,5 +44,5 @@ it('the running game event observer wires actual research results back to the ex
 
 it('restoring an accepted final-tick research keeps its stale price locked until the source queue completes',()=>{
  const f=fixture(false);f.click();f.world.inputLog[0].tick=0;const before=f.sim.stateHash();f.world.pendingResearch=null;
- const block=source.match(/  \/\/ Restore only the presentation lock[\s\S]*?\/\/ End research presentation restore/);assert.ok(block);vm.runInNewContext(block[0],f.c);f.c.render();assert.equal(f.sim.stateHash(),before);assert.equal(f.nodes.rsR000Btn.disabled,true);f.click();assert.equal(f.world.inputLog.length,1);f.c.playing=true;f.step();assert.equal(f.sim.getResearchLevel(0,'R000'),1);
+ const block=source.match(/  \/\/ Restore only the presentation lock[\s\S]*?\/\/ End research presentation restore/);assert.ok(block);vm.runInNewContext(block[0],Object.assign(f.c,domState));f.c.render();assert.equal(f.sim.stateHash(),before);assert.equal(f.nodes.rsR000Btn.disabled,true);f.click();assert.equal(f.world.inputLog.length,1);f.c.playing=true;f.step();assert.equal(f.sim.getResearchLevel(0,'R000'),1);
 });
