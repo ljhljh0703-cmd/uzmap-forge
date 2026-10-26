@@ -34,7 +34,7 @@ function fixture(){
  return {doc,nodes,panel,name,title,badge,meta,summary,body,stats,upgrade,upgradeButton,actions,keep,ability,missing,close,hint,portrait,render};
 }
 it('the existing keep button states its result without changing identity, title conditions or acquired commands',()=>{
- const f=fixture(),before=[...f.actions.children];f.render();assert.equal(f.keep.textContent,'이 보석 남기기');assert.equal(f.keep.title,'보석 한 개를 남깁니다');assert.equal(f.keep.id,'castA009');assert.deepEqual(f.actions.children,before);assert.equal(f.keep.disabled,false);
+ const f=fixture(),before=[...f.actions.children];f.render();assert.equal(f.keep.textContent,'남기기');assert.equal(f.keep.getAttribute('aria-label'),'이 보석 남기기');assert.equal(f.keep.title,'보석 한 개를 남깁니다');assert.equal(f.keep.id,'castA009');assert.deepEqual(f.actions.children,before);assert.equal(f.keep.disabled,false);
  assert.equal(f.close.textContent,'×');assert.equal(f.close.getAttribute('aria-label'),'선택 닫기');assert.equal(skin.approvedButtonMaterial({id:'gemDeselect'}),null);assert.equal(skin.approvedButtonMaterial({id:'castA008'}),'button-green-normal');
  assert.match(f.hint.textContent,/남기/);f.render({buildCount:3});assert.match(f.hint.textContent,/2개/);f.render({chosen:true});assert.match(f.hint.textContent,/능력.*강화/);
 });
@@ -79,4 +79,4 @@ it('ordinary keep focus collapses on combat entry even while the source button i
  const f=fixture();f.render();f.keep.focus();assert.equal(f.keep.disabled,false);f.render({chosen:true,combatActive:true});assert.equal(f.meta.open,false);assert.equal(f.doc.activeElement,f.summary);f.meta.open=true;f.ability.focus();f.render({chosen:true,combatActive:true});assert.equal(f.meta.open,true);assert.equal(f.doc.activeElement,f.ability);
 });
 
-it('desktop exposes the same selected stats and commands throughout combat and returns to the mobile disclosure policy',()=>{const f=fixture();f.render({desktop:true,chosen:true,combatActive:true});assert.equal(f.meta.open,true);assert.equal(f.summary.hidden,true);assert.equal(f.actions.parentNode,f.body);f.meta.open=false;f.render({desktop:true,chosen:true,combatActive:true});assert.equal(f.meta.open,true);f.render({desktop:false,chosen:true,combatActive:true});assert.equal(f.summary.hidden,false);assert.equal(f.meta.open,false);});
+it('PC and phone keep details closed until requested, preserve explicit opening across resize and retain the same commands',()=>{const f=fixture();f.render({desktop:true,chosen:true,combatActive:true});assert.equal(f.meta.open,false);assert.equal(f.summary.hidden,false);assert.equal(f.actions.parentNode,f.body);f.meta.open=true;f.render({desktop:true,chosen:true,combatActive:true});assert.equal(f.meta.open,true);f.render({desktop:false,chosen:true,combatActive:true});assert.equal(f.summary.hidden,false);assert.equal(f.meta.open,true);f.meta.open=false;f.render({desktop:true,chosen:true,combatActive:true});assert.equal(f.meta.open,false);});

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <!-- ponytail: approved GemTower shapes/palette and existing command paths reused; no new art. -->
 <html lang="ko" data-load-state="receiving"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>보석타워 · 플레이 테스트</title><link rel="stylesheet" href="./play.css?build=bb903ec34ebe951f"><link rel="preload" as="font" href="./assets/fonts/Galmuri11-f.woff2?sha=f528f85004dfa022ec874936a6bc41952ffc816fafa91c2a3d2fc77c5933c3a5" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" as="font" href="./assets/fonts/Galmuri11-Bold-f.woff2?sha=b460b10fe461d3f0cc907e183073c92ed5fd0f4ded773106945c3c0bb7e47523" type="font/woff2" crossorigin="anonymous"><style>html:not([data-load-state="ready"]) #gameApp{visibility:hidden;pointer-events:none}html:not([data-load-state="ready"]) #modeSelect,html:not([data-load-state="ready"]) #sourceDialog{display:none!important}#loadingScreen[hidden]{display:none}#loadingScreen{position:fixed;inset:0;z-index:100;background:#17180f;color:#f3dda0;display:grid;place-content:center;padding:24px;box-sizing:border-box}#loadingScreen h1{font-size:40px}#loadingScreen progress{width:100%}</style></head><body>
+<title>보석타워 · 플레이 테스트</title><link rel="stylesheet" href="./play.css?build=66f39888ba27ce6d"><link rel="preload" as="font" href="./assets/fonts/Galmuri11-f.woff2?sha=6cbe77576faa36ae853e0a70ca0ce1a575ce8bf1553eb12443bfc3edd8b00a39" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" as="font" href="./assets/fonts/Galmuri11-Bold-f.woff2?sha=d28c2bdd0dadb6d2befed351f85424dbcca8f460268dd7c34a099844177e2980" type="font/woff2" crossorigin="anonymous"><style>html:not([data-load-state="ready"]) #gameApp{visibility:hidden;pointer-events:none}html:not([data-load-state="ready"]) #modeSelect,html:not([data-load-state="ready"]) #sourceDialog{display:none!important}#loadingScreen[hidden]{display:none}#loadingScreen{position:fixed;inset:0;z-index:100;background:#17180f;color:#f3dda0;display:grid;place-content:center;padding:24px;box-sizing:border-box}#loadingScreen h1{font-size:40px}#loadingScreen progress{width:100%}</style></head><body>
 <section id="loadingScreen" aria-label="보석타워 준비" aria-busy="true"><div class="loading-content"><p class="loading-eyebrow">GEM TOWER</p><h1>보석타워</h1><p id="loadingStage" role="status" aria-live="polite">게임 자료 받는 중</p><progress id="loadingProgress" max="1" aria-label="게임 자료 받기"></progress><p id="loadingBytes"></p><p id="loadingTip"></p><p id="loadingError" role="alert" hidden></p><div id="loadingRecovery"></div><noscript>게임을 열려면 브라우저에서 자바스크립트를 켜 주세요.</noscript></div></section>
 <section id="rotateScreen" class="rotate-screen" role="dialog" aria-modal="true" aria-labelledby="rotateTitle" tabindex="-1" hidden><div><h2 id="rotateTitle">세로로 돌려 주세요</h2><p>게임을 일시정지했어요.<br>세로로 돌린 뒤 재개를 눌러 계속하세요.</p></div></section>
 <div class="app" id="gameApp">
 <header><div class="brand"><svg viewBox="0 0 32 36" aria-hidden="true"><path d="M8 2h16l7 10-15 22L1 12zM1 12h30M8 2l8 10 8-10M16 12v22"/></svg><div><h1>보석타워</h1></div></div><nav id="fieldTabs" class="field-tabs" role="tablist" aria-label="전장 선택 · 최대 2인"><button id="fieldMine" role="tab" aria-selected="true" aria-controls="battlefield" tabindex="0"><span class="player-dot"></span>내 전장</button><button id="fieldOther" role="tab" aria-selected="false" aria-controls="battlefield" tabindex="-1"><span class="player-dot"></span>상대 전장 <small id="fieldOtherState">미접속</small></button></nav><div class="header-actions"><button id="speedCycle" class="sec" aria-label="배속 변경">배속 1×</button><button class="sec" id="researchToggle" aria-controls="gameDrawer" aria-expanded="false">메뉴</button></div></header>
 <section class="statusbar" aria-label="게임 현황"><span id="lifeLossStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span><div id="resourceHud"><div class="hud-pill" title="골드"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="#d7bd76"/><circle cx="8" cy="8" r="3.8" fill="none" stroke="#69572c"/></svg><span>골드</span><b id="hudGold">0</b></div><div class="hud-pill" title="라이프"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14S2 10 2 6a3 3 0 016-1 3 3 0 016 1c0 4-6 8-6 8" fill="#eb8f80"/></svg><span>라이프</span><b id="hudLife">0</b></div><div class="hud-pill" title="타워"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1l6 4v6l-6 4-6-4V5z" fill="#83bd9b"/><path d="M8 3v10M3 5l5 3 5-3" fill="none" stroke="#1c4631"/></svg><span>타워</span><b id="hudTower">0</b></div></div><div id="objectiveHud"><div class="ph" id="hudPhase">보석 준비</div><span class="wave-label">웨이브</span><div class="wave-value"><span id="hudWaveNum">0</span><span class="of"> / <span id="hudTotalWaves">50</span></span></div></div></section>
-<div class="phasebar"><div class="phase-instruction"><div id="buildProgress" role="img" aria-label="보석 0/5 건설"><i></i><i></i><i></i><i></i><i></i></div><span id="engineTag">맵을 불러오는 중…</span></div><div class="route-legend" aria-label="입구와 광산 안내"><span class="entry-legend"><span aria-hidden="true">→</span> 적 진입</span><span id="buildPreviewStatus" role="status" aria-live="polite" hidden></span><span class="exit-legend"><span aria-hidden="true">♥</span> <span id="exitLegendLabel">광산으로 · 도착 시 생명 감소</span></span></div><span class="run-state" id="runState" role="status">일시정지</span><span id="difficultyTag" class="difficulty-tag"></span><div id="prep"><b id="prepTime">보석 준비</b><button id="skip" disabled>클래식 웨이브 시작</button></div></div>
-<main><div class="battlefield" id="battlefield" role="tabpanel" aria-labelledby="fieldMine fieldOther"><canvas id="cv" tabindex="0" aria-label="내 전장. 표시된 빈칸을 눌러 건설하세요. 돌 바닥은 건설할 수 없습니다. 길게 누르면 건설 위치를 확인합니다. 보석을 누르면 선택합니다"></canvas><div id="placementLoupe" class="placement-loupe" role="img" aria-label="건설 위치 확대" hidden><canvas id="placementLoupeImage" width="120" height="120" aria-hidden="true"></canvas><span>확인할 위치</span></div><button id="precisionOverview" class="sec precision-overview" hidden>전체 보기</button><div id="spawnMarker" class="spawn-marker" role="img" aria-label="적 생성 지점에서 들어오는 방향" title="적이 들어오는 방향" hidden><svg viewBox="0 0 40 28" aria-hidden="true"><path d="M3 7h17V2l17 12-17 12v-5H3z"/></svg></div><div id="exitMarker" class="exit-marker" role="img" aria-label="광산으로 이어지는 출구. 광산 도착 시 생명이 감소합니다" title="광산으로 · 도착 시 생명 감소" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14S2 10 2 6a3 3 0 016-1 3 3 0 016 1c0 4-6 8-6 8"/></svg></div><div id="actionFeedback" class="action-feedback" role="status" aria-live="polite" hidden></div><div id="buildCells" class="build-cells" role="group" aria-label="건설 가능한 칸" hidden></div>
+<div class="phasebar" id="playPhase"><div id="actionFeedback" class="action-feedback" role="status" aria-live="polite" hidden></div><div class="phase-instruction"><div id="buildProgress" role="img" aria-label="보석 0/5 건설"><i></i><i></i><i></i><i></i><i></i></div><span id="engineTag">맵을 불러오는 중…</span></div><div class="route-legend" aria-label="입구와 광산 안내"><span class="entry-legend"><span aria-hidden="true">→</span> 적 진입</span><span id="buildPreviewStatus" role="status" aria-live="polite" hidden></span><span class="exit-legend"><span aria-hidden="true">♥</span> <span id="exitLegendLabel">광산으로 · 도착 시 생명 감소</span></span></div><span class="run-state" id="runState" role="status">일시정지</span><span id="difficultyTag" class="difficulty-tag"></span><div id="prep"><b id="prepTime">보석 준비</b><button id="skip" disabled>클래식 웨이브 시작</button></div></div>
+<main><div class="battlefield" id="battlefield" role="tabpanel" aria-labelledby="fieldMine fieldOther"><canvas id="cv" tabindex="0" aria-label="내 전장. 표시된 빈칸을 눌러 건설하세요. 돌 바닥은 건설할 수 없습니다. 길게 누르면 건설 위치를 확인합니다. 보석을 누르면 선택합니다"></canvas><div id="placementLoupe" class="placement-loupe" role="img" aria-label="건설 위치 확대" hidden><canvas id="placementLoupeImage" width="120" height="120" aria-hidden="true"></canvas><span>확인할 위치</span></div><button id="precisionOverview" class="sec precision-overview" hidden>전체 보기</button><div id="spawnMarker" class="spawn-marker" role="img" aria-label="적 생성 지점에서 들어오는 방향" title="적이 들어오는 방향" hidden><svg viewBox="0 0 40 28" aria-hidden="true"><path d="M3 7h17V2l17 12-17 12v-5H3z"/></svg></div><div id="exitMarker" class="exit-marker" role="img" aria-label="광산으로 이어지는 출구. 광산 도착 시 생명이 감소합니다" title="광산으로 · 도착 시 생명 감소" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14S2 10 2 6a3 3 0 016-1 3 3 0 016 1c0 4-6 8-6 8"/></svg></div><div id="buildCells" class="build-cells" role="group" aria-label="건설 가능한 칸" hidden></div>
 <div id="spectatorBanner" class="spectator-banner" role="status" hidden></div><div class="map-label"><span></span>내 건설 영역</div><button id="pathWarning" class="path-warning" hidden></button><div class="combat-count" id="combatCount" role="status">적 0마리</div>
 <section id="sourceFiles" class="source-files" role="dialog" aria-modal="true" aria-labelledby="sourceFilesTitle" hidden><div class="mode-card"><span class="eyebrow">1인 플레이 테스트</span><h2 id="sourceFilesTitle">보석타워 열기</h2><p>보유한 원본 자료 두 개를 선택하세요.<br>파일은 이 기기에서만 읽으며 서버에 업로드하지 않습니다.</p><label for="mapFile">맵 파일 <small>GemTower_Max_7C.w3x</small></label><input id="mapFile" type="file" accept=".w3x"><label for="profileFile">능력 자료 <small>1.28.5.7680 · unit-abilities.json</small></label><input id="profileFile" type="file" accept=".json"><p id="sourceFilesStatus" role="status" aria-live="polite">두 파일을 선택하면 게임을 열 수 있습니다.</p><button id="openSourceFiles" disabled>게임 열기</button><details><summary>자료 안내</summary><p>맵 파일과 능력 자료를 선택하세요. 선택한 파일은 페이지를 닫을 때까지만 보관합니다.</p></details></div></section><div id="modeSelect" role="dialog" aria-modal="true" aria-labelledby="modeTitle"><section class="mode-card" aria-labelledby="modeTitle"><span class="eyebrow">게임 방식</span><h2 id="modeTitle">보석타워 시작</h2><p>보석 다섯 개를 만들고 남길 보석을 고르세요.<br>같은 보석과 특별한 조합으로 길을 지킵니다.</p><div class="mode-buttons"><button class="sec" id="modeClassic"><strong>클래식</strong><small>준비 후 수동으로 시작</small></button><button id="modeRace"><strong>레이스</strong><small>보석 선택 후 자동 진행</small></button></div><div id="startupDifficulties" class="startup-difficulties" role="group" aria-label="난이도 선택"></div><button id="startGame">레이스 · 쉬움 시작</button><div class="mode-note">클래식은 수동 시작이며 이어하기를 지원하지 않습니다. 저장한 판은 메뉴에서 이어갈 수 있어요.</div></section></div>
 <div class="msg" id="msg">맵을 불러오는 중…</div><section class="msg" id="restoreOverlay" role="dialog" aria-modal="true" aria-label="저장 복원" hidden><div><p id="restoreProgressText" role="status" aria-live="polite"></p><button id="cancelRestore" class="sec">복원 취소</button><p class="local-note">취소하거나 실패하면 기존 진행으로 돌아갑니다.</p></div></section>
@@ -71,114 +71,114 @@
   window.addEventListener('unhandledrejection',function(e){showErr('게임 실행 오류',e&&e.reason);});
 </script>
 <!-- WEB_BUILD_START -->
-<script>window.UZMAP_REPLAY_BUILD="20dbe0e6a27482f7";</script>
+<script>window.UZMAP_REPLAY_BUILD="a22eb8eac064318e";</script>
 <script type="importmap" id="web-build-map">{
   "imports": {
-    "./action-feedback.js": "./action-feedback.js?build=bb903ec34ebe951f",
-    "./audio-catalog.js": "./audio-catalog.js?build=bb903ec34ebe951f",
-    "./audio-recording.js": "./audio-recording.js?build=bb903ec34ebe951f",
-    "./audio-settings.js": "./audio-settings.js?build=bb903ec34ebe951f",
-    "./battlefield-readability.js": "./battlefield-readability.js?build=bb903ec34ebe951f",
-    "./browser-runtime.js": "./browser-runtime.js?build=bb903ec34ebe951f",
-    "./button-reasons.js": "./button-reasons.js?build=bb903ec34ebe951f",
-    "./casino-feedback.js": "./casino-feedback.js?build=bb903ec34ebe951f",
-    "./combination-hints.js": "./combination-hints.js?build=bb903ec34ebe951f",
-    "./dist/formats/misc.js": "./dist/formats/misc.js?build=bb903ec34ebe951f",
-    "./dist/formats/mpq/archive.js": "./dist/formats/mpq/archive.js?build=bb903ec34ebe951f",
-    "./dist/formats/mpq/crypto.js": "./dist/formats/mpq/crypto.js?build=bb903ec34ebe951f",
-    "./dist/formats/mpq/errors.js": "./dist/formats/mpq/errors.js?build=bb903ec34ebe951f",
-    "./dist/formats/mpq/header.js": "./dist/formats/mpq/header.js?build=bb903ec34ebe951f",
-    "./dist/formats/mpq/index.js": "./dist/formats/mpq/index.js?build=bb903ec34ebe951f",
-    "./dist/formats/mpq/inflate.js": "./dist/formats/mpq/inflate.js?build=bb903ec34ebe951f",
-    "./dist/formats/objects.js": "./dist/formats/objects.js?build=bb903ec34ebe951f",
-    "./dist/formats/slk.js": "./dist/formats/slk.js?build=bb903ec34ebe951f",
-    "./dist/formats/stock-unit-abilities.js": "./dist/formats/stock-unit-abilities.js?build=bb903ec34ebe951f",
-    "./dist/formats/wpm.js": "./dist/formats/wpm.js?build=bb903ec34ebe951f",
-    "./dist/formats/wts.js": "./dist/formats/wts.js?build=bb903ec34ebe951f",
-    "./dist/ir/fourcc.js": "./dist/ir/fourcc.js?build=bb903ec34ebe951f",
-    "./dist/ir/pathing.js": "./dist/ir/pathing.js?build=bb903ec34ebe951f",
-    "./dist/ir/types.js": "./dist/ir/types.js?build=bb903ec34ebe951f",
-    "./dist/jass/ast.js": "./dist/jass/ast.js?build=bb903ec34ebe951f",
-    "./dist/jass/lexer.js": "./dist/jass/lexer.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/arith.js": "./dist/jass/natives/arith.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/bridge.js": "./dist/jass/natives/bridge.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/dialog.js": "./dist/jass/natives/dialog.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/groups.js": "./dist/jass/natives/groups.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/handles.js": "./dist/jass/natives/handles.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/index.js": "./dist/jass/natives/index.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/misc_stubs.js": "./dist/jass/natives/misc_stubs.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/orders.js": "./dist/jass/natives/orders.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/players.js": "./dist/jass/natives/players.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/registry.js": "./dist/jass/natives/registry.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/timers.js": "./dist/jass/natives/timers.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/triggers.js": "./dist/jass/natives/triggers.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/units.js": "./dist/jass/natives/units.js?build=bb903ec34ebe951f",
-    "./dist/jass/natives/victory.js": "./dist/jass/natives/victory.js?build=bb903ec34ebe951f",
-    "./dist/jass/parser.js": "./dist/jass/parser.js?build=bb903ec34ebe951f",
-    "./dist/jass/vm.js": "./dist/jass/vm.js?build=bb903ec34ebe951f",
-    "./dist/runtime/ability-effects.js": "./dist/runtime/ability-effects.js?build=bb903ec34ebe951f",
-    "./dist/runtime/build-preview.js": "./dist/runtime/build-preview.js?build=bb903ec34ebe951f",
-    "./dist/runtime/maps/gemtower.js": "./dist/runtime/maps/gemtower.js?build=bb903ec34ebe951f",
-    "./dist/runtime/session.js": "./dist/runtime/session.js?build=bb903ec34ebe951f",
-    "./dist/runtime/unit-identity.js": "./dist/runtime/unit-identity.js?build=bb903ec34ebe951f",
-    "./dist/runtime/unit-stats.js": "./dist/runtime/unit-stats.js?build=bb903ec34ebe951f",
-    "./dist/sim/ability-effects.js": "./dist/sim/ability-effects.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/combat.js": "./dist/sim/balance/combat.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/config.js": "./dist/sim/balance/config.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/configs/gemtower.js": "./dist/sim/balance/configs/gemtower.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/configs/stock-defaults.js": "./dist/sim/balance/configs/stock-defaults.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/curves.js": "./dist/sim/balance/curves.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/economy.js": "./dist/sim/balance/economy.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/fixed.js": "./dist/sim/balance/fixed.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/provider.js": "./dist/sim/balance/provider.js?build=bb903ec34ebe951f",
-    "./dist/sim/balance/telemetry.js": "./dist/sim/balance/telemetry.js?build=bb903ec34ebe951f",
-    "./dist/sim/combat-pipe.js": "./dist/sim/combat-pipe.js?build=bb903ec34ebe951f",
-    "./dist/sim/combat-system.js": "./dist/sim/combat-system.js?build=bb903ec34ebe951f",
-    "./dist/sim/def-store.js": "./dist/sim/def-store.js?build=bb903ec34ebe951f",
-    "./dist/sim/life.js": "./dist/sim/life.js?build=bb903ec34ebe951f",
-    "./dist/sim/movement.js": "./dist/sim/movement.js?build=bb903ec34ebe951f",
-    "./dist/sim/navigation.js": "./dist/sim/navigation.js?build=bb903ec34ebe951f",
-    "./dist/sim/playerstate.js": "./dist/sim/playerstate.js?build=bb903ec34ebe951f",
-    "./dist/sim/rng.js": "./dist/sim/rng.js?build=bb903ec34ebe951f",
-    "./dist/sim/sim.js": "./dist/sim/sim.js?build=bb903ec34ebe951f",
-    "./dist/sim/status.js": "./dist/sim/status.js?build=bb903ec34ebe951f",
-    "./dist/sim/ticks.js": "./dist/sim/ticks.js?build=bb903ec34ebe951f",
-    "./dist/sim/unit-entity.js": "./dist/sim/unit-entity.js?build=bb903ec34ebe951f",
-    "./dist/world_api.js": "./dist/world_api.js?build=bb903ec34ebe951f",
-    "./field-art.js": "./field-art.js?build=bb903ec34ebe951f",
-    "./field-effects.js": "./field-effects.js?build=bb903ec34ebe951f",
-    "./field-ground.js": "./field-ground.js?build=bb903ec34ebe951f",
-    "./field-units.js": "./field-units.js?build=bb903ec34ebe951f",
-    "./first-minute.js": "./first-minute.js?build=bb903ec34ebe951f",
-    "./first-run-guide.js": "./first-run-guide.js?build=bb903ec34ebe951f",
-    "./first-run-ui.js": "./first-run-ui.js?build=bb903ec34ebe951f",
-    "./game-menu.js": "./game-menu.js?build=bb903ec34ebe951f",
-    "./gem-actions.js": "./gem-actions.js?build=bb903ec34ebe951f",
-    "./gem-targeting.js": "./gem-targeting.js?build=bb903ec34ebe951f",
-    "./local-stock.js": "./local-stock.js?build=bb903ec34ebe951f",
-    "./main.js": "./main.js?build=bb903ec34ebe951f",
-    "./overlap-picker.js": "./overlap-picker.js?build=bb903ec34ebe951f",
-    "./play-ui.js": "./play-ui.js?build=bb903ec34ebe951f",
-    "./precision-camera.js": "./precision-camera.js?build=bb903ec34ebe951f",
-    "./recipe-book.js": "./recipe-book.js?build=bb903ec34ebe951f",
-    "./recipe-view.js": "./recipe-view.js?build=bb903ec34ebe951f",
-    "./run-checkpoint.js": "./run-checkpoint.js?build=bb903ec34ebe951f",
-    "./run-storage.js": "./run-storage.js?build=bb903ec34ebe951f",
-    "./sound-events.js": "./sound-events.js?build=bb903ec34ebe951f",
-    "./source-help.js": "./source-help.js?build=bb903ec34ebe951f",
-    "./source-input.js": "./source-input.js?build=bb903ec34ebe951f",
-    "./ui-skin.js": "./ui-skin.js?build=bb903ec34ebe951f",
-    "./visual-assets.js": "./visual-assets.js?build=bb903ec34ebe951f",
-    "./wave-notices.js": "./wave-notices.js?build=bb903ec34ebe951f"
+    "./action-feedback.js": "./action-feedback.js?build=66f39888ba27ce6d",
+    "./audio-catalog.js": "./audio-catalog.js?build=66f39888ba27ce6d",
+    "./audio-recording.js": "./audio-recording.js?build=66f39888ba27ce6d",
+    "./audio-settings.js": "./audio-settings.js?build=66f39888ba27ce6d",
+    "./battlefield-readability.js": "./battlefield-readability.js?build=66f39888ba27ce6d",
+    "./browser-runtime.js": "./browser-runtime.js?build=66f39888ba27ce6d",
+    "./button-reasons.js": "./button-reasons.js?build=66f39888ba27ce6d",
+    "./casino-feedback.js": "./casino-feedback.js?build=66f39888ba27ce6d",
+    "./combination-hints.js": "./combination-hints.js?build=66f39888ba27ce6d",
+    "./dist/formats/misc.js": "./dist/formats/misc.js?build=66f39888ba27ce6d",
+    "./dist/formats/mpq/archive.js": "./dist/formats/mpq/archive.js?build=66f39888ba27ce6d",
+    "./dist/formats/mpq/crypto.js": "./dist/formats/mpq/crypto.js?build=66f39888ba27ce6d",
+    "./dist/formats/mpq/errors.js": "./dist/formats/mpq/errors.js?build=66f39888ba27ce6d",
+    "./dist/formats/mpq/header.js": "./dist/formats/mpq/header.js?build=66f39888ba27ce6d",
+    "./dist/formats/mpq/index.js": "./dist/formats/mpq/index.js?build=66f39888ba27ce6d",
+    "./dist/formats/mpq/inflate.js": "./dist/formats/mpq/inflate.js?build=66f39888ba27ce6d",
+    "./dist/formats/objects.js": "./dist/formats/objects.js?build=66f39888ba27ce6d",
+    "./dist/formats/slk.js": "./dist/formats/slk.js?build=66f39888ba27ce6d",
+    "./dist/formats/stock-unit-abilities.js": "./dist/formats/stock-unit-abilities.js?build=66f39888ba27ce6d",
+    "./dist/formats/wpm.js": "./dist/formats/wpm.js?build=66f39888ba27ce6d",
+    "./dist/formats/wts.js": "./dist/formats/wts.js?build=66f39888ba27ce6d",
+    "./dist/ir/fourcc.js": "./dist/ir/fourcc.js?build=66f39888ba27ce6d",
+    "./dist/ir/pathing.js": "./dist/ir/pathing.js?build=66f39888ba27ce6d",
+    "./dist/ir/types.js": "./dist/ir/types.js?build=66f39888ba27ce6d",
+    "./dist/jass/ast.js": "./dist/jass/ast.js?build=66f39888ba27ce6d",
+    "./dist/jass/lexer.js": "./dist/jass/lexer.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/arith.js": "./dist/jass/natives/arith.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/bridge.js": "./dist/jass/natives/bridge.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/dialog.js": "./dist/jass/natives/dialog.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/groups.js": "./dist/jass/natives/groups.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/handles.js": "./dist/jass/natives/handles.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/index.js": "./dist/jass/natives/index.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/misc_stubs.js": "./dist/jass/natives/misc_stubs.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/orders.js": "./dist/jass/natives/orders.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/players.js": "./dist/jass/natives/players.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/registry.js": "./dist/jass/natives/registry.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/timers.js": "./dist/jass/natives/timers.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/triggers.js": "./dist/jass/natives/triggers.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/units.js": "./dist/jass/natives/units.js?build=66f39888ba27ce6d",
+    "./dist/jass/natives/victory.js": "./dist/jass/natives/victory.js?build=66f39888ba27ce6d",
+    "./dist/jass/parser.js": "./dist/jass/parser.js?build=66f39888ba27ce6d",
+    "./dist/jass/vm.js": "./dist/jass/vm.js?build=66f39888ba27ce6d",
+    "./dist/runtime/ability-effects.js": "./dist/runtime/ability-effects.js?build=66f39888ba27ce6d",
+    "./dist/runtime/build-preview.js": "./dist/runtime/build-preview.js?build=66f39888ba27ce6d",
+    "./dist/runtime/maps/gemtower.js": "./dist/runtime/maps/gemtower.js?build=66f39888ba27ce6d",
+    "./dist/runtime/session.js": "./dist/runtime/session.js?build=66f39888ba27ce6d",
+    "./dist/runtime/unit-identity.js": "./dist/runtime/unit-identity.js?build=66f39888ba27ce6d",
+    "./dist/runtime/unit-stats.js": "./dist/runtime/unit-stats.js?build=66f39888ba27ce6d",
+    "./dist/sim/ability-effects.js": "./dist/sim/ability-effects.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/combat.js": "./dist/sim/balance/combat.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/config.js": "./dist/sim/balance/config.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/configs/gemtower.js": "./dist/sim/balance/configs/gemtower.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/configs/stock-defaults.js": "./dist/sim/balance/configs/stock-defaults.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/curves.js": "./dist/sim/balance/curves.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/economy.js": "./dist/sim/balance/economy.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/fixed.js": "./dist/sim/balance/fixed.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/provider.js": "./dist/sim/balance/provider.js?build=66f39888ba27ce6d",
+    "./dist/sim/balance/telemetry.js": "./dist/sim/balance/telemetry.js?build=66f39888ba27ce6d",
+    "./dist/sim/combat-pipe.js": "./dist/sim/combat-pipe.js?build=66f39888ba27ce6d",
+    "./dist/sim/combat-system.js": "./dist/sim/combat-system.js?build=66f39888ba27ce6d",
+    "./dist/sim/def-store.js": "./dist/sim/def-store.js?build=66f39888ba27ce6d",
+    "./dist/sim/life.js": "./dist/sim/life.js?build=66f39888ba27ce6d",
+    "./dist/sim/movement.js": "./dist/sim/movement.js?build=66f39888ba27ce6d",
+    "./dist/sim/navigation.js": "./dist/sim/navigation.js?build=66f39888ba27ce6d",
+    "./dist/sim/playerstate.js": "./dist/sim/playerstate.js?build=66f39888ba27ce6d",
+    "./dist/sim/rng.js": "./dist/sim/rng.js?build=66f39888ba27ce6d",
+    "./dist/sim/sim.js": "./dist/sim/sim.js?build=66f39888ba27ce6d",
+    "./dist/sim/status.js": "./dist/sim/status.js?build=66f39888ba27ce6d",
+    "./dist/sim/ticks.js": "./dist/sim/ticks.js?build=66f39888ba27ce6d",
+    "./dist/sim/unit-entity.js": "./dist/sim/unit-entity.js?build=66f39888ba27ce6d",
+    "./dist/world_api.js": "./dist/world_api.js?build=66f39888ba27ce6d",
+    "./field-art.js": "./field-art.js?build=66f39888ba27ce6d",
+    "./field-effects.js": "./field-effects.js?build=66f39888ba27ce6d",
+    "./field-ground.js": "./field-ground.js?build=66f39888ba27ce6d",
+    "./field-units.js": "./field-units.js?build=66f39888ba27ce6d",
+    "./first-minute.js": "./first-minute.js?build=66f39888ba27ce6d",
+    "./first-run-guide.js": "./first-run-guide.js?build=66f39888ba27ce6d",
+    "./first-run-ui.js": "./first-run-ui.js?build=66f39888ba27ce6d",
+    "./game-menu.js": "./game-menu.js?build=66f39888ba27ce6d",
+    "./gem-actions.js": "./gem-actions.js?build=66f39888ba27ce6d",
+    "./gem-targeting.js": "./gem-targeting.js?build=66f39888ba27ce6d",
+    "./local-stock.js": "./local-stock.js?build=66f39888ba27ce6d",
+    "./main.js": "./main.js?build=66f39888ba27ce6d",
+    "./overlap-picker.js": "./overlap-picker.js?build=66f39888ba27ce6d",
+    "./play-ui.js": "./play-ui.js?build=66f39888ba27ce6d",
+    "./precision-camera.js": "./precision-camera.js?build=66f39888ba27ce6d",
+    "./recipe-book.js": "./recipe-book.js?build=66f39888ba27ce6d",
+    "./recipe-view.js": "./recipe-view.js?build=66f39888ba27ce6d",
+    "./run-checkpoint.js": "./run-checkpoint.js?build=66f39888ba27ce6d",
+    "./run-storage.js": "./run-storage.js?build=66f39888ba27ce6d",
+    "./sound-events.js": "./sound-events.js?build=66f39888ba27ce6d",
+    "./source-help.js": "./source-help.js?build=66f39888ba27ce6d",
+    "./source-input.js": "./source-input.js?build=66f39888ba27ce6d",
+    "./ui-skin.js": "./ui-skin.js?build=66f39888ba27ce6d",
+    "./visual-assets.js": "./visual-assets.js?build=66f39888ba27ce6d",
+    "./wave-notices.js": "./wave-notices.js?build=66f39888ba27ce6d"
   }
 }</script>
-<link rel="preload" as="fetch" href="./assets/manifest.json?build=bb903ec34ebe951f" crossorigin="anonymous">
+<link rel="preload" as="fetch" href="./assets/manifest.json?build=66f39888ba27ce6d" crossorigin="anonymous">
 <link rel="preload" as="fetch" href="./assets/ui/materials.json" crossorigin="anonymous">
-<link rel="preload" as="image" href="./assets/sprites/gemtower-f-ground.png?build=bb903ec34ebe951f">
-<link rel="preload" as="image" href="./assets/sprites/gemtower-f-bases.png?build=bb903ec34ebe951f">
-<link rel="preload" as="image" href="./assets/sprites/props.png?build=bb903ec34ebe951f">
-<link rel="preload" as="image" href="./assets/sprites/pearl.png?build=bb903ec34ebe951f">
-<link rel="preload" as="image" href="./assets/sprites/tiles.png?build=bb903ec34ebe951f">
+<link rel="preload" as="image" href="./assets/sprites/gemtower-f-ground.png?build=66f39888ba27ce6d">
+<link rel="preload" as="image" href="./assets/sprites/gemtower-f-bases.png?build=66f39888ba27ce6d">
+<link rel="preload" as="image" href="./assets/sprites/props.png?build=66f39888ba27ce6d">
+<link rel="preload" as="image" href="./assets/sprites/pearl.png?build=66f39888ba27ce6d">
+<link rel="preload" as="image" href="./assets/sprites/tiles.png?build=66f39888ba27ce6d">
 <link rel="preload" as="image" href="./assets/ui/approved/slot-grey.png">
 <link rel="preload" as="image" href="./assets/ui/approved/frame-topbar.png">
 <link rel="preload" as="image" href="./assets/ui/approved/frame-tray.png">
@@ -186,95 +186,95 @@
 <link rel="preload" as="image" href="./assets/ui/approved/icon-gold-coin.png">
 <link rel="preload" as="image" href="./assets/ui/approved/icon-life-heart.png">
 <link rel="preload" as="image" href="./assets/ui/approved/icon-wave-flag.png">
-<link rel="modulepreload" href="./main.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./action-feedback.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./audio-catalog.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./audio-recording.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./audio-settings.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./battlefield-readability.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./browser-runtime.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./button-reasons.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./casino-feedback.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./combination-hints.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/misc.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/mpq/archive.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/mpq/crypto.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/mpq/errors.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/mpq/header.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/mpq/index.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/mpq/inflate.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/objects.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/slk.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/stock-unit-abilities.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/wpm.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/formats/wts.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/ir/fourcc.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/ir/pathing.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/lexer.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/arith.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/bridge.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/dialog.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/groups.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/handles.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/index.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/misc_stubs.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/orders.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/players.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/registry.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/timers.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/triggers.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/units.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/natives/victory.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/parser.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/jass/vm.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/runtime/ability-effects.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/runtime/build-preview.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/runtime/maps/gemtower.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/runtime/session.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/runtime/unit-identity.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/runtime/unit-stats.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/ability-effects.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/combat.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/config.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/configs/gemtower.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/configs/stock-defaults.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/curves.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/economy.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/fixed.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/balance/provider.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/combat-pipe.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/combat-system.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/def-store.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/life.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/movement.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/navigation.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/playerstate.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/rng.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/sim.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/status.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/ticks.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./dist/sim/unit-entity.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./field-art.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./field-effects.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./field-ground.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./field-units.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./first-minute.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./first-run-guide.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./game-menu.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./gem-actions.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./gem-targeting.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./local-stock.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./overlap-picker.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./play-ui.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./precision-camera.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./recipe-book.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./recipe-view.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./run-checkpoint.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./run-storage.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./sound-events.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./source-input.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./ui-skin.js?build=bb903ec34ebe951f">
-<link rel="modulepreload" href="./visual-assets.js?build=bb903ec34ebe951f">
-<script type="module" src="./main.js?build=bb903ec34ebe951f"></script>
+<link rel="modulepreload" href="./main.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./action-feedback.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./audio-catalog.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./audio-recording.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./audio-settings.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./battlefield-readability.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./browser-runtime.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./button-reasons.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./casino-feedback.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./combination-hints.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/misc.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/mpq/archive.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/mpq/crypto.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/mpq/errors.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/mpq/header.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/mpq/index.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/mpq/inflate.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/objects.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/slk.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/stock-unit-abilities.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/wpm.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/formats/wts.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/ir/fourcc.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/ir/pathing.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/lexer.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/arith.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/bridge.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/dialog.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/groups.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/handles.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/index.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/misc_stubs.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/orders.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/players.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/registry.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/timers.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/triggers.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/units.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/natives/victory.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/parser.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/jass/vm.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/runtime/ability-effects.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/runtime/build-preview.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/runtime/maps/gemtower.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/runtime/session.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/runtime/unit-identity.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/runtime/unit-stats.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/ability-effects.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/combat.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/config.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/configs/gemtower.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/configs/stock-defaults.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/curves.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/economy.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/fixed.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/balance/provider.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/combat-pipe.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/combat-system.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/def-store.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/life.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/movement.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/navigation.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/playerstate.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/rng.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/sim.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/status.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/ticks.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./dist/sim/unit-entity.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./field-art.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./field-effects.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./field-ground.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./field-units.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./first-minute.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./first-run-guide.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./game-menu.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./gem-actions.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./gem-targeting.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./local-stock.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./overlap-picker.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./play-ui.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./precision-camera.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./recipe-book.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./recipe-view.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./run-checkpoint.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./run-storage.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./sound-events.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./source-input.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./ui-skin.js?build=66f39888ba27ce6d">
+<link rel="modulepreload" href="./visual-assets.js?build=66f39888ba27ce6d">
+<script type="module" src="./main.js?build=66f39888ba27ce6d"></script>
 <!-- WEB_BUILD_END -->
 </body></html>

@@ -189,14 +189,15 @@ export function createSelectionSheet(doc,{panel,meta,body,summary}){
 }
 /** View-only reuse of the selected card. Source buttons keep their identities,
  * handlers, disabled reasons and ordering; combat merely moves them into the
- * already existing information/upgrade disclosure. No command is dispatched. */
+ * already existing information/upgrade disclosure. Both PC and phone expose
+ * details by intent instead of forcing open the whole sidebar. No command is dispatched. */
 export function createSelectionCard(doc){
- let homes=null,lastCombat=false,lastSelected=null,unitArt=null,unitRole=null,sheet=null,lastDesktop=false,mobileOpen=false;
+ let homes=null,lastCombat=false,lastSelected=null,unitArt=null,unitRole=null,sheet=null;
  const putBack=(node,home)=>{if(node.parentNode!==home.parent)home.parent.insertBefore(node,home.next?.parentNode===home.parent?home.next:null);};
  const remember=node=>({parent:node.parentNode,next:node.nextSibling});
  return {render(snapshot={}){
   const keep=doc.getElementById('castA009'),close=doc.getElementById('gemDeselect');
-  if(keep&&keep.textContent!=='이 보석 남기기')keep.textContent='이 보석 남기기';
+  for(const [id,label,full]of [['castA009','남기기','이 보석 남기기'],['castA007','조합','보석 조합'],['castA00R','스페셜','스페셜 조합'],['castA03M','슬레이트','슬레이트 조합']]){const button=doc.getElementById(id);if(button){if(button.textContent!==label)button.textContent=label;button.setAttribute('aria-label',full);}}
   if(close&&close.textContent!=='×'){
    const label=close.getAttribute('aria-label')||close.textContent||'선택 닫기';
    close.setAttribute('aria-label',label);close.title=label;close.textContent='×';
@@ -205,7 +206,6 @@ export function createSelectionCard(doc){
   if(hint&&hint.textContent!==text)hint.textContent=text;
   const panel=doc.getElementById('gemPanel'),name=doc.querySelector('.bp-name'),meta=doc.querySelector('.gem-meta'),body=meta?.querySelector('.gem-detail-body'),actions=doc.querySelector('.bp-actions'),summary=meta?.querySelector('summary'),badge=doc.getElementById('gemSpecialBadge');
   if(!panel||!name||!meta||!body||!actions||!summary||!close)return;
-  const desktop=snapshot.desktop===true;if(desktop&&!lastDesktop)mobileOpen=meta.open;
   if(!homes)homes={actions:remember(actions),close:remember(close),badge:badge?remember(badge):null,summary:summary.textContent};
   if(!sheet)sheet=createSelectionSheet(doc,{panel,meta,body,summary});
   const portrait=doc.getElementById('selectedGemPortrait');
@@ -240,7 +240,7 @@ export function createSelectionCard(doc){
    putBack(actions,homes.actions);putBack(close,homes.close);if(badge&&homes.badge)putBack(badge,homes.badge);
    if(summary.textContent!==homes.summary)summary.textContent=homes.summary;
   }
-  summary.hidden=desktop;if(desktop)meta.open=true;else if(lastDesktop)meta.open=mobileOpen||interacting;lastDesktop=desktop;
+  summary.hidden=false;
   sheet.update({selected:Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem),interacting});
   // The original keep button can remain enabled after the source transition.
   // Its preparatory focus belongs on the visible summary when combat starts.
@@ -264,7 +264,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
  const buttons=Array.from({length:5},(_,index)=>{
   const button=doc.createElement('button');button.type='button';button.className='round-slot';button.dataset.slot=String(index+1);button.setAttribute('aria-pressed','false');
   const frame=doc.createElement('canvas');frame.className='slot-material';frame.setAttribute('aria-hidden','true');const art=doc.createElement('canvas');art.className='slot-gem';art.width=64;art.height=64;art.setAttribute('aria-hidden','true');
-  const number=doc.createElement('span');number.className='slot-number';number.textContent=String(index+1);const grade=doc.createElement('span');grade.className='slot-grade';grade.setAttribute('aria-hidden','true');grade.hidden=true;const combo=doc.createElement('span');combo.className='slot-combination';combo.setAttribute('aria-hidden','true');combo.textContent='● 조합';combo.hidden=true;button.append(frame,art,number,grade,combo);slots.append(button);
+  const number=doc.createElement('span');number.className='slot-number';number.textContent=String(index+1);const grade=doc.createElement('span');grade.className='slot-grade';grade.setAttribute('aria-hidden','true');grade.hidden=true;const combo=doc.createElement('span');combo.className='slot-combination';combo.setAttribute('aria-hidden','true');combo.textContent='조합';combo.hidden=true;button.append(frame,art,number,grade,combo);slots.append(button);
   button.addEventListener('click',()=>{const id=Number(button.dataset.unitId);if(Number.isSafeInteger(id)&&id>0)selectUnit(id);});return button;
  });
  const targetPanel=doc.createElement('section');targetPanel.id='gemTargetAbilities';targetPanel.hidden=true;targetPanel.setAttribute('aria-label','보조 능력');

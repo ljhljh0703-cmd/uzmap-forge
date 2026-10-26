@@ -812,7 +812,6 @@
       9654,
       9670,
       9678,
-      9679,
       9829,
       27515,
       44032,
@@ -1379,7 +1378,7 @@
       55180,
       55192
     ],
-    "uiGlyphHash": "6f4ecc1c8626688b8694f1edd457336bc446db1b6314074a99bf85f6f2041e15",
+    "uiGlyphHash": "2b667fd06fc7083e1926cc532e92bfa4bbe6b81d4940aed6e65a31980bfb9580",
     "uiFiles": [
       "web/index.html",
       "web/play.css",
@@ -1539,7 +1538,6 @@
       9654,
       9670,
       9678,
-      9679,
       9733,
       9829,
       12288,
@@ -3897,7 +3895,7 @@
       55195,
       55197
     ],
-    "requiredGlyphHash": "82b13f075bf4f70c06eef9baa0f485b5786baa5c9cb111d4b232eb275c658bf3",
+    "requiredGlyphHash": "88f089ce87316cb0c49e2152ada0efe1411a24406b510728333cacfd19ef5ff8",
     "uiScan": "all public top-level JS plus index.html/play.css, including comments as a conservative superset",
     "profileSha256": "bf51d723c9dd5ed4970026ff9e342ba9dcbdfd657ce610838df469f3da1ceeaf"
   },
@@ -3906,8 +3904,8 @@
     "scripts/lib/f_asset_quality.py": "519c5e14b4374f38d4663b7c1d69f32c7e71c0e3597497a495dd1d71910ec0cb"
   },
   "toolVersions": {
-    "python": "3.14.0",
-    "fontTools": "4.61.0",
+    "python": "3.14.7",
+    "fontTools": "4.63.0",
     "node": "v22.22.3"
   },
   "fonts": [
@@ -3915,25 +3913,25 @@
       "source": "web/assets/fonts/Galmuri11.woff2",
       "sourceSha256": "f467d1b10e6b88dfa8399c9f93b38c7643e050abfe4fc15800ac0b000f5a57d6",
       "path": "web/assets/fonts/Galmuri11-f.woff2",
-      "sha256": "f528f85004dfa022ec874936a6bc41952ffc816fafa91c2a3d2fc77c5933c3a5",
-      "bytes": 44672,
+      "sha256": "6cbe77576faa36ae853e0a70ca0ce1a575ce8bf1553eb12443bfc3edd8b00a39",
+      "bytes": 44688,
       "originalCmapCount": 20965,
-      "subsetCmapCount": 2477,
-      "supportedRequiredCount": 2476,
+      "subsetCmapCount": 2476,
+      "supportedRequiredCount": 2475,
       "missingFromOriginal": [],
-      "outlineMetricsOriginalSha256": "5856d50304ad60c6ed07ee8faba60f668f796401627d2c44b57c3c290adb32d4",
-      "outlineMetricsSubsetSha256": "5856d50304ad60c6ed07ee8faba60f668f796401627d2c44b57c3c290adb32d4",
+      "outlineMetricsOriginalSha256": "94d14f75f093b240adc09a226d0bc3bf08deda6981b68b09b9de55e809582796",
+      "outlineMetricsSubsetSha256": "94d14f75f093b240adc09a226d0bc3bf08deda6981b68b09b9de55e809582796",
       "outlineMetricsEqual": true
     },
     {
       "source": "web/assets/fonts/Galmuri11-Bold.woff2",
       "sourceSha256": "8643094f395aa2dbad6bc4385cc043314801eaec2e759d549435ec8ac4f2d078",
       "path": "web/assets/fonts/Galmuri11-Bold-f.woff2",
-      "sha256": "b460b10fe461d3f0cc907e183073c92ed5fd0f4ded773106945c3c0bb7e47523",
-      "bytes": 40832,
+      "sha256": "d28c2bdd0dadb6d2befed351f85424dbcca8f460268dd7c34a099844177e2980",
+      "bytes": 40764,
       "originalCmapCount": 12695,
-      "subsetCmapCount": 2472,
-      "supportedRequiredCount": 2471,
+      "subsetCmapCount": 2471,
+      "supportedRequiredCount": 2470,
       "missingFromOriginal": [
         8722,
         8746,
@@ -3941,8 +3939,8 @@
         9432,
         27515
       ],
-      "outlineMetricsOriginalSha256": "c6b8fa3d43c1990fbe8aacb7985c15dc969a4f2660b7f54beaef13f11f02fa74",
-      "outlineMetricsSubsetSha256": "c6b8fa3d43c1990fbe8aacb7985c15dc969a4f2660b7f54beaef13f11f02fa74",
+      "outlineMetricsOriginalSha256": "56f6a4ea77d5237f858ea07d2750ced574e25e1a909c43012be140809efcc416",
+      "outlineMetricsSubsetSha256": "56f6a4ea77d5237f858ea07d2750ced574e25e1a909c43012be140809efcc416",
       "outlineMetricsEqual": true
     }
   ],
