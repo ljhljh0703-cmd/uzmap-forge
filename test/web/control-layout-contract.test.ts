@@ -31,3 +31,12 @@ it('the phone sheet sticky handle cancels the full framed top inset so no scroll
  assert.equal(top+margin,0,'the initial handle covers the entire inner top gap');assert.equal(top+sticky,0,'scrolling keeps the same opaque top boundary');
  assert.match(rule(base),/overflow:auto/);assert.match(css,/#selectionSheetHandle\{[^}]*min-height:44px/,'same44px swipe/collapse control');
 });
+
+it('the bottom sheet reuses the approved frame edge above scrolling text without creating an input target',()=>{
+ const selector='.app[data-simple-ui=true] #gemPanel[data-desktop-card=false][data-selection-sheet=true] .gem-detail-body.skin-framed::after',start=css.lastIndexOf(selector+'{');assert.ok(start>=0,'phone-only bottom coverage');const rule=css.slice(start+selector.length+1,css.indexOf('}',start));
+ const panel=JSON.parse(readFileSync('web/assets/ui/materials.json','utf8')).panel;
+ assert.match(rule,/position:sticky/);assert.match(rule,/bottom:-20px/);assert.match(rule,/height:20px/);assert.match(rule,/margin:0 -20px -20px/);assert.match(rule,/box-sizing:border-box/);assert.match(rule,/background:#2b2117/);assert.match(rule,/pointer-events:none/);
+ assert.equal(Number(rule.match(/z-index:(\d+)/)?.[1]),2,'cover is above content1 and below the existing swipe handle3');
+ assert.ok(rule.includes('url('+panel.file+')'),'same original frame PNG');assert.equal(Number(rule.match(/border-image-slice:(\d+)/)?.[1]),panel.sourceInsets[3]);
+ const edge=Number(rule.match(/border-width:0 (\d+)px/)?.[1]);assert.equal(edge*panel.sourceStep,panel.sourceInsets[3],'same18px decoded border');assert.ok(edge<=20,'reserved bottom padding contains the full frame edge');
+});
