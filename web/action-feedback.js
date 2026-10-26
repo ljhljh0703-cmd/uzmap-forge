@@ -22,7 +22,7 @@ export function createActionFeedback({now=()=>performance.now(),play=()=>false,d
    const app=doc.getElementById('gameApp'),celebration=state.active.findLast(item=>item.kind==='combine'||item.rare);if(app){app.dataset.celebration=String(Boolean(celebration));if(celebration)app.style?.setProperty?.('--celebration-color',celebration.color);}
    const panel=doc.getElementById('bottomPanel');if(panel){panel.dataset.confirmedActions=String(state.total);panel.dataset.lastSuccess=state.last?.kind??'';}
   },
-  pose(unitId){const item=this.snapshot().active.findLast(x=>x.unitId===unitId);if(!item||reducedMotion())return{lift:0,scaleX:1};const age=now()-item.at;return{lift:item.kind==='keep'?3*Math.sin(Math.PI*Math.min(1,age/560)):item.kind==='place'?4*(1-Math.min(1,age/120)):0,scaleX:item.kind==='combine'?Math.max(.15,Math.sin(Math.PI/2*Math.min(1,age/240))):1};},
+  pose(unitId){const at=now(),item=active.findLast(x=>x.until>at&&x.unitId===unitId);if(!item||reducedMotion())return{lift:0,scaleX:1};const age=at-item.at;return{lift:item.kind==='keep'?3*Math.sin(Math.PI*Math.min(1,age/560)):item.kind==='place'?4*(1-Math.min(1,age/120)):0,scaleX:item.kind==='combine'?Math.max(.15,Math.sin(Math.PI/2*Math.min(1,age/240))):1};},
   ghosts(){if(reducedMotion())return[];const out=[];for(const item of this.snapshot().active)if(item.kind==='keep'){const age=now()-item.at;item.hand.filter(x=>x.id!==item.unitId).forEach((x,index)=>{if(age<(index+1)*100)out.push({...x,color:item.color});});}return out.slice(0,4);},
   clear(){active=[];last=null;total=0;lastFlashAt=-Infinity;const app=doc?.getElementById?.('gameApp');if(app)app.dataset.celebration='false';seen.clear();for(const node of targets.keys())remove(node);}
  };

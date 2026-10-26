@@ -55,3 +55,10 @@ export function createResultStats(){
   snapshot(){return{kills,unattributed,top:[...rows.values()].filter(r=>r.kills>0).sort((a,b)=>b.kills-a.kills||a.id-b.id).slice(0,3).map(r=>({...r})),lastLoss:lastLoss?{amount:lastLoss.amount,units:lastLoss.units.map(x=>({...x}))}:null};}
  };
 }
+
+/** Exact source enter-rect observation, shared by display and the numeric QA runner. */
+export function sourceExitActor({event,rect,exit,unit,name}={}){
+ if(event?.kind!=='RectEntered'||!integer(event.unitId,1)||unit?.owner!==11||typeof name!=='string'||!name||!rect||!exit)return null;
+ if(!['minX','minY','maxX','maxY'].every(key=>Number.isFinite(exit[key])&&rect[key]===exit[key]))return null;
+ return{id:event.unitId,name};
+}

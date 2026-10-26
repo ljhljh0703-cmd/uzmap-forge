@@ -1,4 +1,4 @@
-import {createRecordBook,createResultStats,koreanDate,dailySeed,challengeFromQuery,challengeURL,shareChallenge} from './result-records.js';
+import {createRecordBook,createResultStats,sourceExitActor,koreanDate,dailySeed,challengeFromQuery,challengeURL,shareChallenge} from './result-records.js';
 import {mountResultView} from './result-view.js';
 import {FIRST_RUN_TIPS} from './first-run-guide.js';
 import {H_AUDIO_CUES,H_BGM,H_CUE_SETTINGS} from './audio-catalog.js';
@@ -72,7 +72,7 @@ $('precisePlacement').checked=playPreferences.snapshot().precision;
 const damageLabel=document.createElement('label'),damageToggle=document.createElement('input');damageLabel.className='damage-option';damageToggle.id='showDamageNumbers';damageToggle.type='checkbox';damageToggle.checked=playPreferences.snapshot().damageNumbers;damageLabel.append(damageToggle,document.createTextNode('몬스터 피해 숫자'));$('menuPanelSettings').insertBefore(damageLabel,$('advancedOptions'));damageToggle.addEventListener('change',()=>{playPreferences.set({damageNumbers:damageToggle.checked});textTags.length=0;});
 const goldGain=document.createElement('span');goldGain.id='goldGain';goldGain.className='gold-gain';goldGain.hidden=true;goldGain.setAttribute('aria-hidden','true');$('hudGold').parentElement.append(goldGain);
 const recordBook=createRecordBook(()=>globalThis.localStorage);
-const resultView=mountResultView(document,{same:model=>startChallenge(model.profile),today:()=>startChallenge({seed:dailySeed(koreanDate()),dailyDate:koreanDate(),mode:'race',difficulty:0}),share:model=>shareChallenge(navigator,{title:'보석타워',text:`보석타워 ${model.profile.dailyDate?'오늘의 판 ':''}${model.wave}웨이브 · 같은 첫 보석으로 도전하기`,url:challengeURL(location.href,model.profile)})});
+const resultView=mountResultView(document,{same:model=>startChallenge(model.profile),today:()=>startChallenge({seed:dailySeed(koreanDate()),dailyDate:koreanDate(),mode:'race',difficulty:0}),share:model=>shareChallenge(navigator,{title:'보석타워',text:`보석타워 ${model.profile.dailyDate?'오늘의 판 ':''}${model.wave}웨이브 · 같은 시작 조건으로 도전하기`,url:challengeURL(location.href,model.profile)})});
 const buttonReasons=createButtonReasonView(document);
 const roundSlotsHelp=document.createElement('small');roundSlotsHelp.id='roundSlotsHelp';roundSlotsHelp.className='round-slots-help';roundSlotsHelp.hidden=true;$('roundTray').append(roundSlotsHelp);
 const researchShortcut=mountResearchShortcut(document,{purchase:techId=>requestResearch(world,techId),reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches});
@@ -187,7 +187,7 @@ function switchField(w,playerId){
  if(!w||!Number.isInteger(playerId)||playerId<0||playerId>=MAX_FIELD_PLAYERS)return;
  if(playerId!==0&&w.sim.playerState?.getSlotState(playerId)!==1&&w.sim.playerState)return;
  w.precisionCamera?.reset();drag.on=false;drag.cell=null;
- w.fieldFeedback?.clear();w.viewPlayerId=playerId;w.cameraMode='fit';w.hover=null;w.hoverGemId=null;w.buildCellsView=null;
+ w.fieldFeedback?.clear();actionFeedback.clear();goldTags.length=0;goldGain.hidden=true;w.viewPlayerId=playerId;w.cameraMode='fit';w.hover=null;w.hoverGemId=null;w.buildCellsView=null;
  fitPlayerField(w);render(w);
 }
 function renderFieldView(w){
@@ -1206,7 +1206,7 @@ function render(w,preservePendingDialog=false) {
   const numberBounds=fieldBounds?{left:W2SX(fieldBounds.minX),top:W2SY(fieldBounds.maxY),width:(fieldBounds.maxX-fieldBounds.minX)*z,height:(fieldBounds.maxY-fieldBounds.minY)*z}:{left:0,top:0,width:W,height:H};
   const numbers=playPreferences.snapshot().damageNumbers?damageTagViews(textTags,p=>!fieldBounds||pointInBattlefield(p,fieldBounds)?{x:W2SX(p.x),y:W2SY(p.y)}:null,{now:nowT,boxes:w.damageBoxes??[],viewport:numberBounds,reducedMotion:reducedMotion.matches,measure:(text,size)=>{ctx.font=`bold ${size}px system-ui`;return ctx.measureText(text).width;}}):[];
   for(const t of numbers){ctx.globalAlpha=t.opacity;ctx.font=`bold ${t.fontSize}px system-ui`;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#170f0b';ctx.strokeText(t.text,t.x,t.y);ctx.fillStyle='#e9d3b4';ctx.fillText(t.text,t.x,t.y);ctx.globalAlpha=1;ctx.textAlign='left';}
-  goldTags=goldTags.filter(t=>nowT-t.born<760);const gain=goldGainView(goldTags,nowT,reducedMotion.matches);goldGain.hidden=!gain;if(gain){goldGain.textContent=gain.text;goldGain.style.transform=`translateY(${gain.dy}px)`;goldGain.style.opacity=String(gain.opacity);}
+  goldTags=goldTags.filter(t=>nowT-t.born<760);const gain=((w.viewPlayerId??0)===0?goldGainView(goldTags,nowT,reducedMotion.matches):null);goldGain.hidden=!gain;if(gain){goldGain.textContent=gain.text;goldGain.style.transform=`translateY(${gain.dy}px)`;goldGain.style.opacity=String(gain.opacity);}
   // U-1c: 호버 툴팁 — 클릭선택 패널과 별개로 마우스오버만으로 라인·티어·공격력·사거리 즉시 확인
   // (roleTable/defOf 파생만, 발명 0). 드래그(팬) 중엔 억제(조작 충돌 방지).
   if (w.hoverGemId !== null && !drag.on) {
@@ -1394,7 +1394,7 @@ function stepN(w, n) {
     }
     prevGold[0] = goldNow;
     for (const ev of w.sim.drainEvents()) {
-      if (ev.kind === "RectEntered") rectEntered++;
+      if (ev.kind === "RectEntered") {rectEntered++;const unit=w.sim.getUnit(ev.unitId)??lastPos.get(ev.unitId),actor=sourceExitActor({event:ev,rect:w.registry.rects.find(r=>r.rectId===ev.rectId),exit:sourceRect(w,'Do'),unit,name:unit?fullName(w,unit.typeId):''});if(actor)resultMineAttackers.push(actor);}
       // P-2(경제 단일화, PLAYABLE §5): 뷰포트 킬 수익 근사 제거 — test/web/p2-economy.test.ts가 실측:
       // Source-enabled kill bounty is settled once by the existing ledger; source trigger
       // bonuses remain separate. The viewport only observes deaths and never adds gold.
@@ -1602,7 +1602,7 @@ function syncGameSound(w) {
 }
 
 function showActionSuccess(w,kind,unit) {
- if(!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||w.gameOver||!unit?.id)return null;
+ if(!w||w!==world||restoring||loadingRun||runtimeFailed||document.hidden||w.gameOver||(w.viewPlayerId??0)!==0||!unit?.id)return null;
  if(kind==='combine'&&(w.viewPlayerId??0)===0){const actual=w.sim.getUnit(unit.id);if(actual?.alive)w.fieldFeedback?.emit({kind:'combine',key:`${w.runId}:${w.sim.tickCount}:combine:${unit.id}`,x:actual.x,y:actual.y,space:'world'});}
  return actionFeedback.confirm({key:`${w.runId}:${w.sim.tickCount}:${kind}:${unit.id}`,kind,unitId:unit.id,name:fullName(w,unit.typeId),color:gemVisual(w,unit.typeId).color,rare:(fieldGradeIndex(fullName(w,unit.typeId))??-1)>=3||GEMTOWER_BALANCE.roleTable[unit.typeId]?.archetype==='specialGem'});
 }
@@ -2002,7 +2002,7 @@ function renderResultDetails(w){
  const profile={seed:w.seed,mode:w.runMode??'race',difficulty:Math.max(0,(state.difficulty??1)-1),dailyDate:w.challengeDate??null};
  const model={runId:w.runId,seed:w.seed,mode:profile.mode,difficulty:profile.difficulty+1,dailyDate:profile.dailyDate,wave:state.round??waveNum,tick:w.sim.tickCount,winner:w.gameOver.winner};
  w.resultRecord??=recordBook.record(model);
- const units=stats.lastLoss?.units??[],cause=model.winner===0?'모든 웨이브를 클리어했습니다':units.length?'마지막 광산 공격: '+units.map(e=>e.name+' '+e.count+'마리').join(' · '):'광산의 생명을 모두 잃었습니다';
+ const units=stats.lastLoss?.units??[],cause=model.winner===0?'모든 웨이브를 클리어했습니다':units.length?'광산에 도착한 적: '+units.map(e=>e.name+' '+e.count+'마리').join(' · '):'광산의 생명을 모두 잃었습니다';
  resultView.render({...model,profile,stats,cause,gems:gems.length,highest,record:w.resultRecord});resultView.records(recordBook.list());
 }
 function commitSessionSeed(seed,profile=null) {
