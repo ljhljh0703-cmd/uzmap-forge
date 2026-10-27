@@ -1206,6 +1206,8 @@ function render(w,preservePendingDialog=false) {
   textTags = textTags.filter(t=>nowT-t.born<700);
   const numberBounds=fieldBounds?{left:W2SX(fieldBounds.minX),top:W2SY(fieldBounds.maxY),width:(fieldBounds.maxX-fieldBounds.minX)*z,height:(fieldBounds.maxY-fieldBounds.minY)*z}:{left:0,top:0,width:W,height:H};
   const numbers=playPreferences.snapshot().damageNumbers?damageTagViews(textTags,p=>!fieldBounds||pointInBattlefield(p,fieldBounds)?{x:W2SX(p.x),y:W2SY(p.y)}:null,{now:nowT,boxes:w.damageBoxes??[],viewport:numberBounds,reducedMotion:reducedMotion.matches,measure:(text,size)=>{ctx.font=`bold ${size}px system-ui`;return ctx.measureText(text).width;}}):[];
+  // Latest completed board paint, not cumulative fillText calls across redraws.
+  setData(cv,'damageLabels',numbers.length);
   for(const t of numbers){ctx.globalAlpha=t.opacity;ctx.font=`bold ${t.fontSize}px system-ui`;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#170f0b';ctx.strokeText(t.text,t.x,t.y);ctx.fillStyle='#e9d3b4';ctx.fillText(t.text,t.x,t.y);ctx.globalAlpha=1;ctx.textAlign='left';}
   goldTags=goldTags.filter(t=>nowT-t.born<760);const gain=((w.viewPlayerId??0)===0?goldGainView(goldTags,nowT,reducedMotion.matches):null);setHidden(goldGain,!gain);if(gain){setText(goldGain,gain.text);setStyle(goldGain,"transform",`translateY(${gain.dy}px)`);setStyle(goldGain,"opacity",String(gain.opacity));}
   // U-1c: 호버 툴팁 — 클릭선택 패널과 별개로 마우스오버만으로 라인·티어·공격력·사거리 즉시 확인

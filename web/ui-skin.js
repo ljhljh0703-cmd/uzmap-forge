@@ -1,3 +1,4 @@
+import {setHidden,setText,setProperty,setAttribute,setData} from './dom-state.js';
 import {fieldGradeIndex,FIELD_GRADE_COLORS} from './field-units.js';
 import {createFrameTask} from './browser-runtime.js';
 /** Gem-selection screen skin. View-only: no Sim/VM imports, no source commands.
@@ -24,9 +25,9 @@ export function createNoticeState(duration=1800){
 /** A notice occupies the existing caption row; it never covers a second caption. */
 export function setPhaseNotice(doc,visible){
  const active=Boolean(visible),notice=doc.getElementById('actionFeedback'),phase=doc.getElementById('playPhase'),caption=doc.getElementById('phoneWavePreview');
- if(notice)notice.hidden=!active;
+ if(notice)setHidden(notice,!active);
  if(phase&&phase.dataset.noticeActive!==String(active))phase.dataset.noticeActive=String(active);
- caption?.setAttribute('aria-hidden',String(active));
+ if(caption)setAttribute(caption,'aria-hidden',String(active));
 }
 /** Labels describe actual granted action kinds, never inferred ingredients. */
 export function combinationBadge(kinds=[]){
@@ -225,14 +226,14 @@ export function createSelectionCard(doc){
   const portrait=doc.getElementById('selectedGemPortrait');
   if(portrait){
    if(!unitArt){
-    unitArt=doc.createElement('div');unitArt.id='selectedUnitArt';unitArt.className='selected-unit-art';unitArt.hidden=true;
+    unitArt=doc.createElement('div');unitArt.id='selectedUnitArt';unitArt.className='selected-unit-art';setHidden(unitArt,true);
     unitRole=doc.createElement('p');unitRole.id='selectedUnitRole';unitRole.className='selected-unit-role';
     unitArt.append(portrait,unitRole);body.prepend(unitArt);
    }
    const selected=snapshot.selectedGem,kind=typeof selected?.kind==='string'?selected.kind.trim():'',role=typeof selected?.roleLabel==='string'?selected.roleLabel.trim():'';
-   unitArt.hidden=!kind||!role;
-   if(!unitArt.hidden){unitArt.dataset.kind=kind;unitRole.textContent=role;unitRole.title=role;}
-   else{delete unitArt.dataset.kind;unitRole.textContent='';unitRole.title='';}
+   setHidden(unitArt,!kind||!role);
+   if(!unitArt.hidden){unitArt.dataset.kind=kind;setText(unitRole,role);setProperty(unitRole,'title',role);}
+   else{delete unitArt.dataset.kind;setText(unitRole,'');setProperty(unitRole,'title','');}
   }
   const compact=snapshot.combatActive===true&&Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem);
   const active=doc.activeElement,completedKeep=compact&&!lastCombat&&active===keep,focusInBody=active&&!completedKeep&&active!==close&&!active.disabled&&!active.hidden&&(body.contains(active)||actions.contains(active)),interacting=Boolean(snapshot.pendingTarget||snapshot.pendingPoint);
@@ -259,7 +260,7 @@ export function createSelectionCard(doc){
   if(desktop){if(meta.parentNode!==panel||meta.nextSibling)panel.append(meta);}
   else putBack(meta,compact?{...homes.meta,next:close}:homes.meta);
   if(panel.dataset.desktopCard!==String(desktop))panel.dataset.desktopCard=String(desktop);
-  summary.hidden=false;
+  setHidden(summary,false);
   sheet.update({selected:Number.isSafeInteger(snapshot.selectedId)&&snapshot.selectedId>0&&Boolean(snapshot.selectedGem),interacting,desktop});
   // The original keep button can remain enabled after the source transition.
   // Its preparatory focus belongs on the visible summary when combat starts.
@@ -410,22 +411,22 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   frameInteractivePanels();
   renderCasino(snapshot.casino);
   const models=roundSlotModels(snapshot);
-  tray.dataset.committed=String(snapshot.chosen===true);
-  tray.hidden=snapshot.chosen===true&&models.every(item=>item.id===null);
-  summary.textContent='보유 '+doc.getElementById('rosterCount').textContent;
+  setData(tray,'committed',String(snapshot.chosen===true));
+  setHidden(tray,snapshot.chosen===true&&models.every(item=>item.id===null));
+  setText(summary,'보유 '+doc.getElementById('rosterCount').textContent);
   latest=snapshot;const key=JSON.stringify([models,snapshot.round,snapshot.buildCount,snapshot.chosen,snapshot.selectedId,snapshot.selectedGem,snapshot.specialMessage]);
-  comboNotice.hidden=!snapshot.specialMessage;comboNotice.textContent=snapshot.specialMessage??'';
-  state.textContent=snapshot.chosen?'보석을 남겼습니다':`${Math.min(5,snapshot.buildCount??0)} / 5`;
-  title.textContent=snapshot.chosen?'이번 선택':'이번 보석';
+  setHidden(comboNotice,!snapshot.specialMessage);setText(comboNotice,snapshot.specialMessage??'');
+  setText(state,snapshot.chosen?'보석을 남겼습니다':`${Math.min(5,snapshot.buildCount??0)} / 5`);
+  setText(title,snapshot.chosen?'이번 선택':'이번 보석');
   if(signature!==key||selectedPortrait.dataset.artReady==='false'||(!tray.hidden&&buttons.some(b=>b.dataset.artReady==='false'))){signature=key;for(let i=0;i<5;i++){const item=models[i],button=buttons[i];button.dataset.unitId=item.id??'';button.disabled=!item.id;button.setAttribute('aria-pressed',String(item.selected));const badge=combinationBadge(item.combineKinds??[]),description=badge.description|| (item.combinable?'조합 가능':'');button.setAttribute('aria-label',`보석 ${i+1} · ${item.name}${description?' · 사용 가능: '+description:''}`);button.title=item.name+(description?' · '+description:'');const combo=button.querySelector('.slot-combination');combo.textContent=badge.label||'조합';combo.hidden=!item.combinable;button.style.setProperty('--quality-color',FIELD_GRADE_COLORS[fieldGradeIndex(item.name)]??QUALITY_COLORS[item.frame]);if(!tray.hidden)paintSlot(button,item);}
    const selected=snapshot.selectedGem??models.find(m=>m.selected);const p=selectedPortrait.getContext('2d');p.clearRect(0,0,64,64);selectedPortrait.dataset.unitId=selected?.id??'';selectedPortrait.dataset.artReady=String(!selected||Boolean(drawGem(p,selected,32,34,64)));
   }
   const targeted=snapshot.targetActions?.find(action=>action.abilityId==='A05L'),selecting=Boolean(snapshot.pendingTarget);
-  targetPanel.hidden=!targeted?.acquired&&!selecting;
+  setHidden(targetPanel,!targeted?.acquired&&!selecting);
   if(targeted){targetButton.disabled=targeted.disabled;targetButton.textContent=selecting?'교환 대상 선택 중':targeted.label;targetButton.title=targeted.description;targetButton.setAttribute('aria-pressed',String(selecting));}
   const targetNote=targeted?.reason==='not-owner'?'보석을 남긴 뒤 전투 중 사용':targeted?.reason==='game-over'?'게임 종료':'';
   const rangeNote=Number.isFinite(targeted?.rangeU)?`시전 사거리 ${targeted.rangeU}`:'';
-  cancelButton.hidden=!selecting;targetHint.textContent=(selecting?['교환할 보석을 누르세요 · 보유 목록에서도 선택',rangeNote]:[targeted?.description.split(/\r?\n/)[0],rangeNote,targetNote]).filter(Boolean).join(' · ');
+  setHidden(cancelButton,!selecting);setText(targetHint,(selecting?['교환할 보석을 누르세요 · 보유 목록에서도 선택',rangeNote]:[targeted?.description.split(/\r?\n/)[0],rangeNote,targetNote]).filter(Boolean).join(' · '));
   selectionCard.render(snapshot);
   for(const b of doc.querySelectorAll('button[data-primary]'))delete b.dataset.primary;
   const primaryCandidates=['startGame','castA009','skip','speedCycle'].filter(id=>{const b=doc.getElementById(id);return b&&!b.disabled&&!b.hidden&&b.getClientRects().length;});

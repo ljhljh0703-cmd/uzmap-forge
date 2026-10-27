@@ -1,3 +1,4 @@
+import * as domState from '../../web/dom-state.js';
 import {fieldGradeIndex,FIELD_GRADE_COLORS} from '../../web/field-units.js';
 import {it} from 'node:test';
 import assert from 'node:assert/strict';
@@ -13,7 +14,7 @@ function fixture(width=1440){
  const buttons=Array.from({length:5},()=>{const combo={hidden:true};return {dataset:{artReady:'true'},disabled:false,attrs:{},querySelector:(selector:string)=>selector==='.slot-combination'?combo:null,setAttribute(k:string,v:string){this.attrs[k]=v;},style:{setProperty(){}}};});
  const slots:any={get clientWidth(){widthReads++;return tray.hidden?0:width-40;},style:{}},play={disabled:false,dataset:{},getClientRects:()=>[{}]},nodes:any={rosterCount:{textContent:'12'},play};
  const bottom={hidden:false},explorer={hidden:false};
- const context:any={frameInteractivePanels(){},fieldGradeIndex,FIELD_GRADE_COLORS,comboNotice,tray,slots,summary,state,title,buttons,selectedPortrait,bottom,explorer,latest:null,signature:'',roundSlotModels,primaryActionId,combinationBadge,selectionCard:{render(){}},renderCasino(){},paintSlot(button:any){slotPaints++;button.dataset.artReady='true';},drawGem(){portraitPaints++;return portraitReady;},QUALITY_COLORS:['#aaa'],targetPanel:{},targetButton:{setAttribute(){}},cancelButton:{},targetHint:{},doc:{defaultView:{innerWidth:width,getComputedStyle:()=>({columnGap:'8px'})},getElementById:(id:string)=>nodes[id],querySelectorAll:()=>[]},paintFrames(){},paintButtons(){},paintIcons(){}};
+ const context:any={...domState,frameInteractivePanels(){},fieldGradeIndex,FIELD_GRADE_COLORS,comboNotice,tray,slots,summary,state,title,buttons,selectedPortrait,bottom,explorer,latest:null,signature:'',roundSlotModels,primaryActionId,combinationBadge,selectionCard:{render(){}},renderCasino(){},paintSlot(button:any){slotPaints++;button.dataset.artReady='true';},drawGem(){portraitPaints++;return portraitReady;},QUALITY_COLORS:['#aaa'],targetPanel:{},targetButton:{setAttribute(){}},cancelButton:{},targetHint:{},doc:{defaultView:{innerWidth:width,getComputedStyle:()=>({columnGap:'8px'})},getElementById:(id:string)=>nodes[id],querySelectorAll:()=>[]},paintFrames(){},paintButtons(){},paintIcons(){}};
  vm.runInNewContext(render,context);
  return {comboNotice,tray,slots,summary,buttons,selectedPortrait,bottom,explorer,render:(snapshot:any)=>context.render(snapshot),stats:()=>({slotPaints,portraitPaints}),widthReads:()=>widthReads,setPortraitReady(v:boolean){portraitReady=v;}};
 }
