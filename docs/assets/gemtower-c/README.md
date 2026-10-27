@@ -13,3 +13,9 @@ The source PNG bytes are copied unchanged. C1 is drawn through the existing canv
 The three star frames are indexed for source completeness but not displayed: no new star rating rule is invented. Native labels, input handlers, URL share and cancellation/clipboard/manual fallback remain. Image sharing is offered only when a prepared file and canShare support exist. A missing image/canvas/File API keeps the URL path available.
 
 Visible application and physical share-sheet compatibility require independent review; unit/build/package checks do not approve the look or prove device behaviour.
+
+## Startup follow-up
+
+A cold visit requests the large decorative atlas and scene only after the game loader declares its core ready. Before then native text/controls are the fallback; already-decoded art remains available on subsequent loading screens. The loader waits explicit regular/bold game font loads rather than the document-wide FontFaceSet.ready barrier. Wide landscape desktops use C3 for the existing scene element; phones retain C2.
+
+The result encoder requests JPEG at quality0.88. Filename and MIME follow the returned Blob, including PNG fallback if a browser returns that format. The original PNG resources remain unchanged. Share caption backing stays dark through the date line and text has an outline. Actual cold network latency, readability and encoded byte size require independent browser/device review.
