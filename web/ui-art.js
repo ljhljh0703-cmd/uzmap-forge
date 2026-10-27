@@ -1,3 +1,4 @@
+import {waitGameFonts} from './browser-runtime.js';
 import {setData,setStyle} from './dom-state.js';
 import {createShareCardController} from './share-card.js';
 /** Supplied C artwork, unchanged PNG bytes. Coordinates are runtime atlas frames. */
@@ -20,7 +21,7 @@ export function edgeKeyAlpha(input,width,height){
 }
 const images=new Map(),listeners=new Set();let sheet=null,sheetJob=null;
 function imageAt(src){if(!images.has(src))images.set(src,new Promise((resolve,reject)=>{if(typeof Image!=='function'){reject(Error('no image decoder'));return;}const image=new Image();image.decoding='async';image.fetchPriority='low';image.onload=()=>resolve(image);image.onerror=()=>reject(Error('art unavailable'));image.src=src;}));return images.get(src);}
-function atlas(){if(!sheetJob)sheetJob=imageAt(C_ART.atlas).then(image=>{const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;const c=canvas.getContext('2d');if(!c)return null;c.drawImage(image,0,0);const pixels=c.getImageData(0,0,canvas.width,canvas.height);pixels.data.set(edgeKeyAlpha(pixels.data,canvas.width,canvas.height));c.putImageData(pixels,0,0);sheet=canvas;for(const fn of listeners)fn();return sheet;}).catch(()=>null);return sheet;}
+function atlas(){if(sheet)return sheet;if(typeof document==='undefined'||document.documentElement?.dataset.loadState!=='ready')return null;if(!sheetJob)sheetJob=imageAt(C_ART.atlas).then(image=>{const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;const c=canvas.getContext('2d');if(!c)return null;c.drawImage(image,0,0);const pixels=c.getImageData(0,0,canvas.width,canvas.height);pixels.data.set(edgeKeyAlpha(pixels.data,canvas.width,canvas.height));c.putImageData(pixels,0,0);sheet=canvas;for(const fn of listeners)fn();return sheet;}).catch(()=>null);return sheet;}
 export function onCArtReady(fn){listeners.add(fn);return()=>listeners.delete(fn);}
 export function drawCPart(ctx,key,x,y,width,height){const f=C_PARTS[key],image=atlas();if(!f||!image||!ctx)return false;const scale=Math.min(width/f.w,height/f.h),w=Math.max(1,Math.floor(f.w*scale)),h=Math.max(1,Math.floor(f.h*scale));ctx.imageSmoothingEnabled=false;ctx.drawImage(image,f.x,f.y,f.w,f.h,Math.floor(x+(width-w)/2),Math.floor(y+(height-h)/2),w,h);return true;}
 /** One image node is moved between the two existing screens, so re-entering
@@ -28,14 +29,16 @@ export function drawCPart(ctx,key,x,y,width,height){const f=C_PARTS[key],image=a
 export function mountPortraitScene(doc,{observe=fn=>typeof MutationObserver==='function'?new MutationObserver(fn):null}={}){
  const loading=doc.getElementById('loadingScreen'),mode=doc.getElementById('modeSelect');
  if(!loading&&!mode)return{destroy(){}};
- const image=doc.createElement('img');image.alt='';image.className='c-key-portrait';image.decoding='async';image.fetchPriority='low';image.setAttribute('aria-hidden','true');image.src=C_ART.portrait;
+ const image=doc.createElement('img');image.alt='';image.className='c-key-portrait';image.decoding='async';image.fetchPriority='low';image.setAttribute('aria-hidden','true');
  for(const host of [loading,mode])host?.classList.add('c-key-scene');
- const place=()=>{const host=doc.documentElement?.dataset.loadState==='ready'?mode:loading;if(host&&image.parentNode!==host)host.prepend(image);};place();
+ const win=doc.defaultView??globalThis;
+ const place=()=>{const ready=doc.documentElement?.dataset.loadState==='ready',host=ready?mode:loading;if(ready){const selected=win.innerWidth>900&&win.innerWidth>win.innerHeight?C_ART.landscape:C_ART.portrait;if(image.src!==selected)image.src=selected;}if(host&&image.parentNode!==host)host.prepend(image);};place();
+ win.addEventListener?.('resize',place);
  const watcher=observe(place);if(doc.documentElement)watcher?.observe(doc.documentElement,{attributes:true,attributeFilter:['data-load-state']});
- return{destroy(){watcher?.disconnect();}};
+ return{destroy(){watcher?.disconnect();win.removeEventListener?.('resize',place);}};
 }
 export function mountCArtwork(doc){
- const by=id=>doc.getElementById(id),canvases=[],icons=[],urls=new Map(),share=createShareCardController({loadBackground:()=>imageAt(C_ART.landscape),createCanvas:()=>doc.createElement('canvas'),fonts:()=>doc.fonts?.ready??Promise.resolve()});let outcome='defeat',sound=false;
+ const by=id=>doc.getElementById(id),canvases=[],icons=[],urls=new Map(),share=createShareCardController({loadBackground:()=>imageAt(C_ART.landscape),createCanvas:()=>doc.createElement('canvas'),fonts:()=>waitGameFonts(doc)});let outcome='defeat',sound=false;
  const canvas=(key,width,height)=>{const node=doc.createElement('canvas');node.width=width;node.height=height;node.setAttribute('aria-hidden','true');canvases.push({node,key});return node;};
  const decorate=(host,key)=>{if(!host)return;host.dataset.cIcon=key;icons.push({node:host,key});};
  for(const host of [doc.querySelector('.loading-content'),doc.querySelector('#modeSelect .mode-card')])if(host){const c=canvas('emblem',120,98);c.className='c-title-emblem';host.prepend(c);}

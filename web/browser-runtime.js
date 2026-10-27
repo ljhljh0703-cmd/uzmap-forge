@@ -13,6 +13,15 @@ export function resizeCanvasToHost(canvas,rect){
  return changed;
 }
 
+// FontFaceSet.ready includes document/layout readiness. Keep decorative image
+// completion out of boot by awaiting only the two font faces used by the game.
+const gameFontJobs=new WeakMap();
+export function waitGameFonts(doc){
+ const fonts=doc?.fonts;if(typeof fonts?.load!=='function')return Promise.resolve('fallback');
+ if(!gameFontJobs.has(fonts))gameFontJobs.set(fonts,Promise.allSettled(['12px Galmuri11','bold 12px Galmuri11'].map(face=>Promise.resolve().then(()=>fonts.load(face,'보석타워 0123456789')))).then(rows=>rows.every(row=>row.status==='fulfilled')?'ready':'fallback'));
+ return gameFontJobs.get(fonts);
+}
+
 /** Loading presentation only. Source readers, SHA checks, VM and saves remain callers' authority. */
 export function mountLoadingScreen(doc,{tips=[]}={}){
  const byId=id=>doc.getElementById(id),app=byId('gameApp'),screen=byId('loadingScreen'),stage=byId('loadingStage'),bytes=byId('loadingBytes'),bar=byId('loadingProgress'),tip=byId('loadingTip'),recovery=byId('loadingRecovery'),failure=byId('loadingError');
@@ -26,7 +35,7 @@ export function mountLoadingScreen(doc,{tips=[]}={}){
  const format=n=>n<1000?n+' B':n<1000000?(n/1000).toFixed(1)+' KB':(n/1000000).toFixed(1)+' MB';
  function refreshBytes(){
   const rows=[...received.values()],loaded=rows.reduce((sum,row)=>sum+row.loaded,0),known=rows.length>0&&rows.every(row=>row.total!==null),total=known?rows.reduce((sum,row)=>sum+row.total,0):null;
-  bytes.dataset.loaded=String(loaded);bytes.dataset.total=total===null?'':String(total);bytes.textContent=total===null?format(loaded)+' 받음':format(loaded)+' / '+format(total);
+  bytes.dataset.loaded=String(loaded);bytes.dataset.total=total===null?'':String(total);bytes.textContent='맵·능력 자료 · '+(total===null?format(loaded)+' 받음':format(loaded)+' / '+format(total));
   if(state==='receiving'&&total>0&&loaded<=total){bar.setAttribute('max',String(total));bar.setAttribute('value',String(loaded));}else indeterminate();
  }
  function claimInert(){
@@ -45,6 +54,7 @@ export function mountLoadingScreen(doc,{tips=[]}={}){
   if(!node||!recovery)return;if(node.parentNode!==recovery){if(!portals.has(node))portals.set(node,{parent:node.parentNode,next:node.nextSibling});recovery.append(node);}
  }
  return {
+  prepareFonts(){return waitGameFonts(doc);},
   begin(){restorePortals();claimInert();received.clear();completed.clear();readingPromise=null;tipIndex=0;setState('receiving');screen.hidden=false;screen.setAttribute('aria-busy','true');bar.hidden=false;failure.hidden=true;failure.textContent='';stage.textContent='받는 중';showTip();refreshBytes();},
   receive(id,loaded,total=null){
    if(!['receiving','reading'].includes(state)||typeof id!=='string'||!Number.isSafeInteger(loaded)||loaded<0)return;

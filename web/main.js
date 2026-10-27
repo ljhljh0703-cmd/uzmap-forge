@@ -2058,7 +2058,7 @@ async function loadFromUrl(seed=sessionSeed,{publishSeed=true,showSetup=false,st
     if(!restoring&&!showSetup&&startupProfile){world.challengeDate=startupProfile.dailyDate??null;chooseStartup(startupProfile.mode,startupProfile.difficulty);}
     else if(!restoring&&!showSetup&&!returning)chooseStartup('race',0);
     render(world);
-    if(!restoring){await visualReady;if(document.fonts?.ready)await document.fonts.ready;}
+    if(!restoring){await visualReady;await loadingScreen.prepareFonts?.();}
     if(!restoring)world?.syncDeviceView?.();
     if(runtimeFailed||world?.runtimeCrashes?.length)throw Error('게임 화면을 준비하지 못했습니다. 다시 열어 주세요.');
     if(!restoring)loadingScreen.finish();
