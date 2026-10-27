@@ -17,7 +17,8 @@ export function challengeURL(base,profile){
  url.searchParams.set('seed',String(dailyDate?dailySeed(dailyDate):profile.seed));url.searchParams.set('mode',profile.mode);url.searchParams.set('difficulty',String(profile.difficulty));if(dailyDate)url.searchParams.set('daily',dailyDate);return url.href;
 }
 export async function shareChallenge(navigator,payload){
- if(typeof navigator?.share==='function')try{await navigator.share(payload);return{kind:'shared'};}catch(error){if(error?.name==='AbortError')return{kind:'cancelled'};}
+ const {files,...link}=payload;let outgoing=link;if(files?.length&&typeof navigator?.canShare==='function')try{if(navigator.canShare({files}))outgoing={...link,files};}catch{}
+ if(typeof navigator?.share==='function')try{await navigator.share(outgoing);return{kind:'shared'};}catch(error){if(error?.name==='AbortError')return{kind:'cancelled'};}
  if(typeof navigator?.clipboard?.writeText==='function')try{await navigator.clipboard.writeText(payload.url);return{kind:'copied'};}catch{}
  return{kind:'manual',url:payload.url};
 }

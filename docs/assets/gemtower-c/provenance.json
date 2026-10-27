@@ -1,0 +1,35 @@
+{
+  "state": "provisional",
+  "sourceTool": "web ChatGPT, supplied by user/Vault Claude",
+  "sourceDate": "2026-10-26",
+  "applicationDate": "2026-10-27",
+  "files": [
+    {
+      "path": "web/assets/ui/approved/parts-c-atlas.png",
+      "sha256": "accb09866cd9cfa2d85e2cd0e18d2ea1bcb31ca8facc135839af3ea474cc15a6",
+      "bytes": 1470800,
+      "transform": "none; source PNG bytes preserved",
+      "source": "wiki/projects/design-aesthetic-returns/2026-10-24-gemtower-parts-c/C1-ui-extras.png"
+    },
+    {
+      "path": "web/assets/ui/approved/key-portrait-c.png",
+      "sha256": "5973e2cf046552849d4b7f264c8c6ec729f8b03e2d8d90c6f839477e24f704af",
+      "bytes": 2975534,
+      "transform": "none; source PNG bytes preserved",
+      "source": "wiki/projects/design-aesthetic-returns/2026-10-24-gemtower-parts-c/C2-key-portrait.png"
+    },
+    {
+      "path": "web/assets/ui/approved/key-landscape-c.png",
+      "sha256": "42945c8e238e4fd2c934cb6f8baabea1c625412f4974ef5d23d729df8907a25c",
+      "bytes": 2942341,
+      "transform": "none; source PNG bytes preserved",
+      "source": "wiki/projects/design-aesthetic-returns/2026-10-24-gemtower-parts-c/C3-key-landscape.png"
+    }
+  ],
+  "renderer": "original C1 PNG; edge-connected magenta key only at runtime, atlas frames declared in web/ui-art.js",
+  "references": [
+    "2026-10-19 approved UI parts",
+    "2026-10-23 B2/B3"
+  ],
+  "gate": "gate_pending"
+}
