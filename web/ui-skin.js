@@ -1,3 +1,4 @@
+import {drawCPart,onCArtReady} from './ui-art.js';
 import {setHidden,setText,setProperty,setAttribute,setData} from './dom-state.js';
 import {fieldGradeIndex,FIELD_GRADE_COLORS} from './field-units.js';
 import {createFrameTask} from './browser-runtime.js';
@@ -367,7 +368,7 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   const host=doc.querySelectorAll('.gem-stats .stat>span')[index];if(!host)continue;
   const label=doc.createElement('span');label.className='stat-label-text';label.textContent=host.textContent;host.parentElement?.setAttribute('role','group');host.parentElement?.setAttribute('aria-label',label.textContent);host.setAttribute('aria-hidden','true');host.textContent='';host.append(label);addIcon(host,key);
  }
- function paintIcons(){for(const {canvas,key}of icons){if(canvas.getClientRects&&!canvas.getClientRects().length)continue;const prepared=preparedRaster(MATERIALS[key]);if(!prepared)continue;const c=canvas.getContext('2d');c.clearRect(0,0,32,32);c.imageSmoothingEnabled=false;c.drawImage(prepared.image,Math.floor((32-prepared.image.width)/2),Math.floor((32-prepared.image.height)/2));canvas.dataset.artReady='true';}}
+ function paintIcons(){for(const {canvas,key}of icons){if(canvas.getClientRects&&!canvas.getClientRects().length)continue;const c=canvas.getContext('2d');if(!c)continue;c.clearRect(0,0,32,32);const part=key==='icon-gold-coin'?'coins':key==='icon-wave-flag'?'flag':null;if(part&&drawCPart(c,part,0,0,32,32)){canvas.dataset.artReady='true';continue;}const prepared=preparedRaster(MATERIALS[key]);if(!prepared)continue;c.imageSmoothingEnabled=false;c.drawImage(prepared.image,Math.floor((32-prepared.image.width)/2),Math.floor((32-prepared.image.height)/2));canvas.dataset.artReady='true';}}
  const notice=doc.getElementById('actionFeedback');
  function paintFrames(){for(const[e,p]of panels){if(!e.getClientRects().length)continue;const w=Math.round(e.clientWidth),h=Math.round(e.clientHeight);if(w<1||h<1)continue;const paintKey=JSON.stringify([w,h,MATERIALS[p.kind]]);if(p.paintedKey===paintKey)continue;if(p.canvas.width!==w||p.canvas.height!==h){p.canvas.width=w;p.canvas.height=h;}const spec=MATERIALS[p.kind];if(rasterNineSlice(p.canvas.getContext('2d'),spec,w,h,p.corner))p.paintedKey=paintKey;}}
  function paintButtons(){
@@ -434,12 +435,12 @@ export function mountGemSkin({document:doc,drawGem,selectUnit,armTarget,cancelTa
   if(primary&&!primary.disabled)primary.dataset.primary='true';paintFrames();paintButtons();paintIcons();
  }
  function repaint(){signature='';for(const p of panels.values())p.paintedKey='';if(latest)render(latest);else paintFrames();}
- const queueRepaint=createFrameTask(repaint);
+ const queueRepaint=createFrameTask(repaint);const offCArt=onCArtReady(queueRepaint);
  const resizeObserver=new ResizeObserver(queueRepaint);resizeObserver.observe(bottom);resizeObserver.observe(app);
  materialListeners.add(queueRepaint);
  void materialsReady().then(repaint).catch(error=>{app.dataset.skinError='materials';console.warn('[UI material]',error.message);});
  app.dataset.uiSkin='walnut-brass';app.dataset.uiAssets='claude-approved-23';
- return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');setPhaseNotice(doc,true);return message;},destroy(){materialListeners.delete(queueRepaint);resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
+ return {render,refresh:repaint,notify(text,now=performance.now()){const message=notices.push(text,now);notice.textContent=message.text+(message.count>1?` ×${message.count}`:'');setPhaseNotice(doc,true);return message;},destroy(){offCArt();materialListeners.delete(queueRepaint);resizeObserver.disconnect();queueRepaint.destroy();selectionCard.destroy();}};
 }
 
 export function primaryActionId(snapshot={},available=[]){
